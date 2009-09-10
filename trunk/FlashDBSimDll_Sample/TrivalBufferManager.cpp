@@ -8,13 +8,13 @@ TrivalBufferManager::TrivalBufferManager(shared_ptr<IBlockDevice> pDevice)
 : pdev_(pDevice), read_(0), write_(0)
 { }
 
-void TrivalBufferManager::Read(size_t addr, char *result)
+void TrivalBufferManager::Read(size_t addr, void *result)
 {
 	read_++;
 	pdev_->Read(addr, result);
 }
 
-void TrivalBufferManager::Write(size_t addr, const char *data)
+void TrivalBufferManager::Write(size_t addr, const void *data)
 {
 	write_++;
 	pdev_->Write(addr, data);
