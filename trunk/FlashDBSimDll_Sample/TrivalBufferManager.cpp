@@ -10,14 +10,14 @@ TrivalBufferManager::TrivalBufferManager(shared_ptr<IBlockDevice> pDevice)
 
 void TrivalBufferManager::Read(size_t addr, void *result)
 {
-	read_++;
 	pdev_->Read(addr, result);
+	read_++;
 }
 
 void TrivalBufferManager::Write(size_t addr, const void *data)
 {
-	write_++;
 	pdev_->Write(addr, data);
+	write_++;
 }
 
 void TrivalBufferManager::Flush()
