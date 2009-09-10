@@ -1,7 +1,10 @@
 #include "stdafx.h"
 #include "TrivalBufferManager.h"
+#include "IBlockDevice.h"
+using namespace std::tr1;
 
-TrivalBufferManager::TrivalBufferManager(std::tr1::shared_ptr<IBlockDevice> pDevice)
+
+TrivalBufferManager::TrivalBufferManager(shared_ptr<IBlockDevice> pDevice)
 : pdev_(pDevice), read_(0), write_(0)
 { }
 

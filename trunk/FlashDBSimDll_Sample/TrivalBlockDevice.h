@@ -1,3 +1,6 @@
+#ifndef _TRIVAL_BLOCK_DEVICE_
+#define _TRIVAL_BLOCK_DEVICE_
+
 #include "IBlockDevice.h"
 
 class TrivalBlockDevice : public IBlockDevice
@@ -10,3 +13,5 @@ public:
 private:
 	size_t pageSize_;
 };
+
+#endif

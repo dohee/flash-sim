@@ -1,6 +1,11 @@
+#ifndef _TRIVAL_BUFFER_MANAGER_H_
+#define _TRIVAL_BUFFER_MANAGER_H_
+
 #include <memory>
 #include "IBufferManager.h"
-#include "IBlockDevice.h"
+
+
+class IBlockDevice;
 
 class TrivalBufferManager : public IBufferManager
 {
@@ -18,3 +23,5 @@ private:
 	std::tr1::shared_ptr<IBlockDevice> pdev_;
 	int read_, write_;
 };
+
+#endif

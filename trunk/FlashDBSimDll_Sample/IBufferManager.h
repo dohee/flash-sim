@@ -1,3 +1,5 @@
+#ifndef _I_BUFFER_MANAGER_H_
+#define _I_BUFFER_MANAGER_H_
 
 class IBufferManager abstract
 {
@@ -9,3 +11,5 @@ public:
 	virtual int GetReadCount() const = 0;
 	virtual int GetWriteCount() const = 0;
 };
+
+#endif
