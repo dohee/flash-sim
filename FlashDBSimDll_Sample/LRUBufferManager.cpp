@@ -142,13 +142,13 @@ LRUBufferManager::~LRUBufferManager()
 
 void LRUBufferManager::Read(size_t addr, void *result)
 {
-	read_++;
 	pImpl->Read(addr, result);
+	read_++;
 }
 void LRUBufferManager::Write(size_t addr, const void *data)
 {
-	write_++;
 	pImpl->Write(addr, data);
+	write_++;
 }
 void LRUBufferManager::Flush()
 {

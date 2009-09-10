@@ -12,8 +12,8 @@ size_t TrivalBlockDevice::GetPageSize() const
 
 void TrivalBlockDevice::Read(size_t addr, void *result)
 {
-	read_++;
 	memset(result, 0, pageSize_);
+	read_++;
 }
 
 void TrivalBlockDevice::Write(size_t addr, const void *data)
