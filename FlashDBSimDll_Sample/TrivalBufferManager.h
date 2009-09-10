@@ -5,22 +5,20 @@
 #include "IBufferManager.h"
 
 
-class IBlockDevice;
-
 class TrivalBufferManager : public IBufferManager
 {
 public:
-	TrivalBufferManager(std::tr1::shared_ptr<IBlockDevice> pDevice);
+	TrivalBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice);
 
-	void Read(size_t addr, char *result);
-	void Write(size_t addr, const char *data);
+	void Read(size_t addr, void *result);
+	void Write(size_t addr, const void *data);
 	void Flush();
 	
 	int GetReadCount() const;
 	int GetWriteCount() const;
 
 private:
-	std::tr1::shared_ptr<IBlockDevice> pdev_;
+	std::tr1::shared_ptr<class IBlockDevice> pdev_;
 	int read_, write_;
 };
 

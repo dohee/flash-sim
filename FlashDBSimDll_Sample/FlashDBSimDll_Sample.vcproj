@@ -171,7 +171,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\LRUBufferManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SimulatedDevice.cpp"
 				>
 			</File>
 			<File
@@ -205,6 +213,10 @@
 					RelativePath=".\LRU.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\main2.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -222,6 +234,14 @@
 			</File>
 			<File
 				RelativePath=".\IBufferManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LRUBufferManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SimulatedDevice.h"
 				>
 			</File>
 			<File
