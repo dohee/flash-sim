@@ -1,3 +1,5 @@
+#ifndef _I_BLOCK_DEVICE_H_
+#define _I_BLOCK_DEVICE_H_
 
 class IBlockDevice abstract
 {
@@ -10,3 +12,5 @@ public:
 	virtual int GetReadCount() const = 0;
 	virtual int GetWriteCount() const = 0;
 };
+
+#endif
