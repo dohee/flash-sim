@@ -131,8 +131,7 @@ void LRUBufferManagerImpl::Flush()
 
 
 LRUBufferManager::LRUBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages)
-: pImpl(new LRUBufferManagerImpl(pDevice, nPages)),
-  read_(0), write_(0)
+: pImpl(new LRUBufferManagerImpl(pDevice, nPages))
 { }
 
 LRUBufferManager::~LRUBufferManager()
@@ -140,25 +139,15 @@ LRUBufferManager::~LRUBufferManager()
 	Flush();
 }
 
-void LRUBufferManager::Read(size_t addr, void *result)
+void LRUBufferManager::DoRead(size_t addr, void *result)
 {
 	pImpl->Read(addr, result);
-	read_++;
 }
-void LRUBufferManager::Write(size_t addr, const void *data)
+void LRUBufferManager::DoWrite(size_t addr, const void *data)
 {
 	pImpl->Write(addr, data);
-	write_++;
 }
-void LRUBufferManager::Flush()
+void LRUBufferManager::DoFlush()
 {
 	pImpl->Flush();
-}
-int LRUBufferManager::GetReadCount() const
-{
-	return read_;
-}
-int LRUBufferManager::GetWriteCount() const
-{
-	return write_;
 }

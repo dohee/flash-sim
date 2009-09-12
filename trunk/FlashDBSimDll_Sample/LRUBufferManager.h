@@ -2,25 +2,21 @@
 #define _LRU_BUFFER_MANAGER_H_
 
 #include <memory>
-#include "IBufferManager.h"
+#include "BufferManagerBase.h"
 
-
-class LRUBufferManager : public IBufferManager
+class LRUBufferManager : public BufferManagerBase
 {
 public:
 	LRUBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
 	virtual ~LRUBufferManager();
 
-	virtual void Read(size_t addr, void *result);
-	virtual void Write(size_t addr, const void *data);
-	virtual void Flush();
-	
-	virtual int GetReadCount() const;
-	virtual int GetWriteCount() const;
+protected:
+	virtual void DoRead(size_t addr, void *result);
+	virtual void DoWrite(size_t addr, const void *data);
+	virtual void DoFlush();
 
 private:
 	std::tr1::shared_ptr<class LRUBufferManagerImpl> pImpl;
-	int read_, write_;
 };
 
 #endif
