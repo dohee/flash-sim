@@ -2,24 +2,21 @@
 #define _TRIVAL_BUFFER_MANAGER_H_
 
 #include <memory>
-#include "IBufferManager.h"
+#include "BufferManagerBase.h"
 
 
-class TrivalBufferManager : public IBufferManager
+class TrivalBufferManager : public BufferManagerBase
 {
 public:
 	TrivalBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice);
 
-	void Read(size_t addr, void *result);
-	void Write(size_t addr, const void *data);
-	void Flush();
-	
-	int GetReadCount() const;
-	int GetWriteCount() const;
+protected:
+	void DoRead(size_t addr, void *result);
+	void DoWrite(size_t addr, const void *data);
+	void DoFlush();
 
 private:
 	std::tr1::shared_ptr<class IBlockDevice> pdev_;
-	int read_, write_;
 };
 
 #endif
