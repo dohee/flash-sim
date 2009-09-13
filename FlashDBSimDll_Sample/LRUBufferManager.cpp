@@ -49,7 +49,7 @@ LRUBufferManagerImpl::LRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, siz
 
 void LRUBufferManagerImpl::Read(size_t addr, void *result)
 {
-	size_t pageid = addr / pagesize_;
+	size_t pageid = addr;
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
@@ -63,7 +63,7 @@ void LRUBufferManagerImpl::Read(size_t addr, void *result)
 
 void LRUBufferManagerImpl::Write(size_t addr, const void *data)
 {
-	size_t pageid = addr / pagesize_;
+	size_t pageid = addr;
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)

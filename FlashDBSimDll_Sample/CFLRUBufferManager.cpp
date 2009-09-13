@@ -122,7 +122,7 @@ void CFLRUBufferManagerImpl::AcquireSlot_()
 		pframe = *it;
 		if(!(pframe ->Dirty))
 		{
-			return;
+			break;
 		}
 	}
 
@@ -130,6 +130,7 @@ void CFLRUBufferManagerImpl::AcquireSlot_()
 	if(i >= windowSize)
 	{
 		it = queue_.end();
+		--it;
 	}
 
 	pframe = *it;
