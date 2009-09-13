@@ -5,21 +5,11 @@ lyf  2009 9 13
 #include "stdafx.h"
 #include "CFLRUBufferManager.h"
 #include "IBlockDevice.h"
+#include "frame.h"
+
 using namespace std;
 using namespace stdext;
 using namespace std::tr1;
-
-struct Frame
-{
-	size_t Id;
-	bool Dirty;
-	vector<char> Data;
-
-	Frame(size_t id, size_t size)
-	: Id(id), Dirty(false),
-	  Data(vector<char>(size, -1))
-	{ }
-};
 
 
 class CFLRUBufferManagerImpl

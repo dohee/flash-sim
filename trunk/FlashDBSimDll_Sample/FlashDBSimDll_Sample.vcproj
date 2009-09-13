@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LRUWSRBufferManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\main.cpp"
 				>
 			</File>
@@ -245,6 +249,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\frame.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IBlockDevice.h"
 				>
 			</File>
@@ -254,6 +262,10 @@
 			</File>
 			<File
 				RelativePath=".\LRUBufferManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LRUWSRBufferManager.h"
 				>
 			</File>
 			<File
