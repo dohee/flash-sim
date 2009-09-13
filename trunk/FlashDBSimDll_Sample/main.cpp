@@ -18,9 +18,9 @@ void main()
 	int fcount = 0;
 	srand(clock());
 
-	while (fcount++ < 10000)
+	while (fcount++ < 100000)
 	{
-		size_t addr = rand()/10;
+		size_t addr = rand();
 		int rw = rand() % 3;
 		char buf[2048];
 
