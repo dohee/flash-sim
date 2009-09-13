@@ -4,21 +4,26 @@
 #include "TrivalBufferManager.h"
 #include "LRUBufferManager.h"
 #include "CFLRUBufferManager.h"
+#include "LRUWSRBufferManager.h"
 using namespace std;
 using namespace std::tr1;
 
 void main()
 {
+	int bufferSize = 6;
+
 	shared_ptr<IBlockDevice> pdev(new TrivalBlockDevice(2048));
 	shared_ptr<IBlockDevice> pdevCFLRU(new TrivalBlockDevice(2048));
+	shared_ptr<IBlockDevice> pdevLRUWSR(new TrivalBlockDevice(2048));
 	//shared_ptr<IBufferManager> pmgr(new TrivalBufferManager(pdev));
-	shared_ptr<IBufferManager> pmgr(new LRUBufferManager(pdev, 1000));
-	shared_ptr<IBufferManager> pmgrCFLRU(new CFLRUBufferManager(pdevCFLRU, 1000, 1000/2));
+	shared_ptr<IBufferManager> pmgr(new LRUBufferManager(pdev, bufferSize));
+	shared_ptr<IBufferManager> pmgrCFLRU(new CFLRUBufferManager(pdevCFLRU, bufferSize, bufferSize/2));
+	shared_ptr<IBufferManager> pmgrLRUWSR(new LRUWSRBufferManager(pdevLRUWSR, bufferSize));
 
 	int fcount = 0;
-	srand(clock());
+	//srand(clock());
 
-	while (fcount++ < 100000)
+	while (fcount++ < 20)
 	{
 		size_t addr = rand();
 		int rw = rand() % 3;
@@ -26,27 +31,36 @@ void main()
 
 		if (rw == 0)
 		{
-			pmgr->Read(addr * 512, buf);
-			pmgrCFLRU->Read(addr * 512, buf);
+			//pmgr->Read(addr, buf);
+			//pmgrCFLRU->Read(addr, buf);
+			pmgrLRUWSR->Read(addr, buf);
 		}
 		else{
-			pmgr->Write(addr * 512, buf);
-			pmgrCFLRU->Write(addr * 512, buf);
+			//pmgr->Write(addr, buf);
+			//pmgrCFLRU->Write(addr, buf);
+			pmgrLRUWSR->Write(addr, buf);
 		}
 	}
 
 	pmgr->Flush();
 	pmgrCFLRU->Flush();
+	pmgrLRUWSR->Flush();
 
 	cout<< "LRU" <<endl
 		<< pmgr->GetReadCount() << endl
 		<< pmgr->GetWriteCount() << endl
 		<< pdev->GetReadCount() << endl
-		<< pdev->GetWriteCount() << endl <<endl;
+		<< pdev->GetWriteCount() << endl << endl;
 
 	cout<< "CFLRU" <<endl
 		<< pmgrCFLRU->GetReadCount() << endl
 		<< pmgrCFLRU->GetWriteCount() << endl
 		<< pdevCFLRU->GetReadCount() << endl
-		<< pdevCFLRU->GetWriteCount() << endl;
+		<< pdevCFLRU->GetWriteCount() << endl << endl;
+
+	cout<< "LRUWSR" <<endl
+		<< pmgrLRUWSR->GetReadCount() << endl
+		<< pmgrLRUWSR->GetWriteCount() << endl
+		<< pdevLRUWSR->GetReadCount() << endl
+		<< pdevLRUWSR->GetWriteCount() << endl <<endl;
 }
