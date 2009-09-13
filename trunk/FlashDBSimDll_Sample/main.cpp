@@ -10,7 +10,7 @@ using namespace std::tr1;
 
 void main()
 {
-	int bufferSize = 6;
+	int bufferSize = 100;
 
 	shared_ptr<IBlockDevice> pdev(new TrivalBlockDevice(2048));
 	shared_ptr<IBlockDevice> pdevCFLRU(new TrivalBlockDevice(2048));
@@ -23,21 +23,22 @@ void main()
 	int fcount = 0;
 	//srand(clock());
 
-	while (fcount++ < 20)
+	while (fcount++ < 1000)
 	{
 		size_t addr = rand();
 		int rw = rand() % 3;
 		char buf[2048];
-
+if(addr==8922)
+int i=0;
 		if (rw == 0)
 		{
-			//pmgr->Read(addr, buf);
-			//pmgrCFLRU->Read(addr, buf);
+			pmgr->Read(addr, buf);
+			pmgrCFLRU->Read(addr, buf);
 			pmgrLRUWSR->Read(addr, buf);
 		}
 		else{
-			//pmgr->Write(addr, buf);
-			//pmgrCFLRU->Write(addr, buf);
+			pmgr->Write(addr, buf);
+			pmgrCFLRU->Write(addr, buf);
 			pmgrLRUWSR->Write(addr, buf);
 		}
 	}
