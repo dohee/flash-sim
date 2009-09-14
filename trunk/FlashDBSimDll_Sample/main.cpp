@@ -23,13 +23,15 @@ void main()
 	int fcount = 0;
 	//srand(clock());
 
-	while (fcount++ < 1000)
+	while (fcount++ < 10000)
 	{
-		size_t addr = rand();
-		int rw = rand() % 3;
+
+		size_t addr = rand()/100;
+		int rw = rand() % 2;
 		char buf[2048];
-if(addr==8922)
-int i=0;
+
+		//cout<<addr<<","<<rw<<endl;
+
 		if (rw == 0)
 		{
 			pmgr->Read(addr, buf);
