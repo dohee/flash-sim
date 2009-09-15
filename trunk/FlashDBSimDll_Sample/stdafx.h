@@ -11,3 +11,4 @@
 #include <list>
 #include <hash_map>
 #include <algorithm>
+#include <stdexcept>
