@@ -14,6 +14,7 @@ public:
 
 	int GetReadCount() const;
 	int GetWriteCount() const;
+	int GetTotalCost() const;
 
 private:
 	size_t pageSize_;

@@ -16,6 +16,7 @@ public:
 
 	virtual int GetReadCount() const;
 	virtual int GetWriteCount() const;
+	virtual int GetTotalCost() const;
 
 private:
 	SimulatedDevice();
