@@ -5,17 +5,17 @@ using namespace std::tr1;
 
 
 TrivalBufferManager::TrivalBufferManager(shared_ptr<IBlockDevice> pDevice)
-: pdev_(pDevice)
+: BufferManagerBase(pDevice)
 { }
 
 void TrivalBufferManager::DoRead(size_t pageid, void *result)
 {
-	pdev_->Read(pageid, result);
+	DeviceRead(pageid, result);
 }
 
 void TrivalBufferManager::DoWrite(size_t pageid, const void *data)
 {
-	pdev_->Write(pageid, data);
+	DeviceWrite(pageid, data);
 }
 
 void TrivalBufferManager::DoFlush()

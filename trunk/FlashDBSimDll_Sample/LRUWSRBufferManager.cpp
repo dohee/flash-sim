@@ -22,63 +22,45 @@ struct LRUWSRFrame : public Frame
 };
 
 
-class LRUWSRBufferManagerImpl
-{
-public:
-	LRUWSRBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t maxCold);
-	void Read(size_t pageid, void *result);
-	void Write(size_t pageid, const void *data);
-	void Flush();
-private:
-	shared_ptr<LRUWSRFrame> AccessFrame_(size_t pageid);
-	shared_ptr<LRUWSRFrame> AcquireFrame_(size_t pageid);
-	void AcquireSlot_();
-	void WriteIfDirty(shared_ptr<LRUWSRFrame> pFrame);
-
-private:
-	shared_ptr<IBlockDevice> pdev_;
-	size_t pagesize_, npages_, maxcold_;
-	
-	typedef list<shared_ptr<LRUWSRFrame> > QueueType;
-	typedef hash_map<size_t, QueueType::iterator> MapType;
-	QueueType queue_;
-	MapType map_;
-};
-
-LRUWSRBufferManagerImpl::LRUWSRBufferManagerImpl(
+LRUWSRBufferManager::LRUWSRBufferManager(
 	shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t maxCold)
-: pdev_(pDevice),
-  pagesize_(pDevice->GetPageSize()), npages_(nPages),
+: BufferManagerBase(pDevice),
+  pagesize_(GetPageSize()), npages_(nPages),
   maxcold_(maxCold),
   queue_(), map_()
 { }
 
-void LRUWSRBufferManagerImpl::Read(size_t pageid, void *result)
+LRUWSRBufferManager::~LRUWSRBufferManager()
+{
+	Flush();
+}
+
+void LRUWSRBufferManager::DoRead(size_t pageid, void *result)
 {
 	shared_ptr<LRUWSRFrame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
 	{
 		pframe = AcquireFrame_(pageid);
-		pdev_->Read(pageid * pagesize_, &(pframe->Data.front()));
+		DeviceRead(pageid, pframe->Get());
 	}
 
-	memcpy(result, &(pframe->Data.front()), pagesize_);
+	memcpy(result, pframe->Get(), pagesize_);
 }
 
-void LRUWSRBufferManagerImpl::Write(size_t pageid, const void *data)
+void LRUWSRBufferManager::DoWrite(size_t pageid, const void *data)
 {
 	shared_ptr<LRUWSRFrame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
 		pframe = AcquireFrame_(pageid);
 
-	memcpy(&(pframe->Data.front()), data, pagesize_);
+	memcpy(pframe->Get(), data, pagesize_);
 	pframe->Dirty = true;
 }
 
 
-shared_ptr<LRUWSRFrame> LRUWSRBufferManagerImpl::AccessFrame_(size_t pageid)
+shared_ptr<LRUWSRFrame> LRUWSRBufferManager::AccessFrame_(size_t pageid)
 {
 	MapType::iterator iter = map_.find(pageid);
 
@@ -99,7 +81,7 @@ shared_ptr<LRUWSRFrame> LRUWSRBufferManagerImpl::AccessFrame_(size_t pageid)
 	return pframe;
 }
 
-shared_ptr<LRUWSRFrame> LRUWSRBufferManagerImpl::AcquireFrame_(size_t pageid)
+shared_ptr<LRUWSRFrame> LRUWSRBufferManager::AcquireFrame_(size_t pageid)
 {
 	AcquireSlot_();
 	shared_ptr<LRUWSRFrame> pframe(new LRUWSRFrame(pageid, pagesize_));
@@ -109,7 +91,7 @@ shared_ptr<LRUWSRFrame> LRUWSRBufferManagerImpl::AcquireFrame_(size_t pageid)
 }
 
 
-void LRUWSRBufferManagerImpl::AcquireSlot_()
+void LRUWSRBufferManager::AcquireSlot_()
 {
 	if (queue_.size() < npages_)
 		return;
@@ -136,16 +118,16 @@ void LRUWSRBufferManagerImpl::AcquireSlot_()
 	WriteIfDirty(pframe);
 }
 
-void LRUWSRBufferManagerImpl::WriteIfDirty(shared_ptr<LRUWSRFrame> pFrame)
+void LRUWSRBufferManager::WriteIfDirty(shared_ptr<LRUWSRFrame> pFrame)
 {
 	if (!pFrame->Dirty)
 		return;
 
 	pFrame->Dirty = false;
-	pdev_->Write(pFrame->Id * pagesize_, &(pFrame->Data.front()));
+	DeviceWrite(pFrame->Id, pFrame->Get());
 }
 
-void LRUWSRBufferManagerImpl::Flush()
+void LRUWSRBufferManager::DoFlush()
 {
 	QueueType::iterator it, itend = queue_.end();
 
@@ -153,27 +135,3 @@ void LRUWSRBufferManagerImpl::Flush()
 		WriteIfDirty(*it);
 }
 
-
-
-LRUWSRBufferManager::LRUWSRBufferManager(
-	shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t maxCold)
-: pImpl(new LRUWSRBufferManagerImpl(pDevice, nPages, maxCold))
-{ }
-
-LRUWSRBufferManager::~LRUWSRBufferManager()
-{
-	Flush();
-}
-
-void LRUWSRBufferManager::DoRead(size_t pageid, void *result)
-{
-	pImpl->Read(pageid, result);
-}
-void LRUWSRBufferManager::DoWrite(size_t pageid, const void *data)
-{
-	pImpl->Write(pageid, data);
-}
-void LRUWSRBufferManager::DoFlush()
-{
-	pImpl->Flush();
-}

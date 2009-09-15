@@ -2,6 +2,8 @@
 #define _LRU_BUFFER_MANAGER_H_
 
 #include <memory>
+#include <list>
+#include <hash_map>
 #include "BufferManagerBase.h"
 
 class LRUBufferManager : public BufferManagerBase
@@ -16,7 +18,18 @@ protected:
 	virtual void DoFlush();
 
 private:
-	std::tr1::shared_ptr<class LRUBufferManagerImpl> pImpl;
+	std::tr1::shared_ptr<struct Frame> AccessFrame_(size_t pageid);
+	std::tr1::shared_ptr<struct Frame> AcquireFrame_(size_t pageid);
+	void AcquireSlot_();
+	void WriteIfDirty(std::tr1::shared_ptr<struct Frame> pFrame);
+
+private:
+	size_t pagesize_, npages_;
+	
+	typedef std::list<std::tr1::shared_ptr<struct Frame> > QueueType;
+	typedef stdext::hash_map<size_t, QueueType::iterator> MapType;
+	QueueType queue_;
+	MapType map_;
 };
 
 #endif

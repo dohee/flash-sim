@@ -15,8 +15,6 @@ protected:
 	void DoWrite(size_t pageid, const void *data);
 	void DoFlush();
 
-private:
-	std::tr1::shared_ptr<class IBlockDevice> pdev_;
 };
 
 #endif

@@ -2,25 +2,38 @@
 #define _CFLRU_BUFFER_MANAGER_H_
 
 #include <memory>
-#include "IBufferManager.h"
+#include <list>
+#include <hash_map>
+#include "BufferManagerBase.h"
 
 
-class CFLRUBufferManager : public IBufferManager
+class CFLRUBufferManager : public BufferManagerBase
 {
 public:
 	CFLRUBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t iwindowSize);
 	virtual ~CFLRUBufferManager();
 
-	virtual void Read(size_t pageid, void *result);
-	virtual void Write(size_t pageid, const void *data);
-	virtual void Flush();
-	
-	virtual int GetReadCount() const;
-	virtual int GetWriteCount() const;
+protected:
+	virtual void DoRead(size_t pageid, void *result);
+	virtual void DoWrite(size_t pageid, const void *data);
+	virtual void DoFlush();
 
 private:
-	std::tr1::shared_ptr<class CFLRUBufferManagerImpl> pImpl;
-	int read_, write_;
+	void setwindowSize(size_t iwindowSize);
+	std::tr1::shared_ptr<struct Frame> AccessFrame_(size_t pageid);
+	std::tr1::shared_ptr<struct Frame> AcquireFrame_(size_t pageid);
+	void AcquireSlot_();
+	void WriteIfDirty(std::tr1::shared_ptr<struct Frame> pFrame);
+
+private:
+	size_t pagesize_, npages_;
+	size_t windowSize;		//windowSize parameter of CFLRU
+	
+	typedef std::list<std::tr1::shared_ptr<struct Frame> > QueueType;
+	typedef stdext::hash_map<size_t, QueueType::iterator> MapType;
+	QueueType queue_;
+	MapType map_;
+
 };
 
 #endif

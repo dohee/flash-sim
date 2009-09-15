@@ -1,23 +1,24 @@
 #ifndef _FRAME_H_
 #define _FRAME_H_
 
-#include <vector>
-using namespace std;
-
 struct Frame
 {
 	size_t Id;
 	bool Dirty;
-	vector<char> Data;
 
-	Frame(size_t id, size_t size)
-	: Id(id), Dirty(false), Data(vector<char>()),
-	  inited_(false), size_(size)
-	{ }
+	Frame(size_t id, size_t size);
+	~Frame();
+
+	void* Get();
+	const void* Get() const;
 
 private:
-	bool inited_;
 	size_t size_;
+	mutable bool inited_;
+	mutable char* data_;
+
+	Frame(const Frame &);
+	Frame& operator=(const Frame &);
 };
 
 #endif

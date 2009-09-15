@@ -1,13 +1,16 @@
 #include "stdafx.h"
 #include "TrivalBlockDevice.h"
 
+const int WRITECOST = 200;
+const int READCOST = 80;
+
 TrivalBlockDevice::TrivalBlockDevice(size_t pageSize)
 : pageSize_(pageSize), read_(0), write_(0)
 { }
 
 size_t TrivalBlockDevice::GetPageSize() const
 {
-	return pageSize_;
+	return 0; // always returns 0, indicating it's trival
 }
 
 void TrivalBlockDevice::Read(size_t pageid, void *result)

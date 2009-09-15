@@ -13,68 +13,47 @@ using namespace stdext;
 using namespace std::tr1;
 
 
-class CFLRUBufferManagerImpl
-{
-public:
-	CFLRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t iwindowSize);
-	void Read(size_t pageid, void *result);
-	void Write(size_t pageid, const void *data);
-	void Flush();
-	void setwindowSize(size_t iwindowSize);
-private:
-	shared_ptr<Frame> AccessFrame_(size_t pageid);
-	shared_ptr<Frame> AcquireFrame_(size_t pageid);
-	void AcquireSlot_();
-	void WriteIfDirty(shared_ptr<Frame> pFrame);
-
-private:
-	shared_ptr<IBlockDevice> pdev_;
-	size_t pagesize_, npages_;
-	
-	typedef list<shared_ptr<Frame> > QueueType;
-	typedef hash_map<size_t, QueueType::iterator> MapType;
-	QueueType queue_;
-	MapType map_;
-
-	size_t windowSize;		//windowSize parameter of CFLRU
-};
-
-CFLRUBufferManagerImpl::CFLRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t iwindowSize)
-: pdev_(pDevice),
-  pagesize_(pDevice->GetPageSize()), npages_(nPages), windowSize(iwindowSize),
+CFLRUBufferManager::CFLRUBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t iwindowSize)
+: BufferManagerBase(pDevice),
+  pagesize_(GetPageSize()), npages_(nPages), windowSize(iwindowSize),
   queue_(), map_()
 {
 	if (iwindowSize > nPages)
 		throw std::runtime_error("WindowSize larger than NumOfPages");
 }
 
-void CFLRUBufferManagerImpl::Read(size_t pageid, void *result)
+CFLRUBufferManager::~CFLRUBufferManager()
+{
+	Flush();
+}
+
+void CFLRUBufferManager::DoRead(size_t pageid, void *result)
 {
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
 	{
 		pframe = AcquireFrame_(pageid);
-		pdev_->Read(pageid * pagesize_, &(pframe->Data.front()));
+		DeviceRead(pageid, pframe->Get());
 
 	}
 
-	memcpy(result, &(pframe->Data.front()), pagesize_);
+	memcpy(result, pframe->Get(), pagesize_);
 }
 
-void CFLRUBufferManagerImpl::Write(size_t pageid, const void *data)
+void CFLRUBufferManager::DoWrite(size_t pageid, const void *data)
 {
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
 		pframe = AcquireFrame_(pageid);
 
-	memcpy(&(pframe->Data.front()), data, pagesize_);
+	memcpy(pframe->Get(), data, pagesize_);
 	pframe->Dirty = true;
 }
 
 
-shared_ptr<Frame> CFLRUBufferManagerImpl::AccessFrame_(size_t pageid)
+shared_ptr<Frame> CFLRUBufferManager::AccessFrame_(size_t pageid)
 {
 	MapType::iterator iter = map_.find(pageid);
 
@@ -88,7 +67,7 @@ shared_ptr<Frame> CFLRUBufferManagerImpl::AccessFrame_(size_t pageid)
 	return pframe;
 }
 
-shared_ptr<Frame> CFLRUBufferManagerImpl::AcquireFrame_(size_t pageid)
+shared_ptr<Frame> CFLRUBufferManager::AcquireFrame_(size_t pageid)
 {
 	AcquireSlot_();
 	shared_ptr<Frame> pframe(new Frame(pageid, pagesize_));
@@ -98,7 +77,7 @@ shared_ptr<Frame> CFLRUBufferManagerImpl::AcquireFrame_(size_t pageid)
 }
 
 
-void CFLRUBufferManagerImpl::AcquireSlot_()
+void CFLRUBufferManager::AcquireSlot_()
 {
 	if (queue_.size() < npages_)
 		return;
@@ -131,16 +110,16 @@ void CFLRUBufferManagerImpl::AcquireSlot_()
 	map_.erase(pframe->Id);
 }
 
-void CFLRUBufferManagerImpl::WriteIfDirty(shared_ptr<Frame> pFrame)
+void CFLRUBufferManager::WriteIfDirty(shared_ptr<Frame> pFrame)
 {
 	if (!pFrame->Dirty)
 		return;
 
 	pFrame->Dirty = false;
-	pdev_->Write(pFrame->Id * pagesize_, &(pFrame->Data.front()));
+	DeviceWrite(pFrame->Id, pFrame->Get());
 }
 
-void CFLRUBufferManagerImpl::Flush()
+void CFLRUBufferManager::DoFlush()
 {
 	QueueType::iterator it, itend = queue_.end();
 
@@ -150,35 +129,3 @@ void CFLRUBufferManagerImpl::Flush()
 
 
 
-CFLRUBufferManager::CFLRUBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t iwindowSize)
-: pImpl(new CFLRUBufferManagerImpl(pDevice, nPages, iwindowSize)),
-  read_(0), write_(0)
-{ }
-
-CFLRUBufferManager::~CFLRUBufferManager()
-{
-	Flush();
-}
-
-void CFLRUBufferManager::Read(size_t pageid, void *result)
-{
-	pImpl->Read(pageid, result);
-	read_++;
-}
-void CFLRUBufferManager::Write(size_t pageid, const void *data)
-{
-	pImpl->Write(pageid, data);
-	write_++;
-}
-void CFLRUBufferManager::Flush()
-{
-	pImpl->Flush();
-}
-int CFLRUBufferManager::GetReadCount() const
-{
-	return read_;
-}
-int CFLRUBufferManager::GetWriteCount() const
-{
-	return write_;
-}
