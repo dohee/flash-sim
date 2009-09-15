@@ -12,7 +12,7 @@ struct Frame
 
 	Frame(size_t id, size_t size)
 	: Id(id), Dirty(false),
-	  Data(vector<char>(size, -1))
+	  Data(vector<char>(size))
 	{ }
 };
 
