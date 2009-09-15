@@ -54,12 +54,12 @@ size_t SimulatedDevice::GetPageSize() const
 	throw std::runtime_error("not implemented");
 }
 
-void SimulatedDevice::Read(size_t addr, void *result)
+void SimulatedDevice::Read(size_t pageid, void *result)
 {
 	throw std::runtime_error("not implemented");
 }
 
-void SimulatedDevice::Write(size_t addr, const void *data)
+void SimulatedDevice::Write(size_t pageid, const void *data)
 {
 	throw std::runtime_error("not implemented");
 }

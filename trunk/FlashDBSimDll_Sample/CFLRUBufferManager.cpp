@@ -17,8 +17,8 @@ class CFLRUBufferManagerImpl
 {
 public:
 	CFLRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t iwindowSize);
-	void Read(size_t addr, void *result);
-	void Write(size_t addr, const void *data);
+	void Read(size_t pageid, void *result);
+	void Write(size_t pageid, const void *data);
 	void Flush();
 	void setwindowSize(size_t iwindowSize);
 private:
@@ -48,9 +48,8 @@ CFLRUBufferManagerImpl::CFLRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice,
 		throw std::runtime_error("WindowSize larger than NumOfPages");
 }
 
-void CFLRUBufferManagerImpl::Read(size_t addr, void *result)
+void CFLRUBufferManagerImpl::Read(size_t pageid, void *result)
 {
-	size_t pageid = addr;
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
@@ -63,9 +62,8 @@ void CFLRUBufferManagerImpl::Read(size_t addr, void *result)
 	memcpy(result, &(pframe->Data.front()), pagesize_);
 }
 
-void CFLRUBufferManagerImpl::Write(size_t addr, const void *data)
+void CFLRUBufferManagerImpl::Write(size_t pageid, const void *data)
 {
-	size_t pageid = addr;
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
@@ -162,14 +160,14 @@ CFLRUBufferManager::~CFLRUBufferManager()
 	Flush();
 }
 
-void CFLRUBufferManager::Read(size_t addr, void *result)
+void CFLRUBufferManager::Read(size_t pageid, void *result)
 {
-	pImpl->Read(addr, result);
+	pImpl->Read(pageid, result);
 	read_++;
 }
-void CFLRUBufferManager::Write(size_t addr, const void *data)
+void CFLRUBufferManager::Write(size_t pageid, const void *data)
 {
-	pImpl->Write(addr, data);
+	pImpl->Write(pageid, data);
 	write_++;
 }
 void CFLRUBufferManager::Flush()

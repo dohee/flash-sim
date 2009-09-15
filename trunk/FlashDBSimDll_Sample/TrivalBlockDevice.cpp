@@ -10,12 +10,12 @@ size_t TrivalBlockDevice::GetPageSize() const
 	return pageSize_;
 }
 
-void TrivalBlockDevice::Read(size_t addr, void *result)
+void TrivalBlockDevice::Read(size_t pageid, void *result)
 {
 	read_++;
 }
 
-void TrivalBlockDevice::Write(size_t addr, const void *data)
+void TrivalBlockDevice::Write(size_t pageid, const void *data)
 {
 	write_++;
 }

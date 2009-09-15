@@ -11,8 +11,8 @@ public:
 	virtual ~LRUBufferManager();
 
 protected:
-	virtual void DoRead(size_t addr, void *result);
-	virtual void DoWrite(size_t addr, const void *data);
+	virtual void DoRead(size_t pageid, void *result);
+	virtual void DoWrite(size_t pageid, const void *data);
 	virtual void DoFlush();
 
 private:

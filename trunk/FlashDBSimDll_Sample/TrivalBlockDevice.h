@@ -9,8 +9,8 @@ public:
 	TrivalBlockDevice(size_t pageSize);
 	size_t GetPageSize() const;
 
-	void Read(size_t addr, void *result);
-	void Write(size_t addr, const void *data);
+	void Read(size_t pageid, void *result);
+	void Write(size_t pageid, const void *data);
 
 	int GetReadCount() const;
 	int GetWriteCount() const;
