@@ -48,7 +48,7 @@ void main()
 
 		if (count < 0)
 			continue;
-		if (count > 20000)
+		if (count > 40000)
 			break;
 		
 		//cout<<pageid<<","<<rw<<endl;
