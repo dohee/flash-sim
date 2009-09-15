@@ -3,6 +3,7 @@ This program implements the CFLRU algorithm for Flash memory proposed in 2006. T
 lyf  2009 9 13
 */
 #include "stdafx.h"
+#include <stdexcept>
 #include "CFLRUBufferManager.h"
 #include "IBlockDevice.h"
 #include "frame.h"
@@ -42,7 +43,10 @@ CFLRUBufferManagerImpl::CFLRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice,
 : pdev_(pDevice),
   pagesize_(pDevice->GetPageSize()), npages_(nPages), windowSize(iwindowSize),
   queue_(), map_()
-{ }
+{
+	if (iwindowSize > nPages)
+		throw std::runtime_error("WindowSize larger than NumOfPages");
+}
 
 void CFLRUBufferManagerImpl::Read(size_t addr, void *result)
 {

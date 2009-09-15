@@ -18,7 +18,7 @@ void main()
 	//shared_ptr<IBufferManager> pmgr(new TrivalBufferManager(pdev));
 	shared_ptr<IBufferManager> pmgr(new LRUBufferManager(pdev, bufferSize));
 	shared_ptr<IBufferManager> pmgrCFLRU(new CFLRUBufferManager(pdevCFLRU, bufferSize, bufferSize/2));
-	shared_ptr<IBufferManager> pmgrLRUWSR(new LRUWSRBufferManager(pdevLRUWSR, bufferSize));
+	shared_ptr<IBufferManager> pmgrLRUWSR(new LRUWSRBufferManager(pdevLRUWSR, bufferSize, 0));
 
 	int fcount = 0;
 	ifstream traceFile("trace.txt");
