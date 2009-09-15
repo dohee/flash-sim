@@ -48,23 +48,22 @@ void main()
 
 		if (count < 0)
 			continue;
-		if (count > 40000)
+		if (count > 10000)
 			break;
 		
 		//cout<<pageid<<","<<rw<<endl;
 		for(int i = 0; i<length; i++)
 		{
-			if (rw == 0)
-			{
+			if (rw == 0) {
 				pmgr->Read(pageid, buf);
-				//pmgrCFLRU->Read(pageid, buf);
-				//pmgrLRUWSR->Read(pageid, buf);
-			}
-			else{
+				pmgrCFLRU->Read(pageid, buf);
+				pmgrLRUWSR->Read(pageid, buf);
+			} else {
 				pmgr->Write(pageid, buf);
-				//pmgrCFLRU->Write(pageid, buf);
-				//pmgrLRUWSR->Write(pageid, buf);
+				pmgrCFLRU->Write(pageid, buf);
+				pmgrLRUWSR->Write(pageid, buf);
 			}
+
 			pageid++;
 		}
 	}

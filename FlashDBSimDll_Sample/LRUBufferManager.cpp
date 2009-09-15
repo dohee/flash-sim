@@ -7,61 +7,43 @@ using namespace stdext;
 using namespace std::tr1;
 
 
-class LRUBufferManagerImpl
-{
-public:
-	LRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, size_t nPages);
-	void Read(size_t pageid, void *result);
-	void Write(size_t pageid, const void *data);
-	void Flush();
-private:
-	shared_ptr<Frame> AccessFrame_(size_t pageid);
-	shared_ptr<Frame> AcquireFrame_(size_t pageid);
-	void AcquireSlot_();
-	void WriteIfDirty(shared_ptr<Frame> pFrame);
-
-private:
-	shared_ptr<IBlockDevice> pdev_;
-	size_t pagesize_, npages_;
-	
-	typedef list<shared_ptr<Frame> > QueueType;
-	typedef hash_map<size_t, QueueType::iterator> MapType;
-	QueueType queue_;
-	MapType map_;
-};
-
-LRUBufferManagerImpl::LRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, size_t nPages)
-: pdev_(pDevice),
-  pagesize_(pDevice->GetPageSize()), npages_(nPages),
+LRUBufferManager::LRUBufferManager(shared_ptr<IBlockDevice> pdev, size_t nPages)
+: BufferManagerBase(pdev),
+  pagesize_(GetPageSize()), npages_(nPages),
   queue_(), map_()
 { }
 
-void LRUBufferManagerImpl::Read(size_t pageid, void *result)
+LRUBufferManager::~LRUBufferManager()
+{
+	Flush();
+}
+
+void LRUBufferManager::DoRead(size_t pageid, void *result)
 {
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
 	{
 		pframe = AcquireFrame_(pageid);
-		pdev_->Read(pageid * pagesize_, &(pframe->Data.front()));
+		DeviceRead(pageid, pframe->Get());
 	}
 
-	memcpy(result, &(pframe->Data.front()), pagesize_);
+	memcpy(result, pframe->Get(), pagesize_);
 }
 
-void LRUBufferManagerImpl::Write(size_t pageid, const void *data)
+void LRUBufferManager::DoWrite(size_t pageid, const void *data)
 {
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
 		pframe = AcquireFrame_(pageid);
 
-	memcpy(&(pframe->Data.front()), data, pagesize_);
+	memcpy(pframe->Get(), data, pagesize_);
 	pframe->Dirty = true;
 }
 
 
-shared_ptr<Frame> LRUBufferManagerImpl::AccessFrame_(size_t pageid)
+shared_ptr<Frame> LRUBufferManager::AccessFrame_(size_t pageid)
 {
 	MapType::iterator iter = map_.find(pageid);
 
@@ -75,7 +57,7 @@ shared_ptr<Frame> LRUBufferManagerImpl::AccessFrame_(size_t pageid)
 	return pframe;
 }
 
-shared_ptr<Frame> LRUBufferManagerImpl::AcquireFrame_(size_t pageid)
+shared_ptr<Frame> LRUBufferManager::AcquireFrame_(size_t pageid)
 {
 	AcquireSlot_();
 	shared_ptr<Frame> pframe(new Frame(pageid, pagesize_));
@@ -85,7 +67,7 @@ shared_ptr<Frame> LRUBufferManagerImpl::AcquireFrame_(size_t pageid)
 }
 
 
-void LRUBufferManagerImpl::AcquireSlot_()
+void LRUBufferManager::AcquireSlot_()
 {
 	if (queue_.size() < npages_)
 		return;
@@ -98,43 +80,19 @@ void LRUBufferManagerImpl::AcquireSlot_()
 	map_.erase(pframe->Id);
 }
 
-void LRUBufferManagerImpl::WriteIfDirty(shared_ptr<Frame> pFrame)
+void LRUBufferManager::WriteIfDirty(shared_ptr<Frame> pFrame)
 {
 	if (!pFrame->Dirty)
 		return;
 
 	pFrame->Dirty = false;
-	pdev_->Write(pFrame->Id * pagesize_, &(pFrame->Data.front()));
+	DeviceWrite(pFrame->Id, pFrame->Get());
 }
 
-void LRUBufferManagerImpl::Flush()
+void LRUBufferManager::DoFlush()
 {
 	QueueType::iterator it, itend = queue_.end();
 
 	for (it = queue_.begin(); it != itend; ++it)
 		WriteIfDirty(*it);
-}
-
-
-
-LRUBufferManager::LRUBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages)
-: pImpl(new LRUBufferManagerImpl(pDevice, nPages))
-{ }
-
-LRUBufferManager::~LRUBufferManager()
-{
-	Flush();
-}
-
-void LRUBufferManager::DoRead(size_t pageid, void *result)
-{
-	pImpl->Read(pageid, result);
-}
-void LRUBufferManager::DoWrite(size_t pageid, const void *data)
-{
-	pImpl->Write(pageid, data);
-}
-void LRUBufferManager::DoFlush()
-{
-	pImpl->Flush();
 }

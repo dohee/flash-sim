@@ -1,9 +1,6 @@
 #ifndef _I_BLOCK_DEVICE_H_
 #define _I_BLOCK_DEVICE_H_
 
-const int WRITECOST = 200;
-const int READCOST = 80;
-
 class IBlockDevice abstract
 {
 public:
