@@ -11,9 +11,13 @@ struct Frame
 	vector<char> Data;
 
 	Frame(size_t id, size_t size)
-	: Id(id), Dirty(false),
-	  Data(vector<char>(size))
+	: Id(id), Dirty(false), Data(vector<char>()),
+	  inited_(false), size_(size)
 	{ }
+
+private:
+	bool inited_;
+	size_t size_;
 };
 
 #endif
