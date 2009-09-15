@@ -10,7 +10,7 @@ using namespace std::tr1;
 
 void main()
 {
-	int bufferSize = 10000;
+	int bufferSize = 5000;
 
 	shared_ptr<IBlockDevice> pdev(new TrivalBlockDevice(2048));
 	shared_ptr<IBlockDevice> pdevCFLRU(new TrivalBlockDevice(2048));
@@ -18,7 +18,7 @@ void main()
 	//shared_ptr<IBufferManager> pmgr(new TrivalBufferManager(pdev));
 	shared_ptr<IBufferManager> pmgr(new LRUBufferManager(pdev, bufferSize));
 	shared_ptr<IBufferManager> pmgrCFLRU(new CFLRUBufferManager(pdevCFLRU, bufferSize, bufferSize/2));
-	shared_ptr<IBufferManager> pmgrLRUWSR(new LRUWSRBufferManager(pdevLRUWSR, bufferSize, 0));
+	shared_ptr<IBufferManager> pmgrLRUWSR(new LRUWSRBufferManager(pdevLRUWSR, bufferSize, 1));
 
 	int fcount = 0;
 	ifstream traceFile("trace.txt");
@@ -27,21 +27,28 @@ void main()
 		cout<<"file missing~~"<<endl;
 		exit(1);
 	}
-	//srand(clock());
+	srand(clock());
 
 	int count=0;
+
 	while (!traceFile.eof())
 	{
-		if(++count %2000 == 0)
+		if(++count % 2000 == 0)
 		{
 			cout<<count<<endl;
 		}
 		size_t addr;
-		size_t length;
+		int length;
 		int rw;
 		char buf[2048];
 
-		traceFile>>addr>>length>>rw;
+		traceFile >> addr >> length >> rw;
+		rw = rand() % 2;
+
+		if (count < 160000)
+			continue;
+		if (count > 180000)
+			continue;
 		
 		//cout<<addr<<","<<rw<<endl;
 		for(int i = 0; i<length; i++)
@@ -57,7 +64,7 @@ void main()
 				pmgrCFLRU->Write(addr, buf);
 				pmgrLRUWSR->Write(addr, buf);
 			}
-			addr += length;
+			addr++;
 		}
 	}
 
