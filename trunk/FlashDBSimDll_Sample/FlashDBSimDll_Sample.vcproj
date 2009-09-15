@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CMFTBufferManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\LRUBufferManager.cpp"
 				>
 			</File>
@@ -199,6 +203,14 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -242,6 +254,10 @@
 			</File>
 			<File
 				RelativePath=".\CFLRUBufferManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CMFTBufferManager.h"
 				>
 			</File>
 			<File
