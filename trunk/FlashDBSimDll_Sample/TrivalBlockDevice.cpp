@@ -30,3 +30,8 @@ int TrivalBlockDevice::GetWriteCount() const
 {
 	return write_;
 }
+
+int TrivalBlockDevice::GetTotalCost() const
+{
+	return read_*READCOST+WRITECOST*write_;
+}

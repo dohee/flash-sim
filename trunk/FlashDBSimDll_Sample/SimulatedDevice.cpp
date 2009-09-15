@@ -73,3 +73,8 @@ int SimulatedDevice::GetWriteCount() const
 {
 	throw std::runtime_error("not implemented");
 }
+
+ int SimulatedDevice::GetTotalCost() const
+{
+	throw std::runtime_error("not implemented");
+}

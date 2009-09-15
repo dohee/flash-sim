@@ -113,7 +113,7 @@ void LRUWSRBufferManagerImpl::AcquireSlot_()
 		pframe = queue_.back();
 		queue_.pop_back();
 		map_.erase(pframe->Id);
-		if(pframe->Dirty&&(pframe->Cold<=0))
+		if(pframe->Dirty&&(pframe->Cold<=3))
 		{
 			(pframe->Cold)++;
 			queue_.push_front(pframe);
