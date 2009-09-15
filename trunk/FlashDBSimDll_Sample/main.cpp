@@ -10,7 +10,7 @@ using namespace std::tr1;
 
 void main()
 {
-	int bufferSize = 5000;
+	int bufferSize = 100;
 
 	shared_ptr<IBlockDevice> pdev(new TrivalBlockDevice(2048));
 	shared_ptr<IBlockDevice> pdevCFLRU(new TrivalBlockDevice(2048));
@@ -20,14 +20,15 @@ void main()
 	shared_ptr<IBufferManager> pmgrCFLRU(new CFLRUBufferManager(pdevCFLRU, bufferSize, bufferSize/2));
 	shared_ptr<IBufferManager> pmgrLRUWSR(new LRUWSRBufferManager(pdevLRUWSR, bufferSize, 1));
 
+	srand(clock());
 	int fcount = 0;
 	ifstream traceFile("trace.txt");
+
 	if(!traceFile.is_open())
 	{
 		cout<<"file missing~~"<<endl;
 		exit(1);
 	}
-	srand(clock());
 
 	int count=0;
 
@@ -45,9 +46,9 @@ void main()
 		traceFile >> addr >> length >> rw;
 		rw = rand() % 2;
 
-		if (count < 160000)
+		if (count < 0)
 			continue;
-		if (count > 180000)
+		if (count > 20000)
 			continue;
 		
 		//cout<<addr<<","<<rw<<endl;
