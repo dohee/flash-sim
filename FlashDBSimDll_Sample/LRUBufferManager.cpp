@@ -11,8 +11,8 @@ class LRUBufferManagerImpl
 {
 public:
 	LRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, size_t nPages);
-	void Read(size_t addr, void *result);
-	void Write(size_t addr, const void *data);
+	void Read(size_t pageid, void *result);
+	void Write(size_t pageid, const void *data);
 	void Flush();
 private:
 	shared_ptr<Frame> AccessFrame_(size_t pageid);
@@ -36,9 +36,8 @@ LRUBufferManagerImpl::LRUBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, siz
   queue_(), map_()
 { }
 
-void LRUBufferManagerImpl::Read(size_t addr, void *result)
+void LRUBufferManagerImpl::Read(size_t pageid, void *result)
 {
-	size_t pageid = addr;
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
@@ -50,9 +49,8 @@ void LRUBufferManagerImpl::Read(size_t addr, void *result)
 	memcpy(result, &(pframe->Data.front()), pagesize_);
 }
 
-void LRUBufferManagerImpl::Write(size_t addr, const void *data)
+void LRUBufferManagerImpl::Write(size_t pageid, const void *data)
 {
-	size_t pageid = addr;
 	shared_ptr<Frame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
@@ -128,13 +126,13 @@ LRUBufferManager::~LRUBufferManager()
 	Flush();
 }
 
-void LRUBufferManager::DoRead(size_t addr, void *result)
+void LRUBufferManager::DoRead(size_t pageid, void *result)
 {
-	pImpl->Read(addr, result);
+	pImpl->Read(pageid, result);
 }
-void LRUBufferManager::DoWrite(size_t addr, const void *data)
+void LRUBufferManager::DoWrite(size_t pageid, const void *data)
 {
-	pImpl->Write(addr, data);
+	pImpl->Write(pageid, data);
 }
 void LRUBufferManager::DoFlush()
 {

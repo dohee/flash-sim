@@ -11,8 +11,8 @@ public:
 	TrivalBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice);
 
 protected:
-	void DoRead(size_t addr, void *result);
-	void DoWrite(size_t addr, const void *data);
+	void DoRead(size_t pageid, void *result);
+	void DoWrite(size_t pageid, const void *data);
 	void DoFlush();
 
 private:

@@ -11,8 +11,8 @@ public:
 	CFLRUBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t iwindowSize);
 	virtual ~CFLRUBufferManager();
 
-	virtual void Read(size_t addr, void *result);
-	virtual void Write(size_t addr, const void *data);
+	virtual void Read(size_t pageid, void *result);
+	virtual void Write(size_t pageid, const void *data);
 	virtual void Flush();
 	
 	virtual int GetReadCount() const;

@@ -5,15 +5,15 @@ BufferManagerBase::BufferManagerBase()
 : read_(0), write_(0)
 { }
 
-void BufferManagerBase::Read(size_t addr, void *result)
+void BufferManagerBase::Read(size_t pageid, void *result)
 {
-	DoRead(addr, result);
+	DoRead(pageid, result);
 	read_++;
 }
 
-void BufferManagerBase::Write(size_t addr, const void *data)
+void BufferManagerBase::Write(size_t pageid, const void *data)
 {
-	DoWrite(addr, data);
+	DoWrite(pageid, data);
 	write_++;
 }
 

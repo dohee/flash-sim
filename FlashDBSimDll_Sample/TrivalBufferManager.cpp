@@ -8,14 +8,14 @@ TrivalBufferManager::TrivalBufferManager(shared_ptr<IBlockDevice> pDevice)
 : pdev_(pDevice)
 { }
 
-void TrivalBufferManager::DoRead(size_t addr, void *result)
+void TrivalBufferManager::DoRead(size_t pageid, void *result)
 {
-	pdev_->Read(addr, result);
+	pdev_->Read(pageid, result);
 }
 
-void TrivalBufferManager::DoWrite(size_t addr, const void *data)
+void TrivalBufferManager::DoWrite(size_t pageid, const void *data)
 {
-	pdev_->Write(addr, data);
+	pdev_->Write(pageid, data);
 }
 
 void TrivalBufferManager::DoFlush()

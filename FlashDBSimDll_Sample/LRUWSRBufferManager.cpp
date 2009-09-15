@@ -26,8 +26,8 @@ class LRUWSRBufferManagerImpl
 {
 public:
 	LRUWSRBufferManagerImpl(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t maxCold);
-	void Read(size_t addr, void *result);
-	void Write(size_t addr, const void *data);
+	void Read(size_t pageid, void *result);
+	void Write(size_t pageid, const void *data);
 	void Flush();
 private:
 	shared_ptr<LRUWSRFrame> AccessFrame_(size_t pageid);
@@ -53,9 +53,8 @@ LRUWSRBufferManagerImpl::LRUWSRBufferManagerImpl(
   queue_(), map_()
 { }
 
-void LRUWSRBufferManagerImpl::Read(size_t addr, void *result)
+void LRUWSRBufferManagerImpl::Read(size_t pageid, void *result)
 {
-	size_t pageid = addr;
 	shared_ptr<LRUWSRFrame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
@@ -67,9 +66,8 @@ void LRUWSRBufferManagerImpl::Read(size_t addr, void *result)
 	memcpy(result, &(pframe->Data.front()), pagesize_);
 }
 
-void LRUWSRBufferManagerImpl::Write(size_t addr, const void *data)
+void LRUWSRBufferManagerImpl::Write(size_t pageid, const void *data)
 {
-	size_t pageid = addr;
 	shared_ptr<LRUWSRFrame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
@@ -167,13 +165,13 @@ LRUWSRBufferManager::~LRUWSRBufferManager()
 	Flush();
 }
 
-void LRUWSRBufferManager::DoRead(size_t addr, void *result)
+void LRUWSRBufferManager::DoRead(size_t pageid, void *result)
 {
-	pImpl->Read(addr, result);
+	pImpl->Read(pageid, result);
 }
-void LRUWSRBufferManager::DoWrite(size_t addr, const void *data)
+void LRUWSRBufferManager::DoWrite(size_t pageid, const void *data)
 {
-	pImpl->Write(addr, data);
+	pImpl->Write(pageid, data);
 }
 void LRUWSRBufferManager::DoFlush()
 {

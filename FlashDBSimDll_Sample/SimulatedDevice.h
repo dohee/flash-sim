@@ -11,8 +11,8 @@ public:
 
 	virtual size_t GetPageSize() const;
 
-	virtual void Read(size_t addr, void *result);
-	virtual void Write(size_t addr, const void *data);
+	virtual void Read(size_t pageid, void *result);
+	virtual void Write(size_t pageid, const void *data);
 
 	virtual int GetReadCount() const;
 	virtual int GetWriteCount() const;

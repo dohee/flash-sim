@@ -38,34 +38,34 @@ void main()
 		{
 			cout<<count<<endl;
 		}
-		size_t addr;
+		size_t pageid;
 		int length;
 		int rw;
 		char buf[2048];
 
-		traceFile >> addr >> length >> rw;
+		traceFile >> pageid >> length >> rw;
 		rw = rand() % 2;
 
 		if (count < 0)
 			continue;
 		if (count > 20000)
-			continue;
+			break;
 		
-		//cout<<addr<<","<<rw<<endl;
+		//cout<<pageid<<","<<rw<<endl;
 		for(int i = 0; i<length; i++)
 		{
 			if (rw == 0)
 			{
-				pmgr->Read(addr, buf);
-				pmgrCFLRU->Read(addr, buf);
-				pmgrLRUWSR->Read(addr, buf);
+				pmgr->Read(pageid, buf);
+				//pmgrCFLRU->Read(pageid, buf);
+				//pmgrLRUWSR->Read(pageid, buf);
 			}
 			else{
-				pmgr->Write(addr, buf);
-				pmgrCFLRU->Write(addr, buf);
-				pmgrLRUWSR->Write(addr, buf);
+				pmgr->Write(pageid, buf);
+				//pmgrCFLRU->Write(pageid, buf);
+				//pmgrLRUWSR->Write(pageid, buf);
 			}
-			addr++;
+			pageid++;
 		}
 	}
 
