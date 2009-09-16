@@ -8,7 +8,7 @@ using namespace std::tr1;
 
 
 LRUBufferManager::LRUBufferManager(shared_ptr<IBlockDevice> pdev, size_t nPages)
-: BufferManagerBase(pdev, nPages),
+: FrameBasedBufferManager(pdev, nPages),
   queue_(), map_()
 { }
 
@@ -17,32 +17,15 @@ LRUBufferManager::~LRUBufferManager()
 	Flush();
 }
 
-void LRUBufferManager::DoRead(size_t pageid, void *result)
+void LRUBufferManager::DoFlush()
 {
-	shared_ptr<Frame> pframe = AccessFrame_(pageid);
+	QueueType::iterator it, itend = queue_.end();
 
-	if (pframe.get() == NULL)
-	{
-		pframe = AcquireFrame_(pageid);
-		pdev_->Read(pageid, pframe->Get());
-	}
-
-	memcpy(result, pframe->Get(), pagesize_);
+	for (it = queue_.begin(); it != itend; ++it)
+		WriteIfDirty(*it);
 }
 
-void LRUBufferManager::DoWrite(size_t pageid, const void *data)
-{
-	shared_ptr<Frame> pframe = AccessFrame_(pageid);
-
-	if (pframe.get() == NULL)
-		pframe = AcquireFrame_(pageid);
-
-	memcpy(pframe->Get(), data, pagesize_);
-	pframe->Dirty = true;
-}
-
-
-shared_ptr<Frame> LRUBufferManager::AccessFrame_(size_t pageid)
+shared_ptr<Frame> LRUBufferManager::FindFrame(size_t pageid)
 {
 	MapType::iterator iter = map_.find(pageid);
 
@@ -56,7 +39,7 @@ shared_ptr<Frame> LRUBufferManager::AccessFrame_(size_t pageid)
 	return pframe;
 }
 
-shared_ptr<Frame> LRUBufferManager::AcquireFrame_(size_t pageid)
+shared_ptr<Frame> LRUBufferManager::AllocFrame(size_t pageid)
 {
 	AcquireSlot_();
 	shared_ptr<Frame> pframe(new Frame(pageid, pagesize_));
@@ -79,19 +62,3 @@ void LRUBufferManager::AcquireSlot_()
 	map_.erase(pframe->Id);
 }
 
-void LRUBufferManager::WriteIfDirty(shared_ptr<Frame> pFrame)
-{
-	if (!pFrame->Dirty)
-		return;
-
-	pFrame->Dirty = false;
-	pdev_->Write(pFrame->Id, pFrame->Get());
-}
-
-void LRUBufferManager::DoFlush()
-{
-	QueueType::iterator it, itend = queue_.end();
-
-	for (it = queue_.begin(); it != itend; ++it)
-		WriteIfDirty(*it);
-}

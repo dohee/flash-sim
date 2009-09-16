@@ -3,12 +3,9 @@
 using namespace std;
 
 Frame::Frame(size_t id, size_t size)
-: Id(id), Dirty(false),
-  size_(size), data_(NULL)
-{
-	if (size_ > 0)
-		data_ = new char[size_];
-}
+: Id(id), Dirty(false), size_(size),
+  data_(size_ > 0 ? new char[size_] : NULL)
+{ }
 
 Frame::~Frame()
 {

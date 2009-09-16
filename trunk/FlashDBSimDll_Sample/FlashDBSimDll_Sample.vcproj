@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FrameBasedBufferManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\LRUBufferManager.cpp"
 				>
 			</File>
@@ -270,6 +274,10 @@
 			</File>
 			<File
 				RelativePath=".\Frame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FrameBasedBufferManager.h"
 				>
 			</File>
 			<File

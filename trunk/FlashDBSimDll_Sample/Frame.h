@@ -3,7 +3,7 @@
 
 struct Frame
 {
-	size_t Id;
+	const size_t Id;
 	bool Dirty;
 
 	Frame(size_t id, size_t size);
@@ -13,8 +13,8 @@ struct Frame
 	const void* Get() const;
 
 private:
-	size_t size_;
-	char* data_;
+	const size_t size_;
+	char *const data_;
 
 	Frame(const Frame &);
 	Frame& operator=(const Frame &);

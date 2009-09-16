@@ -4,24 +4,21 @@
 #include <memory>
 #include <list>
 #include <hash_map>
-#include "BufferManagerBase.h"
+#include "FrameBasedBufferManager.h"
 
-class LRUBufferManager : public BufferManagerBase
+class LRUBufferManager : public FrameBasedBufferManager
 {
 public:
 	LRUBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
 	virtual ~LRUBufferManager();
 
 protected:
-	virtual void DoRead(size_t pageid, void *result);
-	virtual void DoWrite(size_t pageid, const void *data);
 	virtual void DoFlush();
+	std::tr1::shared_ptr<struct Frame> FindFrame(size_t pageid);
+	std::tr1::shared_ptr<struct Frame> AllocFrame(size_t pageid);
 
 private:
-	std::tr1::shared_ptr<struct Frame> AccessFrame_(size_t pageid);
-	std::tr1::shared_ptr<struct Frame> AcquireFrame_(size_t pageid);
 	void AcquireSlot_();
-	void WriteIfDirty(std::tr1::shared_ptr<struct Frame> pFrame);
 
 private:
 	typedef std::list<std::tr1::shared_ptr<struct Frame> > QueueType;

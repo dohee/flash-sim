@@ -1,0 +1,22 @@
+#ifndef _FRAME_BASED_MANAGER_H_
+#define _FRAME_BASED_MANAGER_H_
+
+#include <memory>
+#include "BufferManagerBase.h"
+
+class FrameBasedBufferManager abstract : public BufferManagerBase
+{
+public:
+	FrameBasedBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
+
+protected:
+	void DoRead(size_t pageid, void *result);
+	void DoWrite(size_t pageid, const void *data);
+	void WriteIfDirty(std::tr1::shared_ptr<struct Frame> pFrame);
+
+	virtual void DoFlush() = 0;
+	virtual std::tr1::shared_ptr<struct Frame> FindFrame(size_t pageid) = 0;
+	virtual std::tr1::shared_ptr<struct Frame> AllocFrame(size_t pageid) = 0;
+};
+
+#endif

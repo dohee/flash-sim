@@ -4,20 +4,25 @@
 #include <memory>
 #include <deque>
 #include <hash_map>
-#include "BufferManagerBase.h"
+#include "FrameBasedBufferManager.h"
 
-class CMFTBufferManager : public BufferManagerBase
+class CMFTBufferManager : public FrameBasedBufferManager
 {
 public:
 	CMFTBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
 	virtual ~CMFTBufferManager();
 
 protected:
-	virtual void DoRead(size_t pageid, void *result);
-	virtual void DoWrite(size_t pageid, const void *data);
-	virtual void DoFlush();
+	void DoFlush();
+	std::tr1::shared_ptr<struct Frame> FindFrame(size_t pageid);
+	std::tr1::shared_ptr<struct Frame> AllocFrame(size_t pageid);
 
 private:
+
+private:
+	size_t time_;
+	typedef std::deque<std::tr1::shared_ptr<struct CMFTFrame> > StackType;
+	StackType stack_;
 };
 
 #endif
