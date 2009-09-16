@@ -7,9 +7,8 @@ using namespace stdext;
 using namespace std::tr1;
 
 
-
 CMFTBufferManager::CMFTBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages)
-: BufferManagerBase(pDevice, nPages)
+: FrameBasedBufferManager(pDevice, nPages), time_(1)
 { }
 
 CMFTBufferManager::~CMFTBufferManager()
@@ -17,12 +16,19 @@ CMFTBufferManager::~CMFTBufferManager()
 	Flush();
 }
 
-void CMFTBufferManager::DoRead(size_t pageid, void *result)
-{
-}
-void CMFTBufferManager::DoWrite(size_t pageid, const void *data)
-{
-}
 void CMFTBufferManager::DoFlush()
 {
+	StackType::iterator it, itend = stack_.end();
+	for (it = stack_.begin(); it != itend; ++it)
+		WriteIfDirty(*it);
+}
+
+shared_ptr<Frame> CMFTBufferManager::FindFrame(size_t pageid)
+{
+	return shared_ptr<CMFTFrame>();
+}
+
+shared_ptr<Frame> CMFTBufferManager::AllocFrame(size_t pageid)
+{
+	return shared_ptr<CMFTFrame>();
 }
