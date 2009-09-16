@@ -30,16 +30,3 @@ int BufferManagerBase::GetWriteCount() const
 {
 	return write_;
 }
-
-size_t BufferManagerBase::GetPageSize() const
-{
-	return pdev_->GetPageSize();
-}
-void BufferManagerBase::DeviceRead(size_t pageid, void *result)
-{
-	pdev_->Read(pageid, result);
-}
-void BufferManagerBase::DeviceWrite(size_t pageid, const void *data)
-{
-	pdev_->Write(pageid, data);
-}

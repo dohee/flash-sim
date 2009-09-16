@@ -14,8 +14,7 @@ struct Frame
 
 private:
 	size_t size_;
-	mutable bool inited_;
-	mutable char* data_;
+	char* data_;
 
 	Frame(const Frame &);
 	Frame& operator=(const Frame &);

@@ -9,7 +9,7 @@ using namespace std::tr1;
 
 LRUBufferManager::LRUBufferManager(shared_ptr<IBlockDevice> pdev, size_t nPages)
 : BufferManagerBase(pdev),
-  pagesize_(GetPageSize()), npages_(nPages),
+  pagesize_(pdev_->GetPageSize()), npages_(nPages),
   queue_(), map_()
 { }
 
@@ -25,7 +25,7 @@ void LRUBufferManager::DoRead(size_t pageid, void *result)
 	if (pframe.get() == NULL)
 	{
 		pframe = AcquireFrame_(pageid);
-		DeviceRead(pageid, pframe->Get());
+		pdev_->Read(pageid, pframe->Get());
 	}
 
 	memcpy(result, pframe->Get(), pagesize_);
@@ -86,7 +86,7 @@ void LRUBufferManager::WriteIfDirty(shared_ptr<Frame> pFrame)
 		return;
 
 	pFrame->Dirty = false;
-	DeviceWrite(pFrame->Id, pFrame->Get());
+	pdev_->Write(pFrame->Id, pFrame->Get());
 }
 
 void LRUBufferManager::DoFlush()
