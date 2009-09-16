@@ -12,7 +12,7 @@ public:
 protected:
 	void DoRead(size_t pageid, void *result);
 	void DoWrite(size_t pageid, const void *data);
-	void WriteIfDirty(std::tr1::shared_ptr<struct Frame> pFrame);
+	void WriteIfDirty(struct Frame& frame);
 
 	virtual void DoFlush() = 0;
 	virtual std::tr1::shared_ptr<struct Frame> FindFrame(size_t pageid) = 0;

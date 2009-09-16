@@ -22,7 +22,7 @@ void LRUBufferManager::DoFlush()
 	QueueType::iterator it, itend = queue_.end();
 
 	for (it = queue_.begin(); it != itend; ++it)
-		WriteIfDirty(*it);
+		WriteIfDirty(**it);
 }
 
 shared_ptr<Frame> LRUBufferManager::FindFrame(size_t pageid)
@@ -57,7 +57,7 @@ void LRUBufferManager::AcquireSlot_()
 	QueueType::iterator it = queue_.end();
 	--it;
 	shared_ptr<Frame> pframe = *it;
-	WriteIfDirty(pframe);
+	WriteIfDirty(*pframe);
 	queue_.erase(it);
 	map_.erase(pframe->Id);
 }
