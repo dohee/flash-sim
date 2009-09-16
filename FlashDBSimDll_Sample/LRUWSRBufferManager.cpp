@@ -25,7 +25,7 @@ struct LRUWSRFrame : public Frame
 LRUWSRBufferManager::LRUWSRBufferManager(
 	shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t maxCold)
 : BufferManagerBase(pDevice),
-  pagesize_(GetPageSize()), npages_(nPages),
+  pagesize_(pdev_->GetPageSize()), npages_(nPages),
   maxcold_(maxCold),
   queue_(), map_()
 { }
@@ -42,7 +42,7 @@ void LRUWSRBufferManager::DoRead(size_t pageid, void *result)
 	if (pframe.get() == NULL)
 	{
 		pframe = AcquireFrame_(pageid);
-		DeviceRead(pageid, pframe->Get());
+		pdev_->Read(pageid, pframe->Get());
 	}
 
 	memcpy(result, pframe->Get(), pagesize_);
@@ -124,7 +124,7 @@ void LRUWSRBufferManager::WriteIfDirty(shared_ptr<LRUWSRFrame> pFrame)
 		return;
 
 	pFrame->Dirty = false;
-	DeviceWrite(pFrame->Id, pFrame->Get());
+	pdev_->Write(pFrame->Id, pFrame->Get());
 }
 
 void LRUWSRBufferManager::DoFlush()

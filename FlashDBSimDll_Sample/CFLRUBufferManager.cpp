@@ -15,7 +15,7 @@ using namespace std::tr1;
 
 CFLRUBufferManager::CFLRUBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t iwindowSize)
 : BufferManagerBase(pDevice),
-  pagesize_(GetPageSize()), npages_(nPages), windowSize(iwindowSize),
+  pagesize_(pdev_->GetPageSize()), npages_(nPages), windowSize(iwindowSize),
   queue_(), map_()
 {
 	if (iwindowSize > nPages)
@@ -34,7 +34,7 @@ void CFLRUBufferManager::DoRead(size_t pageid, void *result)
 	if (pframe.get() == NULL)
 	{
 		pframe = AcquireFrame_(pageid);
-		DeviceRead(pageid, pframe->Get());
+		pdev_->Read(pageid, pframe->Get());
 
 	}
 
@@ -116,7 +116,7 @@ void CFLRUBufferManager::WriteIfDirty(shared_ptr<Frame> pFrame)
 		return;
 
 	pFrame->Dirty = false;
-	DeviceWrite(pFrame->Id, pFrame->Get());
+	pdev_->Write(pFrame->Id, pFrame->Get());
 }
 
 void CFLRUBufferManager::DoFlush()

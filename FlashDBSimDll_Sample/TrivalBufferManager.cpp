@@ -10,12 +10,12 @@ TrivalBufferManager::TrivalBufferManager(shared_ptr<IBlockDevice> pDevice)
 
 void TrivalBufferManager::DoRead(size_t pageid, void *result)
 {
-	DeviceRead(pageid, result);
+	pdev_->Read(pageid, result);
 }
 
 void TrivalBufferManager::DoWrite(size_t pageid, const void *data)
 {
-	DeviceWrite(pageid, data);
+	pdev_->Write(pageid, data);
 }
 
 void TrivalBufferManager::DoFlush()
