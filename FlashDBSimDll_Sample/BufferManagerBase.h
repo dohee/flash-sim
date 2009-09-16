@@ -7,7 +7,7 @@
 class BufferManagerBase abstract : public IBufferManager
 {
 public:
-	BufferManagerBase(std::tr1::shared_ptr<class IBlockDevice> pdev);
+	BufferManagerBase(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
 
 	void Read(size_t pageid, void *result);
 	void Write(size_t pageid, const void *data);
@@ -22,7 +22,8 @@ protected:
 	virtual void DoFlush() = 0;
 
 protected:
-	std::tr1::shared_ptr<class IBlockDevice> pdev_;
+	const std::tr1::shared_ptr<class IBlockDevice> pdev_;
+	const size_t pagesize_, npages_;
 
 private:
 	int read_, write_;

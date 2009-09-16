@@ -24,8 +24,6 @@ private:
 	void WriteIfDirty(std::tr1::shared_ptr<struct Frame> pFrame);
 
 private:
-	size_t pagesize_, npages_;
-	
 	typedef std::list<std::tr1::shared_ptr<struct Frame> > QueueType;
 	typedef stdext::hash_map<size_t, QueueType::iterator> MapType;
 	QueueType queue_;

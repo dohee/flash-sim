@@ -14,8 +14,8 @@ using namespace std::tr1;
 
 
 CFLRUBufferManager::CFLRUBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t iwindowSize)
-: BufferManagerBase(pDevice),
-  pagesize_(pdev_->GetPageSize()), npages_(nPages), windowSize(iwindowSize),
+: BufferManagerBase(pDevice, nPages),
+  windowSize(iwindowSize),
   queue_(), map_()
 {
 	if (iwindowSize > nPages)

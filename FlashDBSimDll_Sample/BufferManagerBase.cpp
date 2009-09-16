@@ -3,8 +3,9 @@
 #include "IBlockDevice.h"
 using namespace std::tr1;
 
-BufferManagerBase::BufferManagerBase(shared_ptr<IBlockDevice> pdev)
-: read_(0), write_(0), pdev_(pdev)
+BufferManagerBase::BufferManagerBase(shared_ptr<IBlockDevice> pdev, size_t npages)
+: pdev_(pdev), pagesize_(pdev->GetPageSize()), npages_(npages),
+  read_(0), write_(0)
 { }
 
 inline void BufferManagerBase::Read(size_t pageid, void *result)
