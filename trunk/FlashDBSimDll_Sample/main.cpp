@@ -12,9 +12,9 @@ void main()
 {
 	int bufferSize = 100;
 
-	shared_ptr<IBlockDevice> pdev(new TrivalBlockDevice(2048));
-	shared_ptr<IBlockDevice> pdevCFLRU(new TrivalBlockDevice(2048));
-	shared_ptr<IBlockDevice> pdevLRUWSR(new TrivalBlockDevice(2048));
+	shared_ptr<IBlockDevice> pdev(new TrivalBlockDevice());
+	shared_ptr<IBlockDevice> pdevCFLRU(new TrivalBlockDevice());
+	shared_ptr<IBlockDevice> pdevLRUWSR(new TrivalBlockDevice());
 	//shared_ptr<IBufferManager> pmgr(new TrivalBufferManager(pdev));
 	shared_ptr<IBufferManager> pmgr(new LRUBufferManager(pdev, bufferSize));
 	shared_ptr<IBufferManager> pmgrCFLRU(new CFLRUBufferManager(pdevCFLRU, bufferSize, bufferSize/2));

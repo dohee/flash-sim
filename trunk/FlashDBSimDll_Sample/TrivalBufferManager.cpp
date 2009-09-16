@@ -5,7 +5,7 @@ using namespace std::tr1;
 
 
 TrivalBufferManager::TrivalBufferManager(shared_ptr<IBlockDevice> pDevice)
-: BufferManagerBase(pDevice)
+: BufferManagerBase(pDevice, 0)
 { }
 
 void TrivalBufferManager::DoRead(size_t pageid, void *result)

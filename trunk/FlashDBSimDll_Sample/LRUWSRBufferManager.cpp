@@ -24,8 +24,7 @@ struct LRUWSRFrame : public Frame
 
 LRUWSRBufferManager::LRUWSRBufferManager(
 	shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t maxCold)
-: BufferManagerBase(pDevice),
-  pagesize_(pdev_->GetPageSize()), npages_(nPages),
+: BufferManagerBase(pDevice, nPages),
   maxcold_(maxCold),
   queue_(), map_()
 { }

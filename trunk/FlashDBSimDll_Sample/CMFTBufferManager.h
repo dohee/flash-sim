@@ -2,6 +2,8 @@
 #define _CMFT_BUFFER_MANAGER_H_
 
 #include <memory>
+#include <deque>
+#include <hash_map>
 #include "BufferManagerBase.h"
 
 class CMFTBufferManager : public BufferManagerBase
@@ -16,7 +18,6 @@ protected:
 	virtual void DoFlush();
 
 private:
-	std::tr1::shared_ptr<class CMFTBufferManagerImpl> pImpl;
 };
 
 #endif

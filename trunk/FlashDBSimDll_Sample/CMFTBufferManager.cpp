@@ -9,7 +9,7 @@ using namespace std::tr1;
 
 
 CMFTBufferManager::CMFTBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages)
-: BufferManagerBase(pDevice)
+: BufferManagerBase(pDevice, nPages)
 { }
 
 CMFTBufferManager::~CMFTBufferManager()

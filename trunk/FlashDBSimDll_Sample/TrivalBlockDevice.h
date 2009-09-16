@@ -6,7 +6,7 @@
 class TrivalBlockDevice : public IBlockDevice
 {
 public:
-	TrivalBlockDevice(size_t pageSize);
+	TrivalBlockDevice();
 	size_t GetPageSize() const;
 
 	void Read(size_t pageid, void *result);
@@ -17,7 +17,6 @@ public:
 	int GetTotalCost() const;
 
 private:
-	size_t pageSize_;
 	int read_, write_;
 };
 

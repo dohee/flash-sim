@@ -8,8 +8,7 @@ using namespace std::tr1;
 
 
 LRUBufferManager::LRUBufferManager(shared_ptr<IBlockDevice> pdev, size_t nPages)
-: BufferManagerBase(pdev),
-  pagesize_(pdev_->GetPageSize()), npages_(nPages),
+: BufferManagerBase(pdev, nPages),
   queue_(), map_()
 { }
 

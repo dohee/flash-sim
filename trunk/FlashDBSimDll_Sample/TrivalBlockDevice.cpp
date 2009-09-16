@@ -4,8 +4,8 @@
 const int WRITECOST = 200;
 const int READCOST = 80;
 
-TrivalBlockDevice::TrivalBlockDevice(size_t pageSize)
-: pageSize_(pageSize), read_(0), write_(0)
+TrivalBlockDevice::TrivalBlockDevice()
+: read_(0), write_(0)
 { }
 
 size_t TrivalBlockDevice::GetPageSize() const
