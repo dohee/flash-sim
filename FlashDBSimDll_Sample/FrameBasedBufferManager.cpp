@@ -33,11 +33,11 @@ void FrameBasedBufferManager::DoWrite(size_t pageid, const void *data)
 	pframe->Dirty = true;
 }
 
-void FrameBasedBufferManager::WriteIfDirty(shared_ptr<Frame> pFrame)
+void FrameBasedBufferManager::WriteIfDirty(Frame& frame)
 {
-	if (!pFrame->Dirty)
+	if (!frame.Dirty)
 		return;
 
-	pFrame->Dirty = false;
-	pdev_->Write(pFrame->Id, pFrame->Get());
+	frame.Dirty = false;
+	pdev_->Write(frame.Id, frame.Get());
 }
