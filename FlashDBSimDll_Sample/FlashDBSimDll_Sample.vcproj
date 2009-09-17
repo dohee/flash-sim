@@ -175,6 +175,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\BufferManagerGroup.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CFLRUBufferManager.cpp"
 				>
 			</File>
@@ -258,6 +262,10 @@
 			>
 			<File
 				RelativePath=".\BufferManagerBase.h"
+				>
+			</File>
+			<File
+				RelativePath=".\BufferManagerGroup.h"
 				>
 			</File>
 			<File

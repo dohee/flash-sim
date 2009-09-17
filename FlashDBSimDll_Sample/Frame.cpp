@@ -2,14 +2,17 @@
 #include "Frame.h"
 using namespace std;
 
+static char c[1];
+
 Frame::Frame(size_t id, size_t size)
 : Id(id), Dirty(false), size_(size),
-  data_(size_ > 0 ? new char[size_] : NULL)
+  data_(size_ > 0 ? new char[size_] : c)
 { }
 
 Frame::~Frame()
 {
-	delete [] data_;
+	if (data_ != c)
+		delete [] data_;
 }
 
 void* Frame::Get()

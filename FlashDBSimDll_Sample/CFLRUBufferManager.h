@@ -26,7 +26,6 @@ private:
 	void WriteIfDirty(std::tr1::shared_ptr<struct Frame> pFrame);
 
 private:
-	size_t pagesize_, npages_;
 	size_t windowSize;		//windowSize parameter of CFLRU
 	
 	typedef std::list<std::tr1::shared_ptr<struct Frame> > QueueType;

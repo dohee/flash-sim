@@ -22,7 +22,16 @@ inline void BufferManagerBase::Flush()
 {
 	DoFlush();
 }
-	
+
+std::tr1::shared_ptr<class IBlockDevice> BufferManagerBase::GetDevice()
+{
+	return pdev_;
+}
+std::tr1::shared_ptr<const class IBlockDevice> BufferManagerBase::GetDevice() const
+{
+	return pdev_;
+}
+
 int BufferManagerBase::GetReadCount() const
 {
 	return read_;
