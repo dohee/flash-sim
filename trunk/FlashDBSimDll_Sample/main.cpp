@@ -5,8 +5,10 @@
 #include "LRUBufferManager.h"
 #include "CFLRUBufferManager.h"
 #include "LRUWSRBufferManager.h"
+#include "CMFTBufferManager.h"
 using namespace std;
 using namespace std::tr1;
+
 
 void main()
 {
