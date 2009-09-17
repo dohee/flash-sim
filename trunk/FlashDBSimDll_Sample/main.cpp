@@ -6,21 +6,25 @@
 #include "CFLRUBufferManager.h"
 #include "LRUWSRBufferManager.h"
 #include "CMFTBufferManager.h"
+#include "BufferManagerGroup.h"
 using namespace std;
 using namespace std::tr1;
 
 
 void main()
 {
-	int bufferSize = 100;
+	int bufferSize = 1000;
+	BufferManagerGroup group;
 
-	shared_ptr<IBlockDevice> pdev(new TrivalBlockDevice());
-	shared_ptr<IBlockDevice> pdevCFLRU(new TrivalBlockDevice());
-	shared_ptr<IBlockDevice> pdevLRUWSR(new TrivalBlockDevice());
-	//shared_ptr<IBufferManager> pmgr(new TrivalBufferManager(pdev));
-	shared_ptr<IBufferManager> pmgr(new LRUBufferManager(pdev, bufferSize));
-	shared_ptr<IBufferManager> pmgrCFLRU(new CFLRUBufferManager(pdevCFLRU, bufferSize, bufferSize/2));
-	shared_ptr<IBufferManager> pmgrLRUWSR(new LRUWSRBufferManager(pdevLRUWSR, bufferSize, 1));
+	group.Add(shared_ptr<BufferManagerBase>(new LRUBufferManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
+	group.Add(shared_ptr<BufferManagerBase>(new CFLRUBufferManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize/2)));
+	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRBufferManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));
+	group.Add(shared_ptr<BufferManagerBase>(new CMFTBufferManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
+
 
 	srand(clock());
 	int fcount = 0;
@@ -50,51 +54,31 @@ void main()
 
 		if (count < 0)
 			continue;
-		if (count > 10000)
+		if (count > 100000)
 			break;
 		
 		//cout<<pageid<<","<<rw<<endl;
-		for(int i = 0; i<length; i++)
+		for (int i = 0; i<length; i++)
 		{
-			if (rw == 0) {
-				pmgr->Read(pageid, buf);
-				pmgrCFLRU->Read(pageid, buf);
-				pmgrLRUWSR->Read(pageid, buf);
-			} else {
-				pmgr->Write(pageid, buf);
-				pmgrCFLRU->Write(pageid, buf);
-				pmgrLRUWSR->Write(pageid, buf);
-			}
+			if (rw == 0)
+				group.Read(pageid, buf);
+			else
+				group.Write(pageid, buf);
 
 			pageid++;
 		}
 	}
 
-	pmgr->Flush();
-	pmgrCFLRU->Flush();
-	pmgrLRUWSR->Flush();
+	group.Flush();
 
-	cout<< "LRU" <<endl
-		<< pmgr->GetReadCount() << endl
-		<< pmgr->GetWriteCount() << endl
-		<< pdev->GetReadCount() << endl
-		<< pdev->GetWriteCount() << endl
-		<< pdev->GetTotalCost() << endl
-		<< endl;
+	printf("Manager\tRead %d\tWrite %d\n",
+		group.GetReadCount(), group.GetWriteCount());
 
-	cout<< "CFLRU" <<endl
-		<< pmgrCFLRU->GetReadCount() << endl
-		<< pmgrCFLRU->GetWriteCount() << endl
-		<< pdevCFLRU->GetReadCount() << endl
-		<< pdevCFLRU->GetWriteCount() << endl
-		<< pdevCFLRU->GetTotalCost() << endl
-		<< endl;
-
-	cout<< "LRUWSR" <<endl
-		<< pmgrLRUWSR->GetReadCount() << endl
-		<< pmgrLRUWSR->GetWriteCount() << endl
-		<< pdevLRUWSR->GetReadCount() << endl
-		<< pdevLRUWSR->GetWriteCount() << endl
-		<< pdevLRUWSR->GetTotalCost() << endl
-		<<endl;
+	int iend = group.GetMgrCount();
+	for (int i=0; i<iend; ++i)
+	{
+		printf("Dev %d\tRead %d\tWrite %d\tCost %d\n", i,
+			group.GetDevReadCount(i), group.GetDevWriteCount(i),
+			group.GetDevCost(i));
+	}
 }

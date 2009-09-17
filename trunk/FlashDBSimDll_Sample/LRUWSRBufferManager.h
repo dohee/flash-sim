@@ -24,7 +24,7 @@ private:
 	void WriteIfDirty(std::tr1::shared_ptr<struct LRUWSRFrame> pFrame);
 
 private:
-	size_t pagesize_, npages_, maxcold_;
+	size_t maxcold_;
 	
 	typedef std::list<std::tr1::shared_ptr<struct LRUWSRFrame> > QueueType;
 	typedef stdext::hash_map<size_t, QueueType::iterator> MapType;
