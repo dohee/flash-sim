@@ -13,7 +13,7 @@ using namespace std::tr1;
 
 void main()
 {
-	int bufferSize = 1000;
+	int bufferSize = 200;
 	BufferManagerGroup group;
 
 	group.Add(shared_ptr<BufferManagerBase>(new LRUBufferManager(
@@ -28,7 +28,7 @@ void main()
 
 	srand(clock());
 	int fcount = 0;
-	ifstream traceFile("trace.txt");
+	ifstream traceFile("trace8020.txt");
 
 	if(!traceFile.is_open())
 	{
@@ -50,12 +50,11 @@ void main()
 		char buf[2048];
 
 		traceFile >> pageid >> length >> rw;
-		rw = rand() % 2;
 
-		if (count < 0)
-			continue;
-		if (count > 100000)
-			break;
+		//if (count < 0)
+		//	continue;
+		//if (count > 100000)
+		//	break;
 		
 		//cout<<pageid<<","<<rw<<endl;
 		for (int i = 0; i<length; i++)

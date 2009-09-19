@@ -126,6 +126,3 @@ void CFLRUBufferManager::DoFlush()
 	for (it = queue_.begin(); it != itend; ++it)
 		WriteIfDirty(*it);
 }
-
-
-
