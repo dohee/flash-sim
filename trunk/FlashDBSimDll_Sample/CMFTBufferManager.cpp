@@ -78,7 +78,7 @@ shared_ptr<Frame> CMFTBufferManager::AllocFrame(size_t pageid)
 			}
 		}
 
-		if (itIrrMax == itend)
+		if (itIrrMax == itend)   //说明 irrmax 没找到
 			it = itTimeMin;
 		else
 			it = itIrrMax;
