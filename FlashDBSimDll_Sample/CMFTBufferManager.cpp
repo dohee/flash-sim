@@ -2,19 +2,19 @@
 #include <climits>
 #include "CMFTBufferManager.h"
 #include "IBlockDevice.h"
-#include "frame.h"
+#include "Frame.h"
 using namespace std;
 using namespace stdext;
 using namespace std::tr1;
 
 
-struct CMFTFrame : public Frame
+struct CMFTFrame : public DataFrame
 {
 	size_t TimeStamp;
 	size_t InterreferenceRecency;
 
 	CMFTFrame(size_t id, size_t size, size_t timestamp)
-	: Frame(id, size), TimeStamp(timestamp),
+	: DataFrame(id, size), TimeStamp(timestamp),
 	  InterreferenceRecency(UINT_MAX)
 	{ }
 };
@@ -36,7 +36,7 @@ void CMFTBufferManager::DoFlush()
 		WriteIfDirty(**it);
 }
 
-shared_ptr<Frame> CMFTBufferManager::FindFrame(size_t pageid)
+shared_ptr<DataFrame> CMFTBufferManager::FindFrame(size_t pageid)
 {
 	time_++;
 	StackType::iterator it, itend = stack_.end();
@@ -56,7 +56,7 @@ shared_ptr<Frame> CMFTBufferManager::FindFrame(size_t pageid)
 	return pframe;
 }
 
-shared_ptr<Frame> CMFTBufferManager::AllocFrame(size_t pageid)
+shared_ptr<DataFrame> CMFTBufferManager::AllocFrame(size_t pageid)
 {
 	if (stack_.size() >= npages_) {
 		StackType::iterator it, itend = stack_.end();

@@ -4,23 +4,23 @@ using namespace std;
 
 static char c[1];
 
-Frame::Frame(size_t id, size_t size)
-: Id(id), Dirty(false), size_(size),
+DataFrame::DataFrame(size_t id, size_t size)
+: Frame(id), size_(size),
   data_(size_ > 0 ? new char[size_] : c)
 { }
 
-Frame::~Frame()
+DataFrame::~DataFrame()
 {
 	if (data_ != c)
 		delete [] data_;
 }
 
-void* Frame::Get()
+void* DataFrame::Get()
 {
 	return data_;
 }
 
-const void* Frame::Get() const
+const void* DataFrame::Get() const
 {
 	return data_;
 }

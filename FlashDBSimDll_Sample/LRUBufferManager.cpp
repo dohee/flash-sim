@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "LRUBufferManager.h"
 #include "IBlockDevice.h"
-#include "frame.h"
+#include "Frame.h"
 using namespace std;
 using namespace stdext;
 using namespace std::tr1;
@@ -25,24 +25,24 @@ void LRUBufferManager::DoFlush()
 		WriteIfDirty(**it);
 }
 
-shared_ptr<Frame> LRUBufferManager::FindFrame(size_t pageid)
+shared_ptr<DataFrame> LRUBufferManager::FindFrame(size_t pageid)
 {
 	MapType::iterator iter = map_.find(pageid);
 
 	if (iter == map_.end())
-		return shared_ptr<Frame>();
+		return shared_ptr<DataFrame>();
 
-	shared_ptr<Frame> pframe = *(iter->second);
+	shared_ptr<DataFrame> pframe = *(iter->second);
 	queue_.erase(iter->second);
 	queue_.push_front(pframe);
 	map_[pageid] = queue_.begin();
 	return pframe;
 }
 
-shared_ptr<Frame> LRUBufferManager::AllocFrame(size_t pageid)
+shared_ptr<DataFrame> LRUBufferManager::AllocFrame(size_t pageid)
 {
 	AcquireSlot_();
-	shared_ptr<Frame> pframe(new Frame(pageid, pagesize_));
+	shared_ptr<DataFrame> pframe(new DataFrame(pageid, pagesize_));
 	queue_.push_front(pframe);
 	map_[pageid] = queue_.begin();
 	return pframe;
@@ -56,7 +56,7 @@ void LRUBufferManager::AcquireSlot_()
 
 	QueueType::iterator it = queue_.end();
 	--it;
-	shared_ptr<Frame> pframe = *it;
+	shared_ptr<DataFrame> pframe = *it;
 	WriteIfDirty(*pframe);
 	queue_.erase(it);
 	map_.erase(pframe->Id);

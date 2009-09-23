@@ -14,8 +14,8 @@ public:
 
 protected:
 	void DoFlush();
-	std::tr1::shared_ptr<struct Frame> FindFrame(size_t pageid);
-	std::tr1::shared_ptr<struct Frame> AllocFrame(size_t pageid);
+	std::tr1::shared_ptr<struct DataFrame> FindFrame(size_t pageid);
+	std::tr1::shared_ptr<struct DataFrame> AllocFrame(size_t pageid);
 
 private:
 
