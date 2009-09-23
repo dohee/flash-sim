@@ -6,7 +6,7 @@ lyf  2009 9 13
 #include <stdexcept>
 #include "CFLRUBufferManager.h"
 #include "IBlockDevice.h"
-#include "frame.h"
+#include "Frame.h"
 
 using namespace std;
 using namespace stdext;
@@ -29,7 +29,7 @@ CFLRUBufferManager::~CFLRUBufferManager()
 
 void CFLRUBufferManager::DoRead(size_t pageid, void *result)
 {
-	shared_ptr<Frame> pframe = AccessFrame_(pageid);
+	shared_ptr<DataFrame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
 	{
@@ -43,7 +43,7 @@ void CFLRUBufferManager::DoRead(size_t pageid, void *result)
 
 void CFLRUBufferManager::DoWrite(size_t pageid, const void *data)
 {
-	shared_ptr<Frame> pframe = AccessFrame_(pageid);
+	shared_ptr<DataFrame> pframe = AccessFrame_(pageid);
 
 	if (pframe.get() == NULL)
 		pframe = AcquireFrame_(pageid);
@@ -53,24 +53,24 @@ void CFLRUBufferManager::DoWrite(size_t pageid, const void *data)
 }
 
 
-shared_ptr<Frame> CFLRUBufferManager::AccessFrame_(size_t pageid)
+shared_ptr<DataFrame> CFLRUBufferManager::AccessFrame_(size_t pageid)
 {
 	MapType::iterator iter = map_.find(pageid);
 
 	if (iter == map_.end())
-		return shared_ptr<Frame>();
+		return shared_ptr<DataFrame>();
 
-	shared_ptr<Frame> pframe = *(iter->second);
+	shared_ptr<DataFrame> pframe = *(iter->second);
 	queue_.erase(iter->second);
 	queue_.push_front(pframe);
 	map_[pageid] = queue_.begin();
 	return pframe;
 }
 
-shared_ptr<Frame> CFLRUBufferManager::AcquireFrame_(size_t pageid)
+shared_ptr<DataFrame> CFLRUBufferManager::AcquireFrame_(size_t pageid)
 {
 	AcquireSlot_();
-	shared_ptr<Frame> pframe(new Frame(pageid, pagesize_));
+	shared_ptr<DataFrame> pframe(new DataFrame(pageid, pagesize_));
 	queue_.push_front(pframe);
 	map_[pageid] = queue_.begin();
 	return pframe;
@@ -84,7 +84,7 @@ void CFLRUBufferManager::AcquireSlot_()
 
 	QueueType::iterator it = queue_.end();
 	--it;
-	shared_ptr<Frame> pframe = *it;
+	shared_ptr<DataFrame> pframe = *it;
 	
 	size_t i = 0;
 	//Find the first clean page in window.
@@ -97,7 +97,7 @@ void CFLRUBufferManager::AcquireSlot_()
 		}
 	}
 
-	//There is no clean page in window, get the lru dirty frame of the queue.
+	//There is no clean page in window, get the lru dirty DataFrame of the queue.
 	if(i >= windowSize)
 	{
 		it = queue_.end();
@@ -110,7 +110,7 @@ void CFLRUBufferManager::AcquireSlot_()
 	map_.erase(pframe->Id);
 }
 
-void CFLRUBufferManager::WriteIfDirty(shared_ptr<Frame> pFrame)
+void CFLRUBufferManager::WriteIfDirty(shared_ptr<DataFrame> pFrame)
 {
 	if (!pFrame->Dirty)
 		return;

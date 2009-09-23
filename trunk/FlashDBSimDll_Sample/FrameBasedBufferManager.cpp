@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "FrameBasedBufferManager.h"
 #include "IBlockDevice.h"
-#include "frame.h"
+#include "Frame.h"
 using namespace std::tr1;
 
 
@@ -11,7 +11,7 @@ FrameBasedBufferManager::FrameBasedBufferManager(shared_ptr<IBlockDevice> pdev, 
 
 void FrameBasedBufferManager::DoRead(size_t pageid, void *result)
 {
-	shared_ptr<Frame> pframe = FindFrame(pageid);
+	shared_ptr<DataFrame> pframe = FindFrame(pageid);
 
 	if (pframe.get() == NULL)
 	{
@@ -24,7 +24,7 @@ void FrameBasedBufferManager::DoRead(size_t pageid, void *result)
 
 void FrameBasedBufferManager::DoWrite(size_t pageid, const void *data)
 {
-	shared_ptr<Frame> pframe = FindFrame(pageid);
+	shared_ptr<DataFrame> pframe = FindFrame(pageid);
 
 	if (pframe.get() == NULL)
 		pframe = AllocFrame(pageid);
@@ -33,11 +33,11 @@ void FrameBasedBufferManager::DoWrite(size_t pageid, const void *data)
 	pframe->Dirty = true;
 }
 
-void FrameBasedBufferManager::WriteIfDirty(Frame& frame)
+void FrameBasedBufferManager::WriteIfDirty(DataFrame& DataFrame)
 {
-	if (!frame.Dirty)
+	if (!DataFrame.Dirty)
 		return;
 
-	frame.Dirty = false;
-	pdev_->Write(frame.Id, frame.Get());
+	DataFrame.Dirty = false;
+	pdev_->Write(DataFrame.Id, DataFrame.Get());
 }

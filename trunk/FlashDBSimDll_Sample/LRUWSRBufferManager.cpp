@@ -1,23 +1,23 @@
 /*
 This program implements the LRUWSRWSR algorithm for Flash memory. This work is based on the LRUWSRBufferManager developed by Xuexuan Chen
-When a dirty frame is selected to be victim the first time, it will only ++cold and be given another opportunity. The system will only evict clean 
+When a dirty DataFrame is selected to be victim the first time, it will only ++cold and be given another opportunity. The system will only evict clean 
 and cold enough dirty page.
 lyf  2009 9 13
 */
 #include "stdafx.h"
 #include "LRUWSRBufferManager.h"
 #include "IBlockDevice.h"
-#include "frame.h"
+#include "Frame.h"
 using namespace std;
 using namespace stdext;
 using namespace std::tr1;
 
-struct LRUWSRFrame : public Frame
+struct LRUWSRFrame : public DataFrame
 {
-	size_t Cold;		//initially 0, when a dirty frame is to be evicted then cold increase.
+	size_t Cold;		//initially 0, when a dirty DataFrame is to be evicted then cold increase.
 
 	LRUWSRFrame(size_t id, size_t size)
-	: Frame(id, size), Cold(0)
+	: DataFrame(id, size), Cold(0)
 	{ }
 };
 
@@ -69,7 +69,7 @@ shared_ptr<LRUWSRFrame> LRUWSRBufferManager::AccessFrame_(size_t pageid)
 	shared_ptr<LRUWSRFrame> pframe = *(iter->second);
 	queue_.erase(iter->second);
 
-	//accessed frame is not cold.
+	//accessed DataFrame is not cold.
 	if(pframe->Cold>0)
 	{
 		pframe->Cold=0;
@@ -97,7 +97,7 @@ void LRUWSRBufferManager::AcquireSlot_()
 
 	shared_ptr<LRUWSRFrame> pframe;
 
-	//find a clean frame or cold enough dirty page
+	//find a clean DataFrame or cold enough dirty page
 	while(true)
 	{
 		pframe = queue_.back();
