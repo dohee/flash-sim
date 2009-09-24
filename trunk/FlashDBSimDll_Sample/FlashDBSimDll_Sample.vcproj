@@ -179,11 +179,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\CFLRUBufferManager.cpp"
+				RelativePath=".\CFLRUManager.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\CMFTBufferManager.cpp"
+				RelativePath=".\CMFTManager.cpp"
 				>
 			</File>
 			<File
@@ -195,11 +195,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\LRUBufferManager.cpp"
+				RelativePath=".\LRUManager.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\LRUWSRBufferManager.cpp"
+				RelativePath=".\LRUWSRManager.cpp"
 				>
 			</File>
 			<File
@@ -269,11 +269,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\CFLRUBufferManager.h"
+				RelativePath=".\CFLRUManager.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CMFTBufferManager.h"
+				RelativePath=".\CMFTManager.h"
 				>
 			</File>
 			<File
@@ -297,11 +297,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\LRUBufferManager.h"
+				RelativePath=".\LRUManager.h"
 				>
 			</File>
 			<File
-				RelativePath=".\LRUWSRBufferManager.h"
+				RelativePath=".\LRUWSRManager.h"
 				>
 			</File>
 			<File

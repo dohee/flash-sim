@@ -7,11 +7,11 @@
 #include "BufferManagerBase.h"
 
 
-class CFLRUBufferManager : public BufferManagerBase
+class CFLRUManager : public BufferManagerBase
 {
 public:
-	CFLRUBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t iwindowSize);
-	virtual ~CFLRUBufferManager();
+	CFLRUManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t iwindowSize);
+	virtual ~CFLRUManager();
 
 protected:
 	virtual void DoRead(size_t pageid, void *result);

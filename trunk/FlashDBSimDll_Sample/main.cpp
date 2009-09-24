@@ -2,10 +2,10 @@
 #include <ctime>
 #include "TrivalBlockDevice.h"
 #include "TrivalBufferManager.h"
-#include "LRUBufferManager.h"
-#include "CFLRUBufferManager.h"
-#include "LRUWSRBufferManager.h"
-#include "CMFTBufferManager.h"
+#include "LRUManager.h"
+#include "CFLRUManager.h"
+#include "LRUWSRManager.h"
+#include "CMFTManager.h"
 #include "BufferManagerGroup.h"
 using namespace std;
 using namespace std::tr1;
@@ -16,13 +16,13 @@ void main()
 	int bufferSize = 200;
 	BufferManagerGroup group;
 
-	group.Add(shared_ptr<BufferManagerBase>(new LRUBufferManager(
+	group.Add(shared_ptr<BufferManagerBase>(new LRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
-	group.Add(shared_ptr<BufferManagerBase>(new CFLRUBufferManager(
+	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize/2)));
-	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRBufferManager(
+	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));
-	group.Add(shared_ptr<BufferManagerBase>(new CMFTBufferManager(
+	group.Add(shared_ptr<BufferManagerBase>(new CMFTManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
 
 

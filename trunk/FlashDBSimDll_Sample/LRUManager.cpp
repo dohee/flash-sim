@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "LRUBufferManager.h"
+#include "LRUManager.h"
 #include "IBlockDevice.h"
 #include "Frame.h"
 using namespace std;
@@ -7,17 +7,17 @@ using namespace stdext;
 using namespace std::tr1;
 
 
-LRUBufferManager::LRUBufferManager(shared_ptr<IBlockDevice> pdev, size_t nPages)
+LRUManager::LRUManager(shared_ptr<IBlockDevice> pdev, size_t nPages)
 : FrameBasedBufferManager(pdev, nPages),
   queue_(), map_()
 { }
 
-LRUBufferManager::~LRUBufferManager()
+LRUManager::~LRUManager()
 {
 	Flush();
 }
 
-void LRUBufferManager::DoFlush()
+void LRUManager::DoFlush()
 {
 	QueueType::iterator it, itend = queue_.end();
 
@@ -25,7 +25,7 @@ void LRUBufferManager::DoFlush()
 		WriteIfDirty(**it);
 }
 
-shared_ptr<DataFrame> LRUBufferManager::FindFrame(size_t pageid)
+shared_ptr<DataFrame> LRUManager::FindFrame(size_t pageid)
 {
 	MapType::iterator iter = map_.find(pageid);
 
@@ -39,7 +39,7 @@ shared_ptr<DataFrame> LRUBufferManager::FindFrame(size_t pageid)
 	return pframe;
 }
 
-shared_ptr<DataFrame> LRUBufferManager::AllocFrame(size_t pageid)
+shared_ptr<DataFrame> LRUManager::AllocFrame(size_t pageid)
 {
 	AcquireSlot_();
 	shared_ptr<DataFrame> pframe(new DataFrame(pageid, pagesize_));
@@ -49,7 +49,7 @@ shared_ptr<DataFrame> LRUBufferManager::AllocFrame(size_t pageid)
 }
 
 
-void LRUBufferManager::AcquireSlot_()
+void LRUManager::AcquireSlot_()
 {
 	if (queue_.size() < npages_)
 		return;
