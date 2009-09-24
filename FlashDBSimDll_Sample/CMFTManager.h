@@ -6,11 +6,11 @@
 #include <hash_map>
 #include "FrameBasedBufferManager.h"
 
-class CMFTBufferManager : public FrameBasedBufferManager
+class CMFTManager : public FrameBasedBufferManager
 {
 public:
-	CMFTBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
-	virtual ~CMFTBufferManager();
+	CMFTManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
+	virtual ~CMFTManager();
 
 protected:
 	void DoFlush();

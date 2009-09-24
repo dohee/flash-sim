@@ -6,11 +6,11 @@
 #include <hash_map>
 #include "FrameBasedBufferManager.h"
 
-class LRUBufferManager : public FrameBasedBufferManager
+class LRUManager : public FrameBasedBufferManager
 {
 public:
-	LRUBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
-	virtual ~LRUBufferManager();
+	LRUManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
+	virtual ~LRUManager();
 
 protected:
 	virtual void DoFlush();

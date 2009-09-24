@@ -6,11 +6,11 @@
 #include <hash_map>
 #include "BufferManagerBase.h"
 
-class LRUWSRBufferManager : public BufferManagerBase
+class LRUWSRManager : public BufferManagerBase
 {
 public:
-	LRUWSRBufferManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t maxCold);
-	virtual ~LRUWSRBufferManager();
+	LRUWSRManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t maxCold);
+	virtual ~LRUWSRManager();
 
 protected:
 	virtual void DoRead(size_t pageid, void *result);

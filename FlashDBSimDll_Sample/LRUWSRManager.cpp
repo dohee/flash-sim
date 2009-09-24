@@ -1,11 +1,11 @@
 /*
-This program implements the LRUWSRWSR algorithm for Flash memory. This work is based on the LRUWSRBufferManager developed by Xuexuan Chen
+This program implements the LRUWSRWSR algorithm for Flash memory. This work is based on the LRUWSRManager developed by Xuexuan Chen
 When a dirty DataFrame is selected to be victim the first time, it will only ++cold and be given another opportunity. The system will only evict clean 
 and cold enough dirty page.
 lyf  2009 9 13
 */
 #include "stdafx.h"
-#include "LRUWSRBufferManager.h"
+#include "LRUWSRManager.h"
 #include "IBlockDevice.h"
 #include "Frame.h"
 using namespace std;
@@ -22,19 +22,19 @@ struct LRUWSRFrame : public DataFrame
 };
 
 
-LRUWSRBufferManager::LRUWSRBufferManager(
+LRUWSRManager::LRUWSRManager(
 	shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t maxCold)
 : BufferManagerBase(pDevice, nPages),
   maxcold_(maxCold),
   queue_(), map_()
 { }
 
-LRUWSRBufferManager::~LRUWSRBufferManager()
+LRUWSRManager::~LRUWSRManager()
 {
 	Flush();
 }
 
-void LRUWSRBufferManager::DoRead(size_t pageid, void *result)
+void LRUWSRManager::DoRead(size_t pageid, void *result)
 {
 	shared_ptr<LRUWSRFrame> pframe = AccessFrame_(pageid);
 
@@ -47,7 +47,7 @@ void LRUWSRBufferManager::DoRead(size_t pageid, void *result)
 	memcpy(result, pframe->Get(), pagesize_);
 }
 
-void LRUWSRBufferManager::DoWrite(size_t pageid, const void *data)
+void LRUWSRManager::DoWrite(size_t pageid, const void *data)
 {
 	shared_ptr<LRUWSRFrame> pframe = AccessFrame_(pageid);
 
@@ -59,7 +59,7 @@ void LRUWSRBufferManager::DoWrite(size_t pageid, const void *data)
 }
 
 
-shared_ptr<LRUWSRFrame> LRUWSRBufferManager::AccessFrame_(size_t pageid)
+shared_ptr<LRUWSRFrame> LRUWSRManager::AccessFrame_(size_t pageid)
 {
 	MapType::iterator iter = map_.find(pageid);
 
@@ -80,7 +80,7 @@ shared_ptr<LRUWSRFrame> LRUWSRBufferManager::AccessFrame_(size_t pageid)
 	return pframe;
 }
 
-shared_ptr<LRUWSRFrame> LRUWSRBufferManager::AcquireFrame_(size_t pageid)
+shared_ptr<LRUWSRFrame> LRUWSRManager::AcquireFrame_(size_t pageid)
 {
 	AcquireSlot_();
 	shared_ptr<LRUWSRFrame> pframe(new LRUWSRFrame(pageid, pagesize_));
@@ -90,7 +90,7 @@ shared_ptr<LRUWSRFrame> LRUWSRBufferManager::AcquireFrame_(size_t pageid)
 }
 
 
-void LRUWSRBufferManager::AcquireSlot_()
+void LRUWSRManager::AcquireSlot_()
 {
 	if (queue_.size() < npages_)
 		return;
@@ -117,7 +117,7 @@ void LRUWSRBufferManager::AcquireSlot_()
 	WriteIfDirty(pframe);
 }
 
-void LRUWSRBufferManager::WriteIfDirty(shared_ptr<LRUWSRFrame> pFrame)
+void LRUWSRManager::WriteIfDirty(shared_ptr<LRUWSRFrame> pFrame)
 {
 	if (!pFrame->Dirty)
 		return;
@@ -126,7 +126,7 @@ void LRUWSRBufferManager::WriteIfDirty(shared_ptr<LRUWSRFrame> pFrame)
 	pdev_->Write(pFrame->Id, pFrame->Get());
 }
 
-void LRUWSRBufferManager::DoFlush()
+void LRUWSRManager::DoFlush()
 {
 	QueueType::iterator it, itend = queue_.end();
 

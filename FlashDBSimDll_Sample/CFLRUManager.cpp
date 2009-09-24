@@ -1,10 +1,10 @@
 /*
-This program implements the CFLRU algorithm for Flash memory proposed in 2006. This work is based on the LRUBufferManager developed by Xuexuan Chen
+This program implements the CFLRU algorithm for Flash memory proposed in 2006. This work is based on the LRUManager developed by Xuexuan Chen
 lyf  2009 9 13
 */
 #include "stdafx.h"
 #include <stdexcept>
-#include "CFLRUBufferManager.h"
+#include "CFLRUManager.h"
 #include "IBlockDevice.h"
 #include "Frame.h"
 
@@ -13,7 +13,7 @@ using namespace stdext;
 using namespace std::tr1;
 
 
-CFLRUBufferManager::CFLRUBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t iwindowSize)
+CFLRUManager::CFLRUManager(shared_ptr<IBlockDevice> pDevice, size_t nPages, size_t iwindowSize)
 : BufferManagerBase(pDevice, nPages),
   windowSize(iwindowSize),
   queue_(), map_()
@@ -22,12 +22,12 @@ CFLRUBufferManager::CFLRUBufferManager(shared_ptr<IBlockDevice> pDevice, size_t 
 		throw std::runtime_error("WindowSize larger than NumOfPages");
 }
 
-CFLRUBufferManager::~CFLRUBufferManager()
+CFLRUManager::~CFLRUManager()
 {
 	Flush();
 }
 
-void CFLRUBufferManager::DoRead(size_t pageid, void *result)
+void CFLRUManager::DoRead(size_t pageid, void *result)
 {
 	shared_ptr<DataFrame> pframe = AccessFrame_(pageid);
 
@@ -41,7 +41,7 @@ void CFLRUBufferManager::DoRead(size_t pageid, void *result)
 	memcpy(result, pframe->Get(), pagesize_);
 }
 
-void CFLRUBufferManager::DoWrite(size_t pageid, const void *data)
+void CFLRUManager::DoWrite(size_t pageid, const void *data)
 {
 	shared_ptr<DataFrame> pframe = AccessFrame_(pageid);
 
@@ -53,7 +53,7 @@ void CFLRUBufferManager::DoWrite(size_t pageid, const void *data)
 }
 
 
-shared_ptr<DataFrame> CFLRUBufferManager::AccessFrame_(size_t pageid)
+shared_ptr<DataFrame> CFLRUManager::AccessFrame_(size_t pageid)
 {
 	MapType::iterator iter = map_.find(pageid);
 
@@ -67,7 +67,7 @@ shared_ptr<DataFrame> CFLRUBufferManager::AccessFrame_(size_t pageid)
 	return pframe;
 }
 
-shared_ptr<DataFrame> CFLRUBufferManager::AcquireFrame_(size_t pageid)
+shared_ptr<DataFrame> CFLRUManager::AcquireFrame_(size_t pageid)
 {
 	AcquireSlot_();
 	shared_ptr<DataFrame> pframe(new DataFrame(pageid, pagesize_));
@@ -77,7 +77,7 @@ shared_ptr<DataFrame> CFLRUBufferManager::AcquireFrame_(size_t pageid)
 }
 
 
-void CFLRUBufferManager::AcquireSlot_()
+void CFLRUManager::AcquireSlot_()
 {
 	if (queue_.size() < npages_)
 		return;
@@ -110,7 +110,7 @@ void CFLRUBufferManager::AcquireSlot_()
 	map_.erase(pframe->Id);
 }
 
-void CFLRUBufferManager::WriteIfDirty(shared_ptr<DataFrame> pFrame)
+void CFLRUManager::WriteIfDirty(shared_ptr<DataFrame> pFrame)
 {
 	if (!pFrame->Dirty)
 		return;
@@ -119,7 +119,7 @@ void CFLRUBufferManager::WriteIfDirty(shared_ptr<DataFrame> pFrame)
 	pdev_->Write(pFrame->Id, pFrame->Get());
 }
 
-void CFLRUBufferManager::DoFlush()
+void CFLRUManager::DoFlush()
 {
 	QueueType::iterator it, itend = queue_.end();
 

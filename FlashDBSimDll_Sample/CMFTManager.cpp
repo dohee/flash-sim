@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include <climits>
-#include "CMFTBufferManager.h"
+#include "CMFTManager.h"
 #include "IBlockDevice.h"
 #include "Frame.h"
 using namespace std;
@@ -19,16 +19,16 @@ struct CMFTFrame : public DataFrame
 	{ }
 };
 
-CMFTBufferManager::CMFTBufferManager(shared_ptr<IBlockDevice> pDevice, size_t nPages)
+CMFTManager::CMFTManager(shared_ptr<IBlockDevice> pDevice, size_t nPages)
 : FrameBasedBufferManager(pDevice, nPages), time_(0)
 { }
 
-CMFTBufferManager::~CMFTBufferManager()
+CMFTManager::~CMFTManager()
 {
 	Flush();
 }
 
-void CMFTBufferManager::DoFlush()
+void CMFTManager::DoFlush()
 {
 	StackType::iterator it, itend = stack_.end();
 
@@ -36,7 +36,7 @@ void CMFTBufferManager::DoFlush()
 		WriteIfDirty(**it);
 }
 
-shared_ptr<DataFrame> CMFTBufferManager::FindFrame(size_t pageid)
+shared_ptr<DataFrame> CMFTManager::FindFrame(size_t pageid)
 {
 	time_++;
 	StackType::iterator it, itend = stack_.end();
@@ -56,7 +56,7 @@ shared_ptr<DataFrame> CMFTBufferManager::FindFrame(size_t pageid)
 	return pframe;
 }
 
-shared_ptr<DataFrame> CMFTBufferManager::AllocFrame(size_t pageid)
+shared_ptr<DataFrame> CMFTManager::AllocFrame(size_t pageid)
 {
 	if (stack_.size() >= npages_) {
 		StackType::iterator it, itend = stack_.end();
