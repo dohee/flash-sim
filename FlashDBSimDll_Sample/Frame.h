@@ -17,7 +17,7 @@ struct DataFrame : public Frame
 
 	void* Get()  { return data_; }
 	const void* Get() const  { return data_; }
-	bool IsResident() const  { return data_ == NULL; }
+	bool IsResident() const  { return data_ != NULL; }
 	void SetResident(bool resident);
 
 private:
