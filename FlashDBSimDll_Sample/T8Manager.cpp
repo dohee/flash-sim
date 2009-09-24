@@ -55,7 +55,7 @@ void T8Manager::DoRead(size_t pageid, void *result)
 		if (pageQueue == CR)
 			AdjustQueue_(CR, it);
 
-	} else if (pageQueue == CNR || pageQueue = DNR) {
+	} else if (pageQueue == CNR || pageQueue == DNR) {
 		shared_ptr<DataFrame> pframe = *it;
 		pframe->SetResident(true);
 		pdev_->Read(pageid, pframe->Get());
@@ -154,7 +154,7 @@ shared_ptr<DataFrame> T8Manager::PushIntoQueue_(
 shared_ptr<DataFrame> T8Manager::PushIntoQueues_(
 	QueueIndex head, shared_ptr<struct DataFrame> pframe)
 {
-	if (head == CNR || head == DNR)
+	if (head != CR && head != DR)
 		throw ::invalid_argument("cannot push frame into CNR or DNR queue");
 
 	shared_ptr<struct DataFrame> headtail = PushIntoQueue_(head, pframe);
@@ -165,7 +165,11 @@ shared_ptr<DataFrame> T8Manager::PushIntoQueues_(
 	} else {
 		WriteIfDirty(*headtail);
 		headtail->SetResident(false);
-		return PushIntoQueue_(tail, headtail);
+
+		if (head == CR)
+			return PushIntoQueue_(CNR, headtail);
+		else
+			return PushIntoQueue_(DNR, headtail);
 	}
 }
 
