@@ -19,15 +19,21 @@ protected:
 
 private:
 	typedef std::list<std::tr1::shared_ptr<struct DataFrame> > QueueType;
+	enum QueueIndex { NONE = 0, CR, CNR, DR, DNR, COUNT };
 
-	static bool FindInQueue_(size_t pageid, QueueType& queue, QueueType::iterator& out);
-	static void AdjustQueue_(QueueType& queue, QueueType::iterator iter);
-	void AcquireSlot_();
+	bool FindInQueue_(QueueIndex index, size_t pageid, QueueType::iterator& out);
+	QueueIndex FindInQueues_(size_t pageid, QueueType::iterator& out);
+
+	void SetLimits_(size_t cleanResidentSize);
+	void EnlargeCRLimit_(int relativeCRSize);
+	void AdjustQueue_(QueueIndex queue, QueueType::iterator iter);
+	std::tr1::shared_ptr<struct DataFrame> PushIntoQueue_(QueueIndex queue, std::tr1::shared_ptr<struct DataFrame> pframe);
+	std::tr1::shared_ptr<struct DataFrame> PushIntoQueues_(QueueIndex headqueue, std::tr1::shared_ptr<struct DataFrame> pframe);
+	void WriteIfDirty(struct DataFrame& frame);
 
 private:
-	QueueType qclean_, qdirty_;
-	QueueType cleanResident_, cleanNonresident_;
-	QueueType dirtyResident_, dirtyNonresident_;
+	QueueType q_[COUNT];
+	size_t limits_[COUNT];
 };
 
 #endif

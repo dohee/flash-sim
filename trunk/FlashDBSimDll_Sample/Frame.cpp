@@ -24,9 +24,14 @@ void DataFrame::SetResident(bool resident)
 
 	if (resident) {
 		data_ = (size_ > 0 ? new char[size_] : emptyData_);
+
 	} else {
+		if (Dirty)
+			throw ::runtime_error("cannot throw away dirty data");
+
 		if (data_ != emptyData_)
 			delete [] data_;
+
 		data_ = NULL;
 	}
 }
