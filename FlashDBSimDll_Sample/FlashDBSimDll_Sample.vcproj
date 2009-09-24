@@ -231,6 +231,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\T8Manager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\TrivalBlockDevice.cpp"
 				>
 			</File>
@@ -310,6 +314,10 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\T8Manager.h"
 				>
 			</File>
 			<File
