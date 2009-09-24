@@ -2,25 +2,31 @@
 #include "Frame.h"
 using namespace std;
 
-static char c[1];
+char DataFrame::emptyData_[1] = {0};
 
-DataFrame::DataFrame(size_t id, size_t size)
-: Frame(id), size_(size),
-  data_(size_ > 0 ? new char[size_] : c)
-{ }
+
+DataFrame::DataFrame(size_t id, size_t size, bool resident)
+: Frame(id), size_(size), data_(NULL)
+{
+	SetResident(resident);
+}
 
 DataFrame::~DataFrame()
 {
-	if (data_ != c)
+	if (data_ != emptyData_)
 		delete [] data_;
 }
 
-void* DataFrame::Get()
+void DataFrame::SetResident(bool resident)
 {
-	return data_;
-}
+	if (resident == IsResident())
+		return;
 
-const void* DataFrame::Get() const
-{
-	return data_;
+	if (resident) {
+		data_ = (size_ > 0 ? new char[size_] : emptyData_);
+	} else {
+		if (data_ != emptyData_)
+			delete [] data_;
+		data_ = NULL;
+	}
 }

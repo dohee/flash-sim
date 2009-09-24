@@ -12,16 +12,19 @@ struct Frame abstract
 
 struct DataFrame : public Frame
 {
-	DataFrame(size_t id, size_t size);
+	DataFrame(size_t id, size_t size, bool resident = true);
 	virtual ~DataFrame();
 
-	void* Get();
-	const void* Get() const;
+	void* Get()  { return data_; }
+	const void* Get() const  { return data_; }
+	bool IsResident() const  { return data_ == NULL; }
+	void SetResident(bool resident);
 
 private:
 	const size_t size_;
-	char *const data_;
+	char* data_;
 
+	static char emptyData_[1];
 	DataFrame(const DataFrame &);
 	DataFrame& operator=(const DataFrame &);
 };
@@ -30,11 +33,11 @@ struct ControlFrame : public Frame
 {
 	size_t PageId;
 
-	int *********************************_;
-	int * WhatElseDoesAControlFrameNeed;
-	int * AddThemHereYourself;
-	int * IveForgottenThemAtThisMoment;
-	int *********************************__;
+	int ***************************************_;
+	int * What_else_does_a_ControlFrame_need;
+	int * Add_them_here_yourself;
+	int * I_ve_forgotten_them_at_this_moment;
+	int ***************************************__;
 };
 
 #endif
