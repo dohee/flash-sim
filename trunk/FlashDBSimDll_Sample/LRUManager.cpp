@@ -54,11 +54,9 @@ void LRUManager::AcquireSlot_()
 	if (queue_.size() < npages_)
 		return;
 
-	QueueType::iterator it = queue_.end();
-	--it;
-	shared_ptr<DataFrame> pframe = *it;
-	WriteIfDirty(*pframe);
-	queue_.erase(it);
-	map_.erase(pframe->Id);
+	DataFrame& frame = *(queue_.back());
+	WriteIfDirty(frame);
+	map_.erase(frame.Id);
+	queue_.pop_back();
 }
 
