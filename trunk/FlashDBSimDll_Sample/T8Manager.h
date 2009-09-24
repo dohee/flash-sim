@@ -21,15 +21,14 @@ private:
 	typedef std::list<std::tr1::shared_ptr<struct DataFrame> > QueueType;
 	enum QueueIndex { NONE = 0, CR, CNR, DR, DNR, COUNT };
 
-	bool FindInQueue_(QueueIndex index, size_t pageid, QueueType::iterator& out);
-	QueueIndex FindInQueues_(size_t pageid, QueueType::iterator& out);
-
 	void SetLimits_(size_t cleanResidentSize);
 	void EnlargeCRLimit_(int relativeCRSize);
+
+	QueueIndex FindInQueues_(size_t pageid, QueueType::iterator& out);
 	void AdjustQueue_(QueueIndex queue, QueueType::iterator iter);
+	void FlushDRQueue();
 	std::tr1::shared_ptr<struct DataFrame> PushIntoQueue_(QueueIndex queue, std::tr1::shared_ptr<struct DataFrame> pframe);
 	std::tr1::shared_ptr<struct DataFrame> PushIntoQueues_(QueueIndex headqueue, std::tr1::shared_ptr<struct DataFrame> pframe);
-	void WriteIfDirty(struct DataFrame& frame);
 
 private:
 	QueueType q_[COUNT];

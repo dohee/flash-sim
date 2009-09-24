@@ -14,12 +14,7 @@ T8Manager::T8Manager(shared_ptr<IBlockDevice> pdev, size_t nPages)
 
 T8Manager::~T8Manager()
 {
-	QueueType::iterator it, itend = q_[DR].end();
-
-	for (it = q_[DR].begin(); it != itend; ++it) {
-		DataFrame& frame = **it;
-		pdev_->Write(frame.Id, frame.Get());
-	}
+	FlushDRQueue();
 }
 
 inline void T8Manager::SetLimits_(size_t cr)
@@ -85,46 +80,67 @@ void T8Manager::DoWrite(size_t pageid, const void *data)
 		DataFrame& frame = **it;
 		memcpy(frame.Get(), data, pagesize_);
 		
-		AdjustQueue_(CR, it);
+		AdjustQueue_(DR, it);
 
-	} else if (pageQueue == DNR) {
+	} else if (pageQueue == DNR || pageQueue == CR || pageQueue == CNR) {
 		shared_ptr<DataFrame> pframe = *it;
 		pframe->SetResident(true);
 		memcpy(pframe->Get(), data, pagesize_);
+		pframe->Dirty = true;
 
-		EnlargeCRLimit_(-1);
+		if (pageQueue == DNR)
+			EnlargeCRLimit_(-1);
 
-		q_[DNR].erase(it);
+		q_[pageQueue].erase(it);
 		PushIntoQueues_(DR, pframe);
 
-	} else if (pageQueue == CR || pageQueue == CNR) {
 	} else {
+		shared_ptr<DataFrame> pframe(new DataFrame(pageid, pagesize_, true));
+		memcpy(pframe->Get(), data, pagesize_);
+		pframe->Dirty = true;
+
+		PushIntoQueues_(DR, pframe);
 	}
 }
 
 void T8Manager::DoFlush()
 {
+	FlushDRQueue();
+	q_[CR].insert(q_[CR].begin(), q_[DR].begin(), q_[DR].end());
+	q_[DR].clear();
 }
 
-bool T8Manager::FindInQueue_(QueueIndex index, size_t pageid, QueueType::iterator& out)
+void T8Manager::FlushDRQueue()
 {
-	QueueType::iterator it = q_[index].begin(), itend = q_[index].end();
+	QueueType::iterator it = q_[DR].begin(), itend = q_[DR].end();
 
 	for (; it!=itend; ++it) {
-		if ((*it)->Id == pageid) {
-			out = it;
-			return true;
-		}
+		DataFrame& frame = **it;
+		pdev_->Write(frame.Id, frame.Get());
+		assert(frame.Dirty == true);
+		frame.Dirty = false;
 	}
-
-	return false;
 }
 
-T8Manager::QueueIndex T8Manager::FindInQueues_(size_t pageid, QueueType::iterator& out)
+
+T8Manager::QueueIndex T8Manager::FindInQueues_(
+	size_t pageid, QueueType::iterator& out)
 {
-	for (int i=1; i<COUNT; ++i)
-		if (FindInQueue_((QueueIndex) i, pageid, out))
+	struct {
+		int id;
+		bool operator()(QueueType::const_reference pframe) const {
+			return pframe->Id == id;
+		}
+	} pred = { pageid };
+
+	for (int i=1; i<COUNT; ++i) {
+		QueueType::iterator it = find_if(q_[i].begin(), q_[i].end(), pred);
+
+		if (it != q_[i].end()) {
+			out = it;
 			return (QueueIndex) i;
+		}
+	}
 
 	return NONE;
 }
@@ -163,7 +179,13 @@ shared_ptr<DataFrame> T8Manager::PushIntoQueues_(
 		return headtail;
 
 	} else {
-		WriteIfDirty(*headtail);
+		assert(headtail->IsResident() == true);
+
+		if (headtail->Dirty) {
+			pdev_->Write(headtail->Id, headtail->Get());
+			headtail->Dirty = false;
+		}
+
 		headtail->SetResident(false);
 
 		if (head == CR)
@@ -171,13 +193,4 @@ shared_ptr<DataFrame> T8Manager::PushIntoQueues_(
 		else
 			return PushIntoQueue_(DNR, headtail);
 	}
-}
-
-void T8Manager::WriteIfDirty(DataFrame& frame)
-{
-	if (!frame.Dirty)
-		return;
-
-	pdev_->Write(frame.Id, frame.Get());
-	frame.Dirty = false;
 }
