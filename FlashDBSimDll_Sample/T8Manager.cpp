@@ -35,6 +35,25 @@ void T8Manager::EnlargeCRLimit_(int rela)
 	newcr = min(newcr, (int) (npages_ - 1));
 
 	SetLimits_((size_t) newcr);
+
+	while (q_[CR].size() > limits_[CR]) {
+		q_[CR].back()->SetResident(false);
+		PushIntoQueue_(CNR, q_[CR].back());
+		q_[CR].pop_back();
+	}
+
+	while (q_[DR].size() > limits_[DR]) {
+		DataFrame& frame = *q_[DR].back();
+		if (frame.Dirty) {
+			pdev_->Write(frame.Id, frame.Get());
+			frame.Dirty = false;
+		}
+
+		frame.SetResident(false);
+		PushIntoQueue_(CNR, q_[DR].back());
+		q_[DR].pop_back();
+	}
+	
 }
 
 
@@ -56,10 +75,11 @@ void T8Manager::DoRead(size_t pageid, void *result)
 		pdev_->Read(pageid, pframe->Get());
 		memcpy(result, pframe->Get(), pagesize_);
 
+		q_[pageQueue].erase(it);
+
 		if (pageQueue == CNR)
 			EnlargeCRLimit_(1);
 
-		q_[pageQueue].erase(it);
 		PushIntoQueues_(CR, pframe);
 
 	} else {
@@ -88,10 +108,11 @@ void T8Manager::DoWrite(size_t pageid, const void *data)
 		memcpy(pframe->Get(), data, pagesize_);
 		pframe->Dirty = true;
 
-		if (pageQueue == DNR)
-			EnlargeCRLimit_(-1);
-
 		q_[pageQueue].erase(it);
+
+		if (pageQueue == DNR)
+			EnlargeCRLimit_(-3);
+
 		PushIntoQueues_(DR, pframe);
 
 	} else {
@@ -168,29 +189,27 @@ shared_ptr<DataFrame> T8Manager::PushIntoQueue_(
 }
 
 shared_ptr<DataFrame> T8Manager::PushIntoQueues_(
-	QueueIndex head, shared_ptr<struct DataFrame> pframe)
+	QueueIndex head, shared_ptr<DataFrame> pframe)
 {
 	if (head != CR && head != DR)
 		throw ::invalid_argument("cannot push frame into CNR or DNR queue");
 
 	shared_ptr<struct DataFrame> headtail = PushIntoQueue_(head, pframe);
 
-	if (headtail.get() == NULL) {
+	if (headtail.get() == NULL)
 		return headtail;
 
-	} else {
-		assert(headtail->IsResident() == true);
+	assert(headtail->IsResident() == true);
 
-		if (headtail->Dirty) {
-			pdev_->Write(headtail->Id, headtail->Get());
-			headtail->Dirty = false;
-		}
-
-		headtail->SetResident(false);
-
-		if (head == CR)
-			return PushIntoQueue_(CNR, headtail);
-		else
-			return PushIntoQueue_(DNR, headtail);
+	if (headtail->Dirty) {
+		pdev_->Write(headtail->Id, headtail->Get());
+		headtail->Dirty = false;
 	}
+
+	headtail->SetResident(false);
+
+	if (head == CR)
+		return PushIntoQueue_(CNR, headtail);
+	else
+		return PushIntoQueue_(DNR, headtail);
 }
