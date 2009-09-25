@@ -19,14 +19,14 @@ void main()
 
 	group.Add(shared_ptr<BufferManagerBase>(new LRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
-	/*
+	
 	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize/2)));
 	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));
 	group.Add(shared_ptr<BufferManagerBase>(new CMFTManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
-	*/
+	
 	group.Add(shared_ptr<BufferManagerBase>(new T8Manager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
 
