@@ -15,7 +15,7 @@ protected:
 	void WriteIfDirty(struct DataFrame& DataFrame);
 
 	virtual void DoFlush() = 0;
-	virtual std::tr1::shared_ptr<struct DataFrame> FindFrame(size_t pageid) = 0;
+	virtual std::tr1::shared_ptr<struct DataFrame> FindFrame(size_t pageid, bool isWrite) = 0;
 	virtual std::tr1::shared_ptr<struct DataFrame> AllocFrame(size_t pageid) = 0;
 };
 
