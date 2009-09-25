@@ -21,9 +21,9 @@ T8Manager::~T8Manager()
 inline void T8Manager::SetLimits_(size_t cr)
 {
 	limits_[CR] = cr;
-	limits_[DR] = npages_ - cr;
-	limits_[CNR] = npages_ - cr;
-	limits_[DNR] = cr;
+	limits_[DR] = npages_ - limits_[CR];
+	limits_[CNR] = npages_ /2;
+	limits_[DNR] = npages_ /2;
 }
 
 void T8Manager::EnlargeCRLimit_(int rela)
@@ -69,6 +69,8 @@ void T8Manager::DoRead(size_t pageid, void *result)
 		
 		if (pageQueue == CR)
 			AdjustQueue_(CR, it);
+		else
+			AdjustQueue_(DR, it);
 
 	} else if (pageQueue == CNR || pageQueue == DNR) {
 		shared_ptr<DataFrame> pframe = *it;
@@ -80,6 +82,8 @@ void T8Manager::DoRead(size_t pageid, void *result)
 
 		if (pageQueue == CNR)
 			EnlargeCRLimit_(1);
+		//else
+		//	EnlargeCRLimit_(-1);
 
 		PushIntoQueues_(CR, pframe);
 
@@ -112,7 +116,7 @@ void T8Manager::DoWrite(size_t pageid, const void *data)
 		q_[pageQueue].erase(it);
 
 		if (pageQueue == DNR)
-			EnlargeCRLimit_(-8);
+			EnlargeCRLimit_(-3);
 
 		PushIntoQueues_(DR, pframe);
 
