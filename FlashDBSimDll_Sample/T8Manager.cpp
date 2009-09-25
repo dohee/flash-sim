@@ -9,6 +9,7 @@ using namespace std::tr1;
 T8Manager::T8Manager(shared_ptr<IBlockDevice> pdev, size_t nPages)
 : BufferManagerBase(pdev, nPages)
 {
+	limits_[0] = 0;
 	SetLimits_(nPages / 2);
 }
 
