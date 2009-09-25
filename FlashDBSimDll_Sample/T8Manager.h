@@ -4,7 +4,7 @@
 #include <memory>
 #include <list>
 #include <hash_map>
-#include "BufferManagerBase.h"
+#include "FrameBasedBufferManager.h"
 
 class T8Manager : public BufferManagerBase
 {
@@ -33,6 +33,58 @@ private:
 private:
 	QueueType q_[COUNT];
 	size_t limits_[COUNT];
+};
+
+
+
+
+class TnManager : public FrameBasedBufferManager
+{
+public:
+	typedef std::tr1::shared_ptr<struct DataFrame> FramePtr;
+	TnManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
+	virtual ~TnManager();
+
+protected:
+	virtual void DoFlush();
+	FramePtr FindFrame(size_t pageid, bool isWrite);
+	FramePtr AllocFrame(size_t pageid);
+
+private:
+	void AcquireSlot_();
+
+private:
+	class Queue {
+	public:
+		typedef std::list<FramePtr> QueueType;
+		typedef std::tr1::shared_ptr<QueueType> QueueTypePtr;
+
+		Queue(size_t limit);
+		size_t GetLimit() const;
+		QueueTypePtr ChangeLimit(int relative);
+
+		QueueType::iterator begin();
+		QueueType::iterator end();
+		QueueType::reference back();
+		QueueType::const_iterator begin() const;
+		QueueType::const_iterator end() const;
+		QueueType::const_reference back() const;
+
+		QueueType::iterator Find(size_t id);
+		FramePtr Push(FramePtr pframe);
+
+		template <class Func>
+		void ForEach(Func func);
+
+		template <class InputIter>
+		QueueTypePtr Push(InputIter begin, InputIter end);
+
+	private:
+		QueueType q;
+		size_t limit;
+	};
+
+	Queue cr_, cnr_, dr_, dnr_;
 };
 
 #endif

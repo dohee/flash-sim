@@ -36,7 +36,7 @@ void CMFTManager::DoFlush()
 		WriteIfDirty(**it);
 }
 
-shared_ptr<DataFrame> CMFTManager::FindFrame(size_t pageid)
+shared_ptr<DataFrame> CMFTManager::FindFrame(size_t pageid, bool isWrite)
 {
 	time_++;
 	StackType::iterator it, itend = stack_.end();

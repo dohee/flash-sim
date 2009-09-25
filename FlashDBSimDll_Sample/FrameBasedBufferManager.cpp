@@ -11,7 +11,7 @@ FrameBasedBufferManager::FrameBasedBufferManager(shared_ptr<IBlockDevice> pdev, 
 
 void FrameBasedBufferManager::DoRead(size_t pageid, void *result)
 {
-	shared_ptr<DataFrame> pframe = FindFrame(pageid);
+	shared_ptr<DataFrame> pframe = FindFrame(pageid, false);
 
 	if (pframe.get() == NULL) {
 		pframe = AllocFrame(pageid);
@@ -23,7 +23,7 @@ void FrameBasedBufferManager::DoRead(size_t pageid, void *result)
 
 void FrameBasedBufferManager::DoWrite(size_t pageid, const void *data)
 {
-	shared_ptr<DataFrame> pframe = FindFrame(pageid);
+	shared_ptr<DataFrame> pframe = FindFrame(pageid, true);
 
 	if (pframe.get() == NULL)
 		pframe = AllocFrame(pageid);

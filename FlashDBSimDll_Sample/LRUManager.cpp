@@ -25,7 +25,7 @@ void LRUManager::DoFlush()
 		WriteIfDirty(**it);
 }
 
-shared_ptr<DataFrame> LRUManager::FindFrame(size_t pageid)
+shared_ptr<DataFrame> LRUManager::FindFrame(size_t pageid, bool isWrite)
 {
 	MapType::iterator iter = map_.find(pageid);
 
