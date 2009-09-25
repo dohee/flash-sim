@@ -2,7 +2,7 @@
 #include "TrivalBlockDevice.h"
 
 const int WRITECOST = 200;
-const int READCOST = 80;
+const int READCOST = 25;
 
 TrivalBlockDevice::TrivalBlockDevice()
 : read_(0), write_(0)

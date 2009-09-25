@@ -112,7 +112,7 @@ void T8Manager::DoWrite(size_t pageid, const void *data)
 		q_[pageQueue].erase(it);
 
 		if (pageQueue == DNR)
-			EnlargeCRLimit_(-3);
+			EnlargeCRLimit_(-8);
 
 		PushIntoQueues_(DR, pframe);
 
