@@ -41,14 +41,13 @@ private:
 class TnManager : public FrameBasedBufferManager
 {
 public:
-	typedef std::tr1::shared_ptr<struct DataFrame> FramePtr;
 	TnManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
 	virtual ~TnManager();
 
 protected:
 	virtual void DoFlush();
-	FramePtr FindFrame(size_t pageid, bool isWrite);
-	FramePtr AllocFrame(size_t pageid);
+	std::tr1::shared_ptr<struct DataFrame> FindFrame(size_t pageid, bool isWrite);
+	std::tr1::shared_ptr<struct DataFrame> AllocFrame(size_t pageid);
 
 private:
 	void AcquireSlot_();
@@ -56,12 +55,14 @@ private:
 private:
 	class Queue {
 	public:
-		typedef std::list<FramePtr> QueueType;
+		typedef std::list<std::tr1::shared_ptr<struct DataFrame> > QueueType;
 		typedef std::tr1::shared_ptr<QueueType> QueueTypePtr;
 
-		Queue(size_t limit);
+		Queue(size_t limit = 0);
+		size_t GetSize() const;
 		size_t GetLimit() const;
-		QueueTypePtr ChangeLimit(int relative);
+		bool IsTooLong() const;
+		void ChangeLimit(int relative);
 
 		QueueType::iterator begin();
 		QueueType::iterator end();
@@ -71,17 +72,14 @@ private:
 		QueueType::const_reference back() const;
 
 		QueueType::iterator Find(size_t id);
-		FramePtr Push(FramePtr pframe);
 
-		template <class Func>
-		void ForEach(Func func);
-
-		template <class InputIter>
-		QueueTypePtr Push(InputIter begin, InputIter end);
+		void Enqueue(std::tr1::shared_ptr<struct DataFrame> pframe);
+		std::tr1::shared_ptr<struct DataFrame> Dequeue();
+		std::tr1::shared_ptr<struct DataFrame> Dequeue(QueueType::iterator iter);
 
 	private:
-		QueueType q;
-		size_t limit;
+		QueueType q_;
+		size_t limit_;
 	};
 
 	Queue cr_, cnr_, dr_, dnr_;
