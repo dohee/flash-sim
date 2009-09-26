@@ -218,3 +218,87 @@ shared_ptr<DataFrame> T8Manager::PushIntoQueues_(
 	else
 		return PushIntoQueue_(DNR, headtail);
 }
+
+//==========================================================
+
+TnManager::Queue::Queue(size_t limit)
+: limit_(limit) { }
+
+inline size_t TnManager::Queue::
+GetSize() const				{ return q_.size(); }
+inline size_t TnManager::Queue::
+GetLimit() const			{ return limit_; }
+inline bool TnManager::Queue::
+IsTooLong() const			{ return q_.size() > limit_; }
+inline void TnManager::Queue::
+ChangeLimit(int relative)	{ limit_ += relative; }
+
+inline TnManager::Queue::QueueType::iterator TnManager::Queue::
+begin()						{ return q_.begin(); }
+inline TnManager::Queue::QueueType::iterator TnManager::Queue::
+end()						{ return q_.end(); }
+inline TnManager::Queue::QueueType::reference TnManager::Queue::
+back()						{ return q_.back(); }
+inline TnManager::Queue::QueueType::const_iterator TnManager::Queue::
+begin() const				{ return q_.begin(); }
+inline TnManager::Queue::QueueType::const_iterator TnManager::Queue::
+end() const					{ return q_.end(); }
+inline TnManager::Queue::QueueType::const_reference TnManager::Queue::
+back() const				{ return q_.back(); }
+inline void TnManager::Queue::
+Enqueue(shared_ptr<DataFrame> pframe)	{q_.push_front(pframe);}
+
+inline TnManager::Queue::QueueType::iterator TnManager::Queue::
+Find(size_t id)
+{
+	struct {
+		int id;
+		bool operator()(QueueType::const_reference pframe) const {
+			return pframe->Id == id;
+		}
+	} pred = { id };
+
+	return find_if(q_.begin(), q_.end(), pred);
+}
+
+inline shared_ptr<DataFrame> TnManager::Queue::
+Dequeue()
+{
+	shared_ptr<DataFrame> pframe = q_.back();
+	q_.pop_back();
+	return pframe;
+}
+inline shared_ptr<DataFrame> TnManager::Queue::
+Dequeue(QueueType::iterator iter)
+{
+	shared_ptr<DataFrame> pframe = *iter;
+	q_.erase(iter);
+	return pframe;
+}
+
+
+//-----------------------------------------------------
+
+TnManager::
+TnManager(shared_ptr<IBlockDevice> pDevice, size_t nPages)
+: FrameBasedBufferManager(pDevice, nPages) { }
+
+TnManager::
+~TnManager() { Flush(); }
+
+void TnManager::
+DoFlush()
+{
+}
+
+shared_ptr<DataFrame> TnManager::
+FindFrame(size_t pageid, bool isWrite)
+{
+}
+
+shared_ptr<DataFrame> TnManager::
+AllocFrame(size_t pageid)
+{
+}
+
+//void AcquireSlot_();
