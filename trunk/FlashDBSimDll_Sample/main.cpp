@@ -19,19 +19,21 @@ void main()
 
 	group.Add(shared_ptr<BufferManagerBase>(new LRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
-	
 	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
-		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*5/1000)));
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*875/1000)));
+	/*
 	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRManager(
-		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));
-	
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));*/
 	group.Add(shared_ptr<BufferManagerBase>(new T8Manager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
+	
+	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 3)));
 
 
 	srand(clock());
 	int fcount = 0;
-	ifstream traceFile("trace8020-0.5.txt");
+	ifstream traceFile("trace8020.txt");
 
 	if(!traceFile.is_open())
 	{
@@ -54,12 +56,6 @@ void main()
 
 		traceFile >> pageid >> length >> rw;
 
-		//if (count < 0)
-		//	continue;
-		//if (count > 100000)
-		//	break;
-		
-		//cout<<pageid<<","<<rw<<endl;
 		for (int i = 0; i<length; i++)
 		{
 			if (rw == 0)
@@ -83,4 +79,6 @@ void main()
 			group.GetDevReadCount(i), group.GetDevWriteCount(i),
 			group.GetDevCost(i));
 	}
+
+	system("pause");
 }
