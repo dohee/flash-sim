@@ -231,7 +231,7 @@ GetLimit() const			{ return limit_; }
 inline bool TnManager::Queue::
 IsTooLong() const			{ return q_.size() > limit_; }
 inline void TnManager::Queue::
-ChangeLimit(int relative)	{ limit_ += relative; }
+ChangeLimit(int value)		{ limit_ = value; }
 
 inline TnManager::Queue::QueueType::iterator TnManager::Queue::
 begin()						{ return q_.begin(); }
@@ -280,8 +280,18 @@ Dequeue(QueueType::iterator iter)
 //-----------------------------------------------------
 
 TnManager::
-TnManager(shared_ptr<IBlockDevice> pDevice, size_t nPages)
-: FrameBasedBufferManager(pDevice, nPages) { }
+TnManager(
+	shared_ptr<IBlockDevice> pDevice, size_t nPages, int HowManyToKickWhenWriteInDR,
+	bool AdjustDRWhenReadInDR, bool EnlargeCRWhenReadInDNR)
+: FrameBasedBufferManager(pDevice, nPages),
+  kickn_(HowManyToKickWhenWriteInDR), adjustDROnReadDR_(AdjustDRWhenReadInDR),
+  enlargeCROnReadDNR_(EnlargeCRWhenReadInDNR)
+{
+	cr_.ChangeLimit(npages_ / 2);
+	dr_.ChangeLimit(npages_ - npages_ / 2);
+	cnr_.ChangeLimit(npages_ / 2);
+	dnr_.ChangeLimit(npages_ / 2);
+}
 
 TnManager::
 ~TnManager() { Flush(); }
@@ -289,60 +299,127 @@ TnManager::
 void TnManager::
 EnlargeCRLimit(int relative)
 {
-	//XXXXXXX
+	int crlimit = relative + (int) cr_.GetLimit();
+	crlimit = max(crlimit, 1);
+	crlimit = min(crlimit, (int)npages_ - 1);
+
+	cr_.ChangeLimit(crlimit);
+	dr_.ChangeLimit(npages_ - crlimit);
 }
 
 
 void TnManager::
 DoFlush()
 {
-	//XXXXXXXX
+	Queue::QueueType::iterator it = dr_.begin(), it2, itend = dr_.end();
+
+	for (; it!=itend; ) {
+		WriteIfDirty(**it);
+		it2 = it;
+		it++;
+		cr_.Enqueue(dr_.Dequeue(it2));
+	}
 }
 
 
 shared_ptr<DataFrame> TnManager::
 FindFrame(size_t pageid, bool isWrite)
 {
-	if (!isWrite) {
-		Queue::QueueType::iterator it;
-		
-		if ((it = cr_.Find(pageid)) != cr_.end()) {
-			return *(AdjustQueue_(cr_, it));
+	if (!isWrite)
+		return FindFrameOnRead(pageid);
+	else
+		return FindFrameOnWrite(pageid);
+}
 
-		} else if ((it = cnr_.Find(pageid)) != cnr_.end()) {
-			shared_ptr<DataFrame> pframe = cnr_.Dequeue(it);
-			assert(pframe->IsResident() == false);
-			pframe->SetResident(true);
-			ReadFromDev(*pframe);
+shared_ptr<DataFrame> TnManager::
+FindFrameOnRead(size_t pageid)
+{
+	Queue::QueueType::iterator it;
+	
+	if ((it = cr_.Find(pageid)) != cr_.end()) {
+		return MoveFrame_(cr_, it, cr_);
 
-			EnlargeCRLimit(1);
-			cr_.Enqueue(pframe);
-			SqueezeQueues_();
+	} else if ((it = cnr_.Find(pageid)) != cnr_.end()) {
+		shared_ptr<DataFrame> pframe = MoveFrame_(cnr_, it, cr_);
+		pframe->SetResident(true);
+		ReadFromDev(*pframe);
 
-		} else if ((it = dr_.Find(pageid)) != dr_.end()) {
-			//Adjust XXXXXXXX
+		EnlargeCRLimit(1);
+		SqueezeQueues_();
+		return pframe;
+
+	} else if ((it = dr_.Find(pageid)) != dr_.end()) {
+		if (adjustDROnReadDR_)
+			return MoveFrame_(dr_, it, dr_);
+		else
 			return *it;
 
-		} else if ((it = dnr_.Find(pageid)) != dnr_.end()) {
-			shared_ptr<DataFrame> pframe = dnr_.Dequeue(it);
-			assert(pframe->IsResident() == false);
-			pframe->SetResident(true);
+	} else if ((it = dnr_.Find(pageid)) != dnr_.end()) {
+		shared_ptr<DataFrame> pframe = MoveFrame_(dnr_, it, cr_);
+		pframe->SetResident(true);
 
-			//EnlargeCRLimit(1)? //XXXXXX
-			cr_.Enqueue(pframe);
-			SqueezeQueues_();
+		if (enlargeCROnReadDNR_)
+			EnlargeCRLimit(1);
 
-		} else {
-			return shared_ptr<DataFrame>();
-		}
+		SqueezeQueues_();
+		return pframe;
+
+	} else {
+		return shared_ptr<DataFrame>();
 	}
 }
 
-inline TnManager::Queue::QueueType::iterator TnManager::
-AdjustQueue_(Queue& queue, Queue::QueueType::iterator iter)
+shared_ptr<DataFrame> TnManager::
+FindFrameOnWrite(size_t pageid)
 {
-	queue.Enqueue(queue.Dequeue(iter));
-	return queue.begin();
+	Queue::QueueType::iterator it;
+	
+	if ((it = dr_.Find(pageid)) != dr_.end()) {
+		return MoveFrame_(dr_, it, dr_);
+
+	} else if ((it = dnr_.Find(pageid)) != dnr_.end()) {
+		shared_ptr<DataFrame> pframe = MoveFrame_(dnr_, it, dr_);
+		pframe->SetResident(true);
+
+		EnlargeCRLimit(-kickn_);
+		SqueezeQueues_();
+		return pframe;
+
+	} else if ((it = cr_.Find(pageid)) != cr_.end()) {
+		return MoveFrame_(cr_, it, dr_);
+
+	} else if ((it = cnr_.Find(pageid)) != cnr_.end()) {
+		shared_ptr<DataFrame> pframe = MoveFrame_(cnr_, it, dr_);
+		pframe->SetResident(true);
+		SqueezeQueues_();
+		return pframe;
+
+	} else {
+		return shared_ptr<DataFrame>();
+	}
+}
+
+
+inline shared_ptr<DataFrame> TnManager::
+MoveFrame_(Queue& dequeueFrom, Queue::QueueType::iterator which, Queue& enqueueTo)
+{
+	shared_ptr<DataFrame> pframe = dequeueFrom.Dequeue(which);
+	enqueueTo.Enqueue(pframe);
+
+#ifdef _DEBUG
+	if (&dequeueFrom == &cr_)
+		assert(pframe->Dirty == false && pframe->IsResident() == true);
+	else if (&dequeueFrom == &cnr_)
+		assert(pframe->Dirty == false && pframe->IsResident() == false);
+	else if (&dequeueFrom == &dr_)
+		assert(pframe->Dirty == true && pframe->IsResident() == true);
+	else if (&dequeueFrom == &dnr_)
+		assert(pframe->Dirty == false && pframe->IsResident() == false);
+	else
+		assert(false);
+#endif
+
+	return pframe;
 }
 
 
@@ -392,6 +469,3 @@ SqueezeQueues_()
 	while (dnr_.GetSize() > dnr_.GetLimit())
 		dnr_.Dequeue();
 }
-
-
-//void AcquireSlot_();

@@ -41,7 +41,9 @@ private:
 class TnManager : public FrameBasedBufferManager
 {
 public:
-	TnManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages);
+	TnManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages,
+		int HowManyToKickWhenWriteInDR, bool AdjustDRWhenReadInDR = false, bool EnlargeCRWhenReadInDNR = false);
+
 	virtual ~TnManager();
 
 protected:
@@ -59,7 +61,7 @@ private:
 		size_t GetSize() const;
 		size_t GetLimit() const;
 		bool IsTooLong() const;
-		void ChangeLimit(int relative);
+		void ChangeLimit(int value);
 
 		QueueType::iterator begin();
 		QueueType::iterator end();
@@ -78,15 +80,22 @@ private:
 		QueueType q_;
 		size_t limit_;
 	};
-	//void AcquireSlot_();
+
+
+	std::tr1::shared_ptr<struct DataFrame> FindFrameOnRead(size_t pageid);
+	std::tr1::shared_ptr<struct DataFrame> FindFrameOnWrite(size_t pageid);
+
+	std::tr1::shared_ptr<struct DataFrame> MoveFrame_(
+		Queue& dequeueFrom, Queue::QueueType::iterator which, Queue& enqueueTo);
 
 	void EnlargeCRLimit(int relative);
-	Queue::QueueType::iterator AdjustQueue_(Queue& queue, Queue::QueueType::iterator iter);
 	void SqueezeResidentQueue_(Queue& headqueue, Queue& tailqueue);
 	void SqueezeQueues_();
 
 private:
 	Queue cr_, cnr_, dr_, dnr_;
+	int kickn_;
+	bool adjustDROnReadDR_, enlargeCROnReadDNR_;
 };
 
 #endif
