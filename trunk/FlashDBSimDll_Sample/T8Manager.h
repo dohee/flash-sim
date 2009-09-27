@@ -47,10 +47,7 @@ public:
 protected:
 	virtual void DoFlush();
 	std::tr1::shared_ptr<struct DataFrame> FindFrame(size_t pageid, bool isWrite);
-	std::tr1::shared_ptr<struct DataFrame> AllocFrame(size_t pageid);
-
-private:
-	void AcquireSlot_();
+	std::tr1::shared_ptr<struct DataFrame> AllocFrame(size_t pageid, bool isWrite);
 
 private:
 	class Queue {
@@ -81,7 +78,14 @@ private:
 		QueueType q_;
 		size_t limit_;
 	};
+	//void AcquireSlot_();
 
+	void EnlargeCRLimit(int relative);
+	Queue::QueueType::iterator AdjustQueue_(Queue& queue, Queue::QueueType::iterator iter);
+	void SqueezeResidentQueue_(Queue& headqueue, Queue& tailqueue);
+	void SqueezeQueues_();
+
+private:
 	Queue cr_, cnr_, dr_, dnr_;
 };
 

@@ -14,8 +14,8 @@ void FrameBasedBufferManager::DoRead(size_t pageid, void *result)
 	shared_ptr<DataFrame> pframe = FindFrame(pageid, false);
 
 	if (pframe.get() == NULL) {
-		pframe = AllocFrame(pageid);
-		pdev_->Read(pageid, pframe->Get());
+		pframe = AllocFrame(pageid, false);
+		ReadFromDev(*pframe);
 	}
 
 	memcpy(result, pframe->Get(), pagesize_);
@@ -26,17 +26,22 @@ void FrameBasedBufferManager::DoWrite(size_t pageid, const void *data)
 	shared_ptr<DataFrame> pframe = FindFrame(pageid, true);
 
 	if (pframe.get() == NULL)
-		pframe = AllocFrame(pageid);
+		pframe = AllocFrame(pageid, true);
 
 	memcpy(pframe->Get(), data, pagesize_);
 	pframe->Dirty = true;
 }
 
+void FrameBasedBufferManager::ReadFromDev(DataFrame& frame)
+{
+	pdev_->Read(frame.Id, frame.Get());
+}
+
 void FrameBasedBufferManager::WriteIfDirty(DataFrame& frame)
 {
-	if (!frame.Dirty)
-		return;
-
-	pdev_->Write(frame.Id, frame.Get());
-	frame.Dirty = false;
+	if (frame.Dirty) {
+		pdev_->Write(frame.Id, frame.Get());
+		frame.Dirty = false;
+	}
 }
+

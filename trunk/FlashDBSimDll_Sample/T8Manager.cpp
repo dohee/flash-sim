@@ -287,18 +287,111 @@ TnManager::
 ~TnManager() { Flush(); }
 
 void TnManager::
+EnlargeCRLimit(int relative)
+{
+	//XXXXXXX
+}
+
+
+void TnManager::
 DoFlush()
 {
+	//XXXXXXXX
 }
+
 
 shared_ptr<DataFrame> TnManager::
 FindFrame(size_t pageid, bool isWrite)
 {
+	if (!isWrite) {
+		Queue::QueueType::iterator it;
+		
+		if ((it = cr_.Find(pageid)) != cr_.end()) {
+			return *(AdjustQueue_(cr_, it));
+
+		} else if ((it = cnr_.Find(pageid)) != cnr_.end()) {
+			shared_ptr<DataFrame> pframe = cnr_.Dequeue(it);
+			assert(pframe->IsResident() == false);
+			pframe->SetResident(true);
+			ReadFromDev(*pframe);
+
+			EnlargeCRLimit(1);
+			cr_.Enqueue(pframe);
+			SqueezeQueues_();
+
+		} else if ((it = dr_.Find(pageid)) != dr_.end()) {
+			//Adjust XXXXXXXX
+			return *it;
+
+		} else if ((it = dnr_.Find(pageid)) != dnr_.end()) {
+			shared_ptr<DataFrame> pframe = dnr_.Dequeue(it);
+			assert(pframe->IsResident() == false);
+			pframe->SetResident(true);
+
+			//EnlargeCRLimit(1)? //XXXXXX
+			cr_.Enqueue(pframe);
+			SqueezeQueues_();
+
+		} else {
+			return shared_ptr<DataFrame>();
+		}
+	}
 }
 
-shared_ptr<DataFrame> TnManager::
-AllocFrame(size_t pageid)
+inline TnManager::Queue::QueueType::iterator TnManager::
+AdjustQueue_(Queue& queue, Queue::QueueType::iterator iter)
 {
+	queue.Enqueue(queue.Dequeue(iter));
+	return queue.begin();
 }
+
+
+shared_ptr<DataFrame> TnManager::
+AllocFrame(size_t pageid, bool isWrite)
+{
+	shared_ptr<DataFrame> pframe(new DataFrame(pageid, pagesize_, true));
+
+	if (!isWrite)
+		cr_.Enqueue(pframe);
+	else
+		dr_.Enqueue(pframe);
+	
+	SqueezeQueues_();
+	return pframe;
+}
+
+void TnManager::
+SqueezeResidentQueue_(Queue& headqueue, Queue& tailqueue)
+{
+	shared_ptr<DataFrame> pframe = headqueue.Dequeue();
+	assert(pframe->IsResident() == true);
+	WriteIfDirty(*pframe);
+	pframe->SetResident(false);
+	tailqueue.Enqueue(pframe);
+}
+
+void TnManager::
+SqueezeQueues_()
+{
+	int crOverRun = cr_.GetSize() - cr_.GetLimit();
+	int drOverRun = dr_.GetSize() - dr_.GetLimit();
+
+	while (crOverRun + drOverRun > 0) {
+		if (crOverRun > drOverRun) {
+			SqueezeResidentQueue_(cr_, cnr_);
+			crOverRun--;
+		} else {
+			SqueezeResidentQueue_(dr_, dnr_);
+			drOverRun--;
+		}
+	}
+
+	while (cnr_.GetSize() > cnr_.GetLimit())
+		cnr_.Dequeue();
+
+	while (dnr_.GetSize() > dnr_.GetLimit())
+		dnr_.Dequeue();
+}
+
 
 //void AcquireSlot_();
