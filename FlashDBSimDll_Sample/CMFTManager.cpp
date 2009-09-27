@@ -56,7 +56,7 @@ shared_ptr<DataFrame> CMFTManager::FindFrame(size_t pageid, bool isWrite)
 	return pframe;
 }
 
-shared_ptr<DataFrame> CMFTManager::AllocFrame(size_t pageid)
+shared_ptr<DataFrame> CMFTManager::AllocFrame(size_t pageid, bool isWrite)
 {
 	if (stack_.size() >= npages_) {
 		StackType::iterator it, itend = stack_.end();

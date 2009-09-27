@@ -39,7 +39,7 @@ shared_ptr<DataFrame> LRUManager::FindFrame(size_t pageid, bool isWrite)
 	return pframe;
 }
 
-shared_ptr<DataFrame> LRUManager::AllocFrame(size_t pageid)
+shared_ptr<DataFrame> LRUManager::AllocFrame(size_t pageid, bool isWrite)
 {
 	AcquireSlot_();
 	shared_ptr<DataFrame> pframe(new DataFrame(pageid, pagesize_));

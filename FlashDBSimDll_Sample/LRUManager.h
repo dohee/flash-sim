@@ -15,7 +15,7 @@ public:
 protected:
 	virtual void DoFlush();
 	std::tr1::shared_ptr<struct DataFrame> FindFrame(size_t pageid, bool isWrite);
-	std::tr1::shared_ptr<struct DataFrame> AllocFrame(size_t pageid);
+	std::tr1::shared_ptr<struct DataFrame> AllocFrame(size_t pageid, bool isWrite);
 
 private:
 	void AcquireSlot_();
