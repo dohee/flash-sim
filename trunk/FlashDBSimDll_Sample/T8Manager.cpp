@@ -69,8 +69,8 @@ void T8Manager::DoRead(size_t pageid, void *result)
 		
 		if (pageQueue == CR)
 			AdjustQueue_(CR, it);
-		else
-			AdjustQueue_(DR, it);
+		//else
+			//AdjustQueue_(DR, it);
 
 	} else if (pageQueue == CNR || pageQueue == DNR) {
 		shared_ptr<DataFrame> pframe = *it;
