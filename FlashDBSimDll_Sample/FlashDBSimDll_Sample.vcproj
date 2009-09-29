@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CFLRUDManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CFLRUManager.cpp"
 				>
 			</File>
@@ -270,6 +274,10 @@
 			</File>
 			<File
 				RelativePath=".\BufferManagerGroup.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CFLRUDManager.h"
 				>
 			</File>
 			<File
