@@ -25,7 +25,7 @@ void main()
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/1000)));
 
 	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
-		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*300/1000)));
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*1000/1000)));
 	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/1000)));
 	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(

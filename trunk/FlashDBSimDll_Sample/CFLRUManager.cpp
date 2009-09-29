@@ -83,28 +83,25 @@ void CFLRUManager::AcquireSlot_()
 		return;
 
 	QueueType::iterator it = queue_.end();
-	--it;
-	shared_ptr<DataFrame> pframe = *it;
+	shared_ptr<DataFrame> pframe;
 	
-	size_t i = 0;
+	size_t i = windowSize;
+
 	//Find the first clean page in window.
-	for(i=0; i<windowSize; i++,--it)
-	{
+	while (i--) {
+		--it;
 		pframe = *it;
-		if(!(pframe ->Dirty))
-		{
+		if (!(pframe->Dirty))
 			break;
-		}
 	}
 
 	//There is no clean page in window, get the lru dirty DataFrame of the queue.
-	if(i >= windowSize)
-	{
+	if (pframe.get() == NULL) {
 		it = queue_.end();
 		--it;
+		pframe = *it;
 	}
 
-	pframe = *it;
 	WriteIfDirty(pframe);
 	queue_.erase(it);
 	map_.erase(pframe->Id);
