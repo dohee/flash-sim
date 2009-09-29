@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "TrivalBlockDevice.h"
 
-const int WRITECOST = 200;
-const int READCOST = 66;
 
 TrivalBlockDevice::TrivalBlockDevice()
 : read_(0), write_(0)

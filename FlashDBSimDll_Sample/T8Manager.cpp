@@ -287,8 +287,8 @@ TnManager(
   kickn_(HowManyToKickWhenWriteInDR), adjustDROnReadDR_(AdjustDRWhenReadInDR),
   enlargeCROnReadDNR_(EnlargeCRWhenReadInDNR)
 {
-	cr_.ChangeLimit(npages_ / 2);
-	dr_.ChangeLimit(npages_ - npages_ / 2);
+	cr_.ChangeLimit(npages_ / 8);
+	dr_.ChangeLimit(npages_ - npages_ / 8);
 	cnr_.ChangeLimit(npages_ / 2);
 	dnr_.ChangeLimit(npages_ / 2);
 }
