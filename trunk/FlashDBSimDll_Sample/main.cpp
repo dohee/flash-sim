@@ -4,6 +4,7 @@
 #include "TrivalBufferManager.h"
 #include "LRUManager.h"
 #include "CFLRUManager.h"
+#include "CFLRUDManager.h"
 #include "LRUWSRManager.h"
 #include "CMFTManager.h"
 #include "T8Manager.h"
@@ -19,8 +20,16 @@ void main()
 
 	group.Add(shared_ptr<BufferManagerBase>(new LRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
+
+	group.Add(shared_ptr<BufferManagerBase>(new CFLRUDManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/1000)));
+
 	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
-		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*5/1000)));
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*300/1000)));
+	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/1000)));
+	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*800/1000)));
 	/*
 	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));*/
@@ -28,7 +37,7 @@ void main()
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
 	
 	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
-		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, WRITECOST/READCOST)));
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, WRITECOST/READCOST,false,false)));
 
 
 	srand(clock());
