@@ -73,10 +73,11 @@ TnManager(
   kickn_(HowManyToKickWhenWriteInDR), adjustDROnReadDR_(AdjustDRWhenReadInDR),
   enlargeCROnReadDNR_(EnlargeCRWhenReadInDNR)
 {
-	cr_.ChangeLimit(npages_ / 8);
-	dr_.ChangeLimit(npages_ - npages_ / 8);
+	cr_.ChangeLimit(npages_ /2 / HowManyToKickWhenWriteInDR);
+	dr_.ChangeLimit(npages_ /2 - cr_.GetLimit());
 	cnr_.ChangeLimit(npages_ / 2);
 	dnr_.ChangeLimit(npages_ / 2);
+	sr_.ChangeLimit(npages_ / 2); //XXX: how to change it?
 }
 
 TnManager::
@@ -97,10 +98,20 @@ EnlargeCRLimit(int relative)
 void TnManager::
 DoFlush()
 {
-	Queue::QueueType::iterator it = dr_.begin(), it2, itend = dr_.end();
+	struct {
+		TnManager& mgr;
+		void operator()(Queue::QueueType::const_reference pframe) {
+			mgr.WriteIfDirty(*pframe);
+		}
+	} func = { *this };
 
-	for (; it!=itend; ) {
-		WriteIfDirty(**it);
+	for_each(sr_.begin(), sr_.end(), func);
+	for_each(dr_.begin(), dr_.end(), func);
+
+
+	Queue::QueueType::iterator it, it2;
+
+	for (it=dr_.begin(); it!=dr_.end(); ) {
 		it2 = it;
 		it++;
 		cr_.Enqueue(dr_.Dequeue(it2));
@@ -111,10 +122,25 @@ DoFlush()
 shared_ptr<DataFrame> TnManager::
 FindFrame(size_t pageid, bool isWrite)
 {
-	if (!isWrite)
-		return FindFrameOnRead(pageid);
-	else
-		return FindFrameOnWrite(pageid);
+	shared_ptr<DataFrame> pframe = (isWrite ?
+		FindFrameOnWrite(pageid) : FindFrameOnRead(pageid));
+
+	if (pframe.get() == NULL) {
+		Queue::QueueType::iterator it = sr_.Find(pageid);
+
+		if (it != sr_.end()) {
+			pframe = sr_.Dequeue(it);
+
+			if (isWrite || pframe->Dirty)
+				dr_.Enqueue(pframe);
+			else
+				cr_.Enqueue(pframe);
+			
+			SqueezeQueues_();
+		}
+	}
+
+	return pframe;
 }
 
 shared_ptr<DataFrame> TnManager::
@@ -213,12 +239,7 @@ shared_ptr<DataFrame> TnManager::
 AllocFrame(size_t pageid, bool isWrite)
 {
 	shared_ptr<DataFrame> pframe(new DataFrame(pageid, pagesize_, true));
-
-	if (!isWrite)
-		cr_.Enqueue(pframe);
-	else
-		dr_.Enqueue(pframe);
-	
+	sr_.Enqueue(pframe);
 	SqueezeQueues_();
 	return pframe;
 }
@@ -254,4 +275,9 @@ SqueezeQueues_()
 
 	while (dnr_.GetSize() > dnr_.GetLimit())
 		dnr_.Dequeue();
+
+	while (sr_.GetSize() > sr_.GetLimit()) {
+		WriteIfDirty(*sr_.back());
+		sr_.Dequeue();
+	}
 }

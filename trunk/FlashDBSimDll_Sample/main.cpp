@@ -21,16 +21,14 @@ void main()
 	group.Add(shared_ptr<BufferManagerBase>(new LRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
 
-	group.Add(shared_ptr<BufferManagerBase>(new CFLRUDManager(
-		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/1000)));
-
+	/*
 	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*1000/1000)));
 	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/1000)));
 	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*800/1000)));
-	/*
+	
 	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));*/
 	
@@ -48,30 +46,26 @@ void main()
 		exit(1);
 	}
 
-	int count=0;
+	int count = 0;
+	size_t pageid, length, rw;
+	char buf[2048];
 
-	while (!traceFile.eof())
-	{
-		if(++count % 2000 == 0)
-		{
+	while (traceFile >> pageid >> length >> rw) {
+
+		if (++count % 2000 == 0)
 			cout<<count<<endl;
-		}
-		size_t pageid;
-		int length;
-		int rw;
-		char buf[2048];
 
-		traceFile >> pageid >> length >> rw;
+#ifdef _DEBUG
+		if (count >= 20000)
+			break;
+#endif
 
-		for (int i = 0; i<length; i++)
-		{
-			if (rw == 0)
-				group.Read(pageid, buf);
-			else
-				group.Write(pageid, buf);
-
-			pageid++;
-		}
+		if (rw == 0)
+			while (length--)
+				group.Read(pageid++, buf);
+		else
+			while (length--)
+				group.Write(pageid++, buf);
 	}
 
 	group.Flush();
@@ -80,8 +74,8 @@ void main()
 		group.GetReadCount(), group.GetWriteCount());
 
 	int iend = group.GetMgrCount();
-	for (int i=0; i<iend; ++i)
-	{
+
+	for (int i=0; i<iend; ++i) {
 		printf("Dev %d\tRead %d\tWrite %d\tCost %d\n", i,
 			group.GetDevReadCount(i), group.GetDevWriteCount(i),
 			group.GetDevCost(i));

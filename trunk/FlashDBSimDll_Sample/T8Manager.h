@@ -62,7 +62,7 @@ private:
 	void SqueezeQueues_();
 
 private:
-	Queue cr_, cnr_, dr_, dnr_;
+	Queue cr_, cnr_, dr_, dnr_, sr_;
 	int kickn_;
 	bool adjustDROnReadDR_, enlargeCROnReadDNR_;
 };
