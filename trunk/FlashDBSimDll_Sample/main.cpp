@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include <ctime>
 #include "TrivalBlockDevice.h"
 #include "TrivalBufferManager.h"
 #include "LRUManager.h"
@@ -32,6 +31,8 @@ void main()
 	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));*/
 
+	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*1/500, WRITECOST/READCOST,false,false)));
 	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*100/500, WRITECOST/READCOST,false,false)));
 	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
@@ -89,5 +90,5 @@ void main()
 			group.GetDevCost(i));
 	}
 
-	//system("pause");
+	system("pause");
 }
