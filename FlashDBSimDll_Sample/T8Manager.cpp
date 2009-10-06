@@ -87,11 +87,15 @@ void TnManager::
 EnlargeCRLimit(int relative)
 {
 	int crlimit = relative + (int) cr_.GetLimit();
+	crlimit = min(crlimit, (int)npages_ - (int)sr_.GetLimit() - 1);
 	crlimit = max(crlimit, 1);
-	crlimit = min(crlimit, (int)npages_ - 1);
+	
+	int drlimit = npages_ - sr_.GetLimit() - crlimit;
+	drlimit = min(drlimit, (int)npages_ - (int)sr_.GetLimit() - 1);
+	drlimit = max(drlimit, 1);
 
 	cr_.ChangeLimit(crlimit);
-	dr_.ChangeLimit(npages_ - crlimit);
+	dr_.ChangeLimit(drlimit);
 }
 
 
