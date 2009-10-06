@@ -10,8 +10,8 @@
 class TnManager : public FrameBasedBufferManager
 {
 public:
-	TnManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages,
-		int HowManyToKickWhenWriteInDR, bool AdjustDRWhenReadInDR = false, bool EnlargeCRWhenReadInDNR = false);
+	TnManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages,int srLength, 
+		int HowManyToKickWhenWriteInDR, bool AdjustDRWhenReadInDR = false, bool EnlargeCRWhenReadInDNR = false );
 
 	virtual ~TnManager();
 

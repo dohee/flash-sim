@@ -67,17 +67,17 @@ Dequeue(QueueType::iterator iter)
 
 TnManager::
 TnManager(
-	shared_ptr<IBlockDevice> pDevice, size_t nPages, int HowManyToKickWhenWriteInDR,
+	shared_ptr<IBlockDevice> pDevice, size_t nPages, int srLength, int HowManyToKickWhenWriteInDR,
 	bool AdjustDRWhenReadInDR, bool EnlargeCRWhenReadInDNR)
 : FrameBasedBufferManager(pDevice, nPages),
   kickn_(HowManyToKickWhenWriteInDR), adjustDROnReadDR_(AdjustDRWhenReadInDR),
   enlargeCROnReadDNR_(EnlargeCRWhenReadInDNR)
 {
-	cr_.ChangeLimit(npages_ /2 / HowManyToKickWhenWriteInDR);
-	dr_.ChangeLimit(npages_ /2 - cr_.GetLimit());
+	sr_.ChangeLimit(srLength); //XXX: how to change it?
+	cr_.ChangeLimit((npages_ - sr_.GetLimit()) / HowManyToKickWhenWriteInDR);
+	dr_.ChangeLimit((npages_ - sr_.GetLimit()) - cr_.GetLimit());
 	cnr_.ChangeLimit(npages_ / 2);
 	dnr_.ChangeLimit(npages_ / 2);
-	sr_.ChangeLimit(npages_ / 2); //XXX: how to change it?
 }
 
 TnManager::
