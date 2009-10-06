@@ -31,9 +31,17 @@ void main()
 	
 	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));*/
-	
+
 	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
-		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, WRITECOST/READCOST,false,false)));
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*100/500, WRITECOST/READCOST,false,false)));
+	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*200/500, WRITECOST/READCOST,false,false)));
+	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*300/500, WRITECOST/READCOST,false,false)));
+	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*400/500, WRITECOST/READCOST,false,false)));
+	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/500, WRITECOST/READCOST,false,false)));
 
 
 	srand(clock());
