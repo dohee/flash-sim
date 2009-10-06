@@ -33,8 +33,6 @@ void main()
 	/*
 	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));*/
-	group.Add(shared_ptr<BufferManagerBase>(new T8Manager(
-		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
 	
 	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, WRITECOST/READCOST,false,false)));
