@@ -337,6 +337,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\CMFTManager.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CMFTManager.h"
+					>
+				</File>
+				<File
 					RelativePath=".\LRUManager.cpp"
 					>
 				</File>
