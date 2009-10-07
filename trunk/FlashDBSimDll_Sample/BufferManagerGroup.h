@@ -8,7 +8,7 @@
 class BufferManagerGroup : public IBufferManager
 {
 public:
-	void Add(std::tr1::shared_ptr<class BufferManagerBase> pbuf);
+	void Add(std::tr1::shared_ptr<class IBufferManager> pbuf);
 
 	void Read(size_t pageid, void *result);
 	void Write(size_t pageid, const void *data);
@@ -21,8 +21,11 @@ public:
 	int GetDevWriteCount(size_t index) const;
 	int GetDevCost(size_t index) const;
 
+	std::tr1::shared_ptr<class IBlockDevice> GetDevice();
+	std::tr1::shared_ptr<const class IBlockDevice> GetDevice() const;
+
 private:
-	typedef std::vector<std::tr1::shared_ptr<class BufferManagerBase> > MgrsType;
+	typedef std::vector<std::tr1::shared_ptr<class IBufferManager> > MgrsType;
 	MgrsType mgrs_;
 };
 

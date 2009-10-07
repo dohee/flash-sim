@@ -24,11 +24,11 @@ inline void BufferManagerBase::Flush()
 	DoFlush();
 }
 
-std::tr1::shared_ptr<class IBlockDevice> BufferManagerBase::GetDevice()
+std::tr1::shared_ptr<IBlockDevice> BufferManagerBase::GetDevice()
 {
 	return pdev_;
 }
-std::tr1::shared_ptr<const class IBlockDevice> BufferManagerBase::GetDevice() const
+std::tr1::shared_ptr<const IBlockDevice> BufferManagerBase::GetDevice() const
 {
 	return pdev_;
 }
