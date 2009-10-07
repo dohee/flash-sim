@@ -173,12 +173,124 @@
 	</References>
 	<Files>
 		<Filter
-			Name="源文件"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			Name="资源文件"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
+			<File
+				RelativePath=".\trace.txt"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Old"
+			>
+			<File
+				RelativePath=".\BufferAlogrithm.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\BufferAlogrithm.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\LRU.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\LRU.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\main2.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="Memory"
+			>
+			<File
+				RelativePath=".\Frame.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Frame.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Managers"
 			>
 			<File
 				RelativePath=".\BufferManagerBase.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\BufferManagerBase.h"
 				>
 			</File>
 			<File
@@ -186,7 +298,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\BufferManagerGroup.h"
+				>
+			</File>
+			<File
 				RelativePath=".\CFLRUDManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CFLRUDManager.h"
 				>
 			</File>
 			<File
@@ -194,7 +314,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Frame.cpp"
+				RelativePath=".\CFLRUManager.h"
 				>
 			</File>
 			<File
@@ -202,7 +322,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FrameBasedBufferManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IBufferManager.h"
+				>
+			</File>
+			<File
 				RelativePath=".\LRUManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LRUManager.h"
 				>
 			</File>
 			<File
@@ -210,11 +342,55 @@
 				>
 			</File>
 			<File
-				RelativePath=".\main.cpp"
+				RelativePath=".\LRUWSRManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\T8Manager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\T8Manager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TrivalBufferManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\TrivalBufferManager.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Devices"
+			>
+			<File
+				RelativePath=".\IBlockDevice.h"
 				>
 			</File>
 			<File
 				RelativePath=".\SimulatedDevice.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SimulatedDevice.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TrivalBlockDevice.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\TrivalBlockDevice.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="!Base"
+			>
+			<File
+				RelativePath="..\FlashDBSimDll\flashdbsim_i.h"
 				>
 			</File>
 			<File
@@ -238,190 +414,14 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\T8Manager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\TrivalBlockDevice.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\TrivalBufferManager.cpp"
-				>
-			</File>
-			<Filter
-				Name="Old"
-				>
-				<File
-					RelativePath=".\BufferAlogrithm.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\LRU.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\main2.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
-			Name="头文件"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
-			>
-			<File
-				RelativePath=".\BufferManagerBase.h"
-				>
-			</File>
-			<File
-				RelativePath=".\BufferManagerGroup.h"
-				>
-			</File>
-			<File
-				RelativePath=".\CFLRUDManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\CFLRUManager.h"
-				>
-			</File>
-			<File
-				RelativePath="..\FlashDBSimDll\flashdbsim_i.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Frame.h"
-				>
-			</File>
-			<File
-				RelativePath=".\FrameBasedBufferManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IBlockDevice.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IBufferManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LRUManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LRUWSRManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SimulatedDevice.h"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.h"
 				>
 			</File>
-			<File
-				RelativePath=".\T8Manager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\TrivalBlockDevice.h"
-				>
-			</File>
-			<File
-				RelativePath=".\TrivalBufferManager.h"
-				>
-			</File>
-			<Filter
-				Name="Old"
-				>
-				<File
-					RelativePath=".\BufferAlogrithm.h"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\LRU.h"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
-			</Filter>
 		</Filter>
-		<Filter
-			Name="资源文件"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+		<File
+			RelativePath=".\main.cpp"
 			>
-			<File
-				RelativePath=".\trace.txt"
-				>
-			</File>
-		</Filter>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
