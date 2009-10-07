@@ -13,10 +13,10 @@ public:
 	void Write(size_t pageid, const void *data);
 	void Flush();
 	
-	std::tr1::shared_ptr<class IBlockDevice> GetDevice();
-	std::tr1::shared_ptr<const class IBlockDevice> GetDevice() const;
 	int GetReadCount() const;
 	int GetWriteCount() const;
+	std::tr1::shared_ptr<class IBlockDevice> GetDevice();
+	std::tr1::shared_ptr<const class IBlockDevice> GetDevice() const;
 
 protected:
 	virtual void DoRead(size_t pageid, void *result) = 0;

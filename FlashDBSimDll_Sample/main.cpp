@@ -16,31 +16,31 @@ void main()
 	int bufferSize = 500;
 	BufferManagerGroup group;
 
-	group.Add(shared_ptr<BufferManagerBase>(new LRUManager(
+	group.Add(shared_ptr<IBufferManager>(new LRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
 
 	/*
-	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
+	group.Add(shared_ptr<IBufferManager>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*1000/1000)));
-	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
+	group.Add(shared_ptr<IBufferManager>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/1000)));
-	group.Add(shared_ptr<BufferManagerBase>(new CFLRUManager(
+	group.Add(shared_ptr<IBufferManager>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*800/1000)));
 	
-	group.Add(shared_ptr<BufferManagerBase>(new LRUWSRManager(
+	group.Add(shared_ptr<IBufferManager>(new LRUWSRManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));*/
 
-	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+	group.Add(shared_ptr<IBufferManager>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*1/500, WRITECOST/READCOST,false,false)));
-	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+	group.Add(shared_ptr<IBufferManager>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*100/500, WRITECOST/READCOST,false,false)));
-	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+	group.Add(shared_ptr<IBufferManager>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*200/500, WRITECOST/READCOST,false,false)));
-	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+	group.Add(shared_ptr<IBufferManager>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*300/500, WRITECOST/READCOST,false,false)));
-	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+	group.Add(shared_ptr<IBufferManager>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*400/500, WRITECOST/READCOST,false,false)));
-	group.Add(shared_ptr<BufferManagerBase>(new TnManager(
+	group.Add(shared_ptr<IBufferManager>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/500, WRITECOST/READCOST,false,false)));
 
 

@@ -1,6 +1,8 @@
 #ifndef _I_BUFFER_MANAGER_H_
 #define _I_BUFFER_MANAGER_H_
 
+#include <memory>
+
 class IBufferManager abstract
 {
 public:
@@ -10,6 +12,8 @@ public:
 	
 	virtual int GetReadCount() const = 0;
 	virtual int GetWriteCount() const = 0;
+	virtual std::tr1::shared_ptr<class IBlockDevice> GetDevice() = 0;
+	virtual std::tr1::shared_ptr<const class IBlockDevice> GetDevice() const = 0;
 };
 
 #endif

@@ -1,13 +1,13 @@
 #pragma managed(off)
 #include "StdAfx.h"
 #include "BufferManagerGroup.h"
-#include "bufferManagerBase.h"
+#include "IBufferManager.h"
 #include "IBlockDevice.h"
 using namespace std;
 using namespace std::tr1;
 
 
-void BufferManagerGroup::Add(shared_ptr<BufferManagerBase> pbuf)
+void BufferManagerGroup::Add(shared_ptr<IBufferManager> pbuf)
 {
 	mgrs_.push_back(pbuf);
 }
@@ -58,4 +58,13 @@ int BufferManagerGroup::GetDevWriteCount(size_t index) const
 int BufferManagerGroup::GetDevCost(size_t index) const
 {
 	return mgrs_[index]->GetDevice()->GetTotalCost();
+}
+
+std::tr1::shared_ptr<IBlockDevice> BufferManagerGroup::GetDevice()
+{
+	throw logic_error("No device");
+}
+std::tr1::shared_ptr<const IBlockDevice> BufferManagerGroup::GetDevice() const
+{
+	throw logic_error("No device");
 }

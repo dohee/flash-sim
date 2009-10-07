@@ -372,6 +372,14 @@
 			<Filter
 				Name="Wrapper"
 				>
+				<File
+					RelativePath=".\ClrManagerWrapper.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\ClrManagerWrapper.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -397,6 +405,18 @@
 				RelativePath=".\TrivalBlockDevice.h"
 				>
 			</File>
+			<Filter
+				Name="Wrapper"
+				>
+				<File
+					RelativePath=".\ClrTrivalDeviceWrapper.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\ClrTrivalDeviceWrapper.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="!Base"
