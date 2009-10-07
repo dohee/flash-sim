@@ -1,4 +1,6 @@
 #include "stdafx.h"
+
+#pragma unmanaged
 #include "TrivalBlockDevice.h"
 #include "TrivalBufferManager.h"
 #include "LRUManager.h"
@@ -10,6 +12,11 @@
 using namespace std;
 using namespace std::tr1;
 
+#pragma managed
+#include "ClrManagerWrapper.h"
+using namespace Buffers::Managers;
+typedef Buffers::Devices::TrivalBlockDevice ClrDevice;
+
 
 void main()
 {
@@ -19,6 +26,9 @@ void main()
 	group.Add(shared_ptr<IBufferManager>(new LRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
 
+	group.Add(shared_ptr<IBufferManager>(new ClrManagerWrapper(
+		gcnew LRU(gcnew ClrDevice, bufferSize) )));
+
 	/*
 	group.Add(shared_ptr<IBufferManager>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*1000/1000)));
@@ -27,9 +37,6 @@ void main()
 	group.Add(shared_ptr<IBufferManager>(new CFLRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*800/1000)));
 	
-	group.Add(shared_ptr<IBufferManager>(new LRUWSRManager(
-		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, 1)));*/
-
 	group.Add(shared_ptr<IBufferManager>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*1/500, WRITECOST/READCOST,false,false)));
 	group.Add(shared_ptr<IBufferManager>(new TnManager(
@@ -42,7 +49,7 @@ void main()
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*400/500, WRITECOST/READCOST,false,false)));
 	group.Add(shared_ptr<IBufferManager>(new TnManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize, bufferSize*500/500, WRITECOST/READCOST,false,false)));
-
+	*/
 
 	srand(clock());
 	int fcount = 0;
@@ -64,7 +71,7 @@ void main()
 			cout<<count<<endl;
 
 #ifdef _DEBUG
-		if (count >= 4000)
+		if (count >= 8000)
 			break;
 #endif
 
