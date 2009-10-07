@@ -1,3 +1,4 @@
+#pragma managed(off)
 #include "stdafx.h"
 #include "SimulatedDevice.h"
 using namespace std;

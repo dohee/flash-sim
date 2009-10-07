@@ -1,3 +1,4 @@
+#pragma managed(off)
 #include "stdafx.h"
 #include "T8Manager.h"
 #include "IBlockDevice.h"

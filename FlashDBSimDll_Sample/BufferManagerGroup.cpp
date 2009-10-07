@@ -1,3 +1,4 @@
+#pragma managed(off)
 #include "StdAfx.h"
 #include "BufferManagerGroup.h"
 #include "bufferManagerBase.h"
