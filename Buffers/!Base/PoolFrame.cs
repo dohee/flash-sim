@@ -73,13 +73,13 @@ namespace Buffers.Memory
 		}
 		
 
-		private class Frame : IFrame, IDisposable
+		private class Frame : IFrame //, IDisposable
 		{
 			private Pool pool;
 			private uint id;
 			private int dataindex;
 			private bool dirty = false;
-			private bool disposed = false;
+			//private bool disposed = false;
 
 			public Pool AssociatedPool { get { return pool; } }
 			public uint Id { get { return id; } set { id = value; } }
@@ -95,6 +95,7 @@ namespace Buffers.Memory
 				this.dataindex = dataindex;
 			}
 
+			/*
 			~Frame()
 			{
 				Dispose(false);
@@ -108,10 +109,11 @@ namespace Buffers.Memory
 			{
 				if (disposed)
 					return;
-
-				Debug.Assert(this.Resident == false);
+				if (disposing)
+					Debug.Assert(this.Resident == false);
 				disposed = true;
 			}
+			*/
 
 			public byte[] Data
 			{

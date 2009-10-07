@@ -6,7 +6,7 @@
 #pragma managed(on)
 #include <vcclr.h>
 
-class ClrManagerWrapper abstract : public IBufferManager
+class ClrManagerWrapper : public IBufferManager
 {
 public:
 	ClrManagerWrapper(Buffers::IBufferManager^ pmanager);
@@ -22,9 +22,9 @@ public:
 
 protected:
 	gcroot<Buffers::IBufferManager^> pmgr;
-	gcroot<array<unsigned char>^> buffer;
 	std::tr1::shared_ptr<class IBlockDevice> pdev;
 	size_t pagesize;
+	gcroot<array<unsigned char>^> buffer;
 };
 
 #pragma managed(pop)
