@@ -1,3 +1,4 @@
+#pragma managed(off)
 /*
 This program implements the LRUWSRWSR algorithm for Flash memory. This work is based on the LRUWSRManager developed by Xuexuan Chen
 When a dirty DataFrame is selected to be victim the first time, it will only ++cold and be given another opportunity. The system will only evict clean 

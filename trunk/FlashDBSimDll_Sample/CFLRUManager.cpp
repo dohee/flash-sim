@@ -1,3 +1,4 @@
+#pragma managed(off)
 /*
 This program implements the CFLRU algorithm for Flash memory proposed in 2006. This work is based on the LRUManager developed by Xuexuan Chen
 lyf  2009 9 13

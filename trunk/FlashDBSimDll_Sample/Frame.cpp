@@ -1,3 +1,4 @@
+#pragma managed(off)
 #include "stdafx.h"
 #include "Frame.h"
 using namespace std;

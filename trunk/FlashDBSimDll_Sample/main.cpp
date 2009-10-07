@@ -5,7 +5,6 @@
 #include "CFLRUManager.h"
 #include "CFLRUDManager.h"
 #include "LRUWSRManager.h"
-#include "CMFTManager.h"
 #include "T8Manager.h"
 #include "BufferManagerGroup.h"
 using namespace std;
@@ -65,7 +64,7 @@ void main()
 			cout<<count<<endl;
 
 #ifdef _DEBUG
-		if (count >= 20000)
+		if (count >= 4000)
 			break;
 #endif
 
