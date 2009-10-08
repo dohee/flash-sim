@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ClrManagerWrapper.h"
 #include "ClrTrivalDeviceWrapper.h"
+
+#if INC_BUFFERS
 using namespace std::tr1;
 using namespace cli;
 using namespace System;
@@ -50,3 +52,5 @@ std::tr1::shared_ptr<const IBlockDevice> ClrManagerWrapper::
 GetDevice() const {
 	return pdev;
 }
+
+#endif //INC_BUFFERS

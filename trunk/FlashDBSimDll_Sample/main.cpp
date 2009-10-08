@@ -14,8 +14,11 @@ using namespace std::tr1;
 
 #pragma managed
 #include "ClrManagerWrapper.h"
+
+#if INC_BUFFERS
 using namespace Buffers::Managers;
 typedef Buffers::Devices::TrivalBlockDevice ClrDevice;
+#endif //INC_BUFFERS
 
 
 void main()
@@ -26,8 +29,10 @@ void main()
 	group.Add(shared_ptr<IBufferManager>(new LRUManager(
 		shared_ptr<IBlockDevice>(new TrivalBlockDevice), bufferSize)));
 
+#if INC_BUFFERS
 	group.Add(shared_ptr<IBufferManager>(new ClrManagerWrapper(
 		gcnew LRU(gcnew ClrDevice, bufferSize) )));
+#endif //INC_BUFFERS
 
 	/*
 	group.Add(shared_ptr<IBufferManager>(new CFLRUManager(
