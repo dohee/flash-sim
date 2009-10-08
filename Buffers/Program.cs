@@ -16,8 +16,9 @@ namespace Buffers
 			const uint npages = 500;
 			ManagerGroup group = new ManagerGroup();
 
-			group.Add(new TrivalManager());
 			group.Add(new LRU(npages));
+			group.Add(new Managers.FromNative.LRU(new TrivalBlockDevice(), npages));
+			group.Add(new Managers.FromNative.LRU(new TrivalBlockDevice(), npages));
 
 			return group;
 		}
@@ -61,7 +62,7 @@ namespace Buffers
 				if (++count % 2000 == 0)
 					Console.Error.WriteLine(count);
 #if DEBUG
-				if (count > 6000)
+				if (count > 10000)
 					break;
 #endif
 

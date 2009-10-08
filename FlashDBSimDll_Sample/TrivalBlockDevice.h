@@ -3,9 +3,6 @@
 
 #include "IBlockDevice.h"
 
-const int WRITECOST = 200;
-const int READCOST = 66;
-
 class TrivalBlockDevice : public IBlockDevice
 {
 public:

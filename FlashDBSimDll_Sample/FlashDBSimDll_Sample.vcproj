@@ -20,7 +20,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="../$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			ConfigurationType="2"
 			CharacterSet="1"
 			ManagedExtensions="1"
 			>
@@ -95,7 +95,7 @@
 			Name="Release|Win32"
 			OutputDirectory="../$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			ConfigurationType="2"
 			CharacterSet="1"
 			ManagedExtensions="1"
 			WholeProgramOptimization="1"
@@ -170,6 +170,10 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<ProjectReference
+			ReferencedProjectIdentifier="{5FBC737C-05B3-42D0-8A27-EFED2C84D0E6}"
+			RelativePathToProject=".\Interfaces\Interfaces.csproj"
+		/>
 	</References>
 	<Files>
 		<Filter
@@ -389,6 +393,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Native-&gt;CLR Wrapper"
+				>
+				<File
+					RelativePath=".\NativeManagerWrapper.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Devices"
@@ -417,11 +429,11 @@
 				Name="CLR-&gt;Native Wrapper"
 				>
 				<File
-					RelativePath=".\ClrTrivalDeviceWrapper.cpp"
+					RelativePath=".\ClrDeviceWrapper.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\ClrTrivalDeviceWrapper.h"
+					RelativePath=".\ClrDeviceWrapper.h"
 					>
 				</File>
 			</Filter>
@@ -429,10 +441,6 @@
 		<Filter
 			Name="!Base"
 			>
-			<File
-				RelativePath=".\ClrReference.h"
-				>
-			</File>
 			<File
 				RelativePath="..\FlashDBSimDll\flashdbsim_i.h"
 				>

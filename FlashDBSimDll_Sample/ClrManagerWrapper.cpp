@@ -1,17 +1,16 @@
 #include "stdafx.h"
 #include "ClrManagerWrapper.h"
-#include "ClrTrivalDeviceWrapper.h"
-
-#if INC_BUFFERS
+#include "ClrDeviceWrapper.h"
 using namespace std::tr1;
 using namespace cli;
 using namespace System;
 using namespace System::Runtime::InteropServices;
 
+
 ClrManagerWrapper::
 ClrManagerWrapper(Buffers::IBufferManager^ pmanager)
 : pmgr(pmanager),
-  pdev(new ClrTrivalDeviceWrapper(pmanager->AssociatedDevice)),
+  pdev(new ClrDeviceWrapper(pmanager->AssociatedDevice)),
   pagesize(pmanager->PageSize),
   buffer(gcnew array<unsigned char>(pagesize)) { }
 
@@ -19,12 +18,14 @@ ClrManagerWrapper(Buffers::IBufferManager^ pmanager)
 void ClrManagerWrapper::
 Read(size_t pageid, void *result) {
 	pmgr->Read(pageid, buffer);
-	Marshal::Copy(buffer, 0, IntPtr(result), pagesize);
+	if (pagesize != 0)
+		Marshal::Copy(buffer, 0, IntPtr(result), pagesize);
 }
 
 void ClrManagerWrapper::
 Write(size_t pageid, const void *data) {
-	Marshal::Copy(IntPtr(const_cast<void*>(data)), buffer, 0, pagesize);
+	if (pagesize != 0)
+		Marshal::Copy(IntPtr(const_cast<void*>(data)), buffer, 0, pagesize);
 	pmgr->Write(pageid, buffer);
 }
 
@@ -53,4 +54,3 @@ GetDevice() const {
 	return pdev;
 }
 
-#endif //INC_BUFFERS
