@@ -4,6 +4,9 @@
 #pragma managed(push, off)
 #include "IBufferManager.h"
 #pragma managed(on)
+#include "ClrReference.h"
+
+#if INC_BUFFERS
 #include <vcclr.h>
 
 class ClrManagerWrapper : public IBufferManager
@@ -26,6 +29,8 @@ protected:
 	size_t pagesize;
 	gcroot<array<unsigned char>^> buffer;
 };
+
+#endif
 
 #pragma managed(pop)
 #endif

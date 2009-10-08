@@ -42,6 +42,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories=""
+				AdditionalUsingDirectories="../$(ConfigurationName)"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
@@ -117,6 +119,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories=""
+				AdditionalUsingDirectories="../$(ConfigurationName)"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -166,10 +170,6 @@
 		</Configuration>
 	</Configurations>
 	<References>
-		<ProjectReference
-			ReferencedProjectIdentifier="{2E478BCC-9922-45C9-8EF7-62971D14F90F}"
-			RelativePathToProject=".\Buffers\Buffers.csproj"
-		/>
 	</References>
 	<Files>
 		<Filter
@@ -378,7 +378,7 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="Wrapper"
+				Name="CLR-&gt;Native Wrapper"
 				>
 				<File
 					RelativePath=".\ClrManagerWrapper.cpp"
@@ -414,7 +414,7 @@
 				>
 			</File>
 			<Filter
-				Name="Wrapper"
+				Name="CLR-&gt;Native Wrapper"
 				>
 				<File
 					RelativePath=".\ClrTrivalDeviceWrapper.cpp"
@@ -429,6 +429,10 @@
 		<Filter
 			Name="!Base"
 			>
+			<File
+				RelativePath=".\ClrReference.h"
+				>
+			</File>
 			<File
 				RelativePath="..\FlashDBSimDll\flashdbsim_i.h"
 				>

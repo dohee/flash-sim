@@ -4,6 +4,9 @@
 #pragma managed(push, off)
 #include "IBlockDevice.h"
 #pragma managed(on)
+#include "ClrReference.h"
+
+#if INC_BUFFERS
 #include <vcclr.h>
 
 class ClrTrivalDeviceWrapper : public IBlockDevice
@@ -23,6 +26,8 @@ public:
 private:
 	gcroot<Buffers::IBlockDevice^> pdev;
 };
+
+#endif
 
 #pragma managed(pop)
 #endif

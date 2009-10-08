@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "ClrTrivalDeviceWrapper.h"
 #pragma managed
-using namespace Buffers::Devices;
 
+#if INC_BUFFERS
+using namespace Buffers::Devices;
 
 ClrTrivalDeviceWrapper::
 ClrTrivalDeviceWrapper()
@@ -43,3 +44,4 @@ GetTotalCost() const {
 	return Buffers::Utils::CalcTotalCost(pdev->ReadCount, pdev->WriteCount);
 }
 
+#endif INC_BUFFERS

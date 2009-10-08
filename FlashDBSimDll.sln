@@ -4,6 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FlashDBSimDll_Sample", "FlashDBSimDll_Sample\FlashDBSimDll_Sample.vcproj", "{54B56689-0295-46DC-A695-8F0A1DF785D4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E1BE6B97-9559-4BA5-BC13-DF811BB28EAD} = {E1BE6B97-9559-4BA5-BC13-DF811BB28EAD}
+		{2E478BCC-9922-45C9-8EF7-62971D14F90F} = {2E478BCC-9922-45C9-8EF7-62971D14F90F}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FlashDBSimDll", "FlashDBSimDll\FlashDBSimDll.vcproj", "{E1BE6B97-9559-4BA5-BC13-DF811BB28EAD}"
