@@ -1,16 +1,5 @@
 ﻿using System;
 
-namespace Buffers
-{
-	public interface IBufferManager : IBlockDevice
-	{
-		IBlockDevice AssociatedDevice { get; }
-		int FlushCount { get; }
-
-		void Flush();
-	}
-}
-
 namespace Buffers.Managers
 {
 	public abstract class BufferManagerBase : Buffers.IBufferManager, IDisposable
@@ -69,27 +58,5 @@ namespace Buffers.Managers
 			DoFlush();
 			flush++;
 		}
-	}
-
-
-	public sealed class TrivalManager : BufferManagerBase
-	{
-		public TrivalManager()
-			: base() { }
-		public TrivalManager(IBlockDevice dev)
-			: base(dev) { }
-
-		protected override void DoFlush() { }
-
-		protected override void DoRead(uint pageid, byte[] result)
-		{
-			dev.Read(pageid, result);
-		}
-
-		protected override void DoWrite(uint pageid, byte[] data)
-		{
-			dev.Write(pageid, data);
-		}
-
 	}
 }
