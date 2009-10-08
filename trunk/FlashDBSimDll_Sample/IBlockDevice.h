@@ -1,6 +1,10 @@
 #ifndef _I_BLOCK_DEVICE_H_
 #define _I_BLOCK_DEVICE_H_
 
+extern const int WRITECOST;
+extern const int READCOST;
+
+
 class IBlockDevice abstract
 {
 public:

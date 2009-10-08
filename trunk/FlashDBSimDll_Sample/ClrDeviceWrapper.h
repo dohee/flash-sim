@@ -4,16 +4,13 @@
 #pragma managed(push, off)
 #include "IBlockDevice.h"
 #pragma managed(on)
-#include "ClrReference.h"
-
-#if INC_BUFFERS
 #include <vcclr.h>
 
-class ClrTrivalDeviceWrapper : public IBlockDevice
+class ClrDeviceWrapper : public IBlockDevice
 {
 public:
-	ClrTrivalDeviceWrapper();
-	ClrTrivalDeviceWrapper(Buffers::IBlockDevice^ pdevice);
+	//ClrDeviceWrapper();
+	ClrDeviceWrapper(Buffers::IBlockDevice^ pdevice);
 	size_t GetPageSize() const;
 
 	void Read(size_t pageid, void *result);
@@ -25,9 +22,9 @@ public:
 
 private:
 	gcroot<Buffers::IBlockDevice^> pdev;
+	size_t pagesize;
+	gcroot<array<unsigned char>^> buffer;
 };
-
-#endif
 
 #pragma managed(pop)
 #endif

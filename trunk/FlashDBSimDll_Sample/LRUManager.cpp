@@ -1,4 +1,4 @@
-#pragma managed(off)
+#pragma unmanaged
 #include "stdafx.h"
 #include "LRUManager.h"
 #include "IBlockDevice.h"
