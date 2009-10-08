@@ -44,10 +44,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="!Base\BlockDevice.cs" />
-    <Compile Include="!Base\BufferManager.cs" />
+    <Compile Include="!Base\IBlockDevice.cs" />
+    <Compile Include="!Base\IBufferManager.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Devices\TrivalBlockDevice.cs" />
+    <Compile Include="Managers\BufferManagerBase.cs" />
     <Compile Include="Managers\ManagerGroup.cs" />
+    <Compile Include="Managers\TrivalManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Managers\FrameBasedManager.cs" />
     <Compile Include="Managers\LRU.cs" />
