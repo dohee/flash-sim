@@ -10,6 +10,11 @@ namespace Buffers.Managers
 		protected Pool pool;
 		protected Dictionary<uint, QueueNode> map = new Dictionary<uint, QueueNode>();
 
+		public FrameBasedManager(uint npages)
+			: base()
+		{
+			pool = new Pool(npages, dev.PageSize, OnPoolFull);
+		}
 		public FrameBasedManager(IBlockDevice dev, uint npages)
 			: base(dev)
 		{

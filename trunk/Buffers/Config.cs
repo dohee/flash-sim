@@ -16,6 +16,10 @@ namespace Buffers
 		{
 			return read * Config.ReadCost + write * Config.WriteCost;
 		}
+		public static int CalcTotalCost(IBlockDevice dev)
+		{
+			return CalcTotalCost(dev.ReadCount, dev.WriteCount);
+		}
 
 	}
 }
