@@ -47,6 +47,7 @@
     <Compile Include="!Base\BlockDevice.cs" />
     <Compile Include="!Base\BufferManager.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Managers\ManagerGroup.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Managers\FrameBasedManager.cs" />
     <Compile Include="Managers\LRU.cs" />

@@ -9,6 +9,8 @@ namespace Buffers.Managers
 	{
 		private LRUQueue queue = new LRUQueue();
 
+		public LRU(uint npages)
+			: base(npages) { }
 		public LRU(IBlockDevice dev, uint npages)
 			: base(dev, npages) { }
 

@@ -5,6 +5,8 @@ namespace Buffers
 	public interface IBufferManager : IBlockDevice
 	{
 		IBlockDevice AssociatedDevice { get; }
+		int FlushCount { get; }
+
 		void Flush();
 	}
 }
@@ -14,13 +16,16 @@ namespace Buffers.Managers
 	public abstract class BufferManagerBase : Buffers.IBufferManager, IDisposable
 	{
 		protected IBlockDevice dev;
-		private int read = 0, write = 0;
+		private int read = 0, write = 0, flush=0;
 		private bool disposed = false;
 
 		protected abstract void DoRead(uint pageid, byte[] result);
 		protected abstract void DoWrite(uint pageid, byte[] data);
 		protected abstract void DoFlush();
 
+		public BufferManagerBase()
+			: this(new Buffers.Devices.TrivalBlockDevice())
+		{ }
 		public BufferManagerBase(IBlockDevice device)
 		{
 			this.dev = device;
@@ -47,6 +52,7 @@ namespace Buffers.Managers
 		public uint PageSize { get { return dev.PageSize; } }
 		public int ReadCount { get { return read; } }
 		public int WriteCount { get { return write; } }
+		public int FlushCount { get { return flush; } }
 
 		public void Read(uint pageid, byte[] result)
 		{
@@ -61,14 +67,19 @@ namespace Buffers.Managers
 		public void Flush()
 		{
 			DoFlush();
+			flush++;
 		}
 	}
 
 
 	public sealed class TrivalManager : BufferManagerBase
 	{
+		public TrivalManager()
+			: base() { }
 		public TrivalManager(IBlockDevice dev)
 			: base(dev) { }
+
+		protected override void DoFlush() { }
 
 		protected override void DoRead(uint pageid, byte[] result)
 		{
@@ -80,6 +91,5 @@ namespace Buffers.Managers
 			dev.Write(pageid, data);
 		}
 
-		protected override void DoFlush() { }
 	}
 }
