@@ -18,7 +18,8 @@ namespace Buffers
 
 			group.Add(new LRU(npages));
 			group.Add(new Managers.FromNative.LRU(new TrivalBlockDevice(), npages));
-			group.Add(new Managers.FromNative.LRU(new TrivalBlockDevice(), npages));
+			group.Add(new Managers.FromNative.CFLRU(new TrivalBlockDevice(), npages, npages/2));
+			group.Add(new Managers.FromNative.Tn(new TrivalBlockDevice(), npages, (int)npages / 2, 3, false, false));
 
 			return group;
 		}

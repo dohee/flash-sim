@@ -1,5 +1,6 @@
 #ifndef _CFLRU_BUFFER_MANAGER_H_
 #define _CFLRU_BUFFER_MANAGER_H_
+#pragma managed(push, off)
 
 #include <memory>
 #include <list>
@@ -35,4 +36,5 @@ private:
 
 };
 
+#pragma managed(pop)
 #endif

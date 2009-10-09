@@ -1,5 +1,6 @@
 #ifndef _LRU_BUFFER_MANAGER_H_
 #define _LRU_BUFFER_MANAGER_H_
+#pragma managed(push, off)
 
 #include <memory>
 #include <list>
@@ -27,4 +28,5 @@ private:
 	MapType map_;
 };
 
+#pragma managed(pop)
 #endif

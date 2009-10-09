@@ -1,5 +1,6 @@
 #ifndef _CMFT_BUFFER_MANAGER_H_
 #define _CMFT_BUFFER_MANAGER_H_
+#pragma managed(push, off)
 
 #include <memory>
 #include <deque>
@@ -25,4 +26,5 @@ private:
 	StackType stack_;
 };
 
+#pragma managed(pop)
 #endif

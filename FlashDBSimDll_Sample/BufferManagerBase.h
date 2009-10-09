@@ -1,5 +1,6 @@
 #ifndef _BUFFER_MANAGER_H_
 #define _BUFFER_MANAGER_H_
+#pragma managed(push, off)
 
 #include <memory>
 #include "IBufferManager.h"
@@ -31,4 +32,5 @@ private:
 	int read_, write_;
 };
 
+#pragma managed(pop)
 #endif

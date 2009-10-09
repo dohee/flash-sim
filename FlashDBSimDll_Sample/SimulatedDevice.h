@@ -1,5 +1,6 @@
 #ifndef _SIMULATED_DEVICE_H_
 #define _SIMULATED_DEVICE_H_
+#pragma managed(push, off)
 
 #include <memory>
 #include "IBlockDevice.h"
@@ -22,4 +23,5 @@ private:
 	SimulatedDevice();
 };
 
+#pragma managed(pop)
 #endif
