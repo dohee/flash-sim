@@ -1,5 +1,6 @@
 #ifndef _TRIVAL_BUFFER_MANAGER_H_
 #define _TRIVAL_BUFFER_MANAGER_H_
+#pragma managed(push, off)
 
 #include <memory>
 #include "BufferManagerBase.h"
@@ -17,4 +18,5 @@ protected:
 
 };
 
+#pragma managed(pop)
 #endif

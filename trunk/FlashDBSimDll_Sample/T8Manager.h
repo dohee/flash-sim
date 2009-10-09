@@ -1,5 +1,6 @@
 #ifndef _T8_MANAGER_H_
 #define _T8_MANAGER_H_
+#pragma managed(push, off)
 
 #include <memory>
 #include <list>
@@ -67,4 +68,5 @@ private:
 	bool adjustDROnReadDR_, enlargeCROnReadDNR_;
 };
 
+#pragma managed(pop)
 #endif

@@ -1,5 +1,6 @@
 #ifndef _BUFFER_MANAGER_GROUP_
 #define _BUFFER_MANAGER_GROUP_
+#pragma managed(push, off)
 
 #include <memory>
 #include <vector>
@@ -30,4 +31,5 @@ private:
 };
 
 
+#pragma managed(pop)
 #endif

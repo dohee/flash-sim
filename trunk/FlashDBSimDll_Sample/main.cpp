@@ -23,6 +23,9 @@ typedef Buffers::Devices::TrivalBlockDevice ClrDevice;
 
 void main()
 {
+	cerr << "应该使用 Buffers.Program.Main() 来启动程序。本 main() 作废。" << endl;
+	return;
+
 	int bufferSize = 500;
 	BufferManagerGroup group;
 

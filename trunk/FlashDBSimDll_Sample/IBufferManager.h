@@ -1,5 +1,6 @@
 #ifndef _I_BUFFER_MANAGER_H_
 #define _I_BUFFER_MANAGER_H_
+#pragma managed(push, off)
 
 #include <memory>
 
@@ -16,4 +17,5 @@ public:
 	virtual std::tr1::shared_ptr<const class IBlockDevice> GetDevice() const = 0;
 };
 
+#pragma managed(pop)
 #endif

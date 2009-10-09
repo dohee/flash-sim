@@ -1,5 +1,6 @@
 #ifndef _I_BLOCK_DEVICE_H_
 #define _I_BLOCK_DEVICE_H_
+#pragma managed(push, off)
 
 extern const int WRITECOST;
 extern const int READCOST;
@@ -19,4 +20,5 @@ public:
 
 };
 
+#pragma managed(pop)
 #endif

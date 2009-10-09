@@ -1,5 +1,6 @@
 #ifndef _TRIVAL_BLOCK_DEVICE_
 #define _TRIVAL_BLOCK_DEVICE_
+#pragma managed(push, off)
 
 #include "IBlockDevice.h"
 
@@ -20,4 +21,5 @@ private:
 	int read_, write_;
 };
 
+#pragma managed(pop)
 #endif
