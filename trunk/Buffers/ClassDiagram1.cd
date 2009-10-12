@@ -98,18 +98,6 @@
   </Class>
   <Class Name="Buffers.Queues.QueueGroup" Collapsed="true">
     <Position X="7.25" Y="3.75" Width="1.75" />
-    <NestedTypes>
-      <Struct Name="Buffers.Queues.QueueGroup.Route" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>Queues\QueueGroup.cs</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-      <Struct Name="Buffers.Queues.QueueGroup.RoutingNode" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>Queues\QueueGroup.cs</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-    </NestedTypes>
     <TypeIdentifier>
       <HashCode>QAAQAAAAAAAAEECAAABAAABAAAAABAAAAAAAAAAABAE=</HashCode>
       <FileName>Queues\QueueGroup.cs</FileName>
