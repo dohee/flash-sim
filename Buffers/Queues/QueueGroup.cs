@@ -91,8 +91,7 @@ namespace Buffers.Queues
 			public readonly uint QueueIndex;
 			public readonly QueueNode InnerNode;
 
-			public RoutingNode(uint major, uint innerindex,
-				LinkedListNode<IFrame> innernode)
+			public RoutingNode(uint major, uint innerindex, LinkedListNode<IFrame> innernode)
 				: this(major, new QueueNode(innerindex, innernode)) { }
 
 			public RoutingNode(uint major, QueueNode inner)
