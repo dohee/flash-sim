@@ -19,7 +19,8 @@ namespace Buffers.Managers
 			IFrame frame = queue.Dequeue();
 			map.Remove(frame.Id);
 			WriteIfDirty(frame);
-			frame.Resident = false;
+			pool.FreeSlot(frame.DataSlotId);
+			frame.DataSlotId = -1;
 		}
 
 		protected override QueueNode OnHit(QueueNode node, bool isWrite)
