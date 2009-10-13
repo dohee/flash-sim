@@ -16,11 +16,12 @@ namespace Buffers.Memory
 		public bool Resident { get { return slotid >= 0; } }
 		public int DataSlotId { get { return slotid; } set { slotid = value; } }
 
-		public Frame()
-			: this(-1) { }
+		public Frame(uint id)
+			: this(id, -1) { }
 
-		public Frame(int slotid)
+		public Frame(uint id, int slotid)
 		{
+			this.id = id;
 			this.slotid = slotid;
 		}
 

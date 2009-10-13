@@ -38,8 +38,7 @@ namespace Buffers.Managers
 			}
 			else
 			{
-				frame = new Frame(pool.AllocSlot());
-				frame.Id = pageid;
+				frame = new Frame(pageid, pool.AllocSlot());
 				dev.Read(pageid, pool[frame.DataSlotId]);
 				node = OnMiss(frame, false);
 			}
@@ -60,8 +59,7 @@ namespace Buffers.Managers
 			}
 			else
 			{
-				frame = new Frame(pool.AllocSlot());
-				frame.Id = pageid;
+				frame = new Frame(pageid, pool.AllocSlot());
 				node = OnMiss(frame, true);
 			}
 

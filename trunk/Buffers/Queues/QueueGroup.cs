@@ -22,7 +22,7 @@ namespace Buffers.Queues
 		private uint curRouteKey, curRouteValue;
 
 
-		protected sealed override void OnCountQueue()
+		protected sealed override void DoCountQueue()
 		{
 			for (int i = 0; i < queues.Count; i++)
 			{
@@ -36,7 +36,8 @@ namespace Buffers.Queues
 		private void OnInnerCountQueue()
 		{
 			routes.Add(new Route(curRouteKey, curRouteValue++));
-			countQueueCallback();
+			if (countQueueCallback != null)
+				countQueueCallback();
 		}
 
 		public override void AccessFrame(QueueNode node, out QueueNode newNode)

@@ -50,9 +50,12 @@ namespace Buffers.Queues
 		public abstract IFrame Dequeue(QueueNode node);
 		public abstract void AccessFrame(QueueNode node, out QueueNode newNode);
 
-		protected abstract void OnCountQueue();
+		protected abstract void DoCountQueue();
 
-
+		public void CountQueue()
+		{
+			CountQueue(null);
+		}
 		public void CountQueue(CountQueue callback)
 		{
 			if (inited)
@@ -60,7 +63,7 @@ namespace Buffers.Queues
 
 			inited = true;
 			countQueueCallback = callback;
-			OnCountQueue();
+			DoCountQueue();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
