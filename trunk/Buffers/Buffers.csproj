@@ -44,14 +44,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="!Base\IFrame.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Devices\TrivalBlockDevice.cs" />
-    <Compile Include="!Base\BufferManagerBase.cs" />
-    <Compile Include="!Base\ManagerGroup.cs" />
+    <Compile Include="Managers\Base\BufferManagerBase.cs" />
+    <Compile Include="Managers\Base\ManagerGroup.cs" />
     <Compile Include="Managers\TrivalManager.cs" />
     <Compile Include="Memory\Pool.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="!Base\FrameBasedManager.cs" />
+    <Compile Include="Managers\Base\FrameBasedManager.cs" />
     <Compile Include="Managers\LRU.cs" />
     <Compile Include="Queues\FIFOQueue.cs" />
     <Compile Include="Queues\ConcatenatedQueue.cs" />
