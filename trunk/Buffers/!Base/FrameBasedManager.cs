@@ -24,7 +24,7 @@ namespace Buffers.Managers
 		protected abstract void OnPoolFull();
 		protected abstract QueueNode OnHit(QueueNode node, bool isWrite);
 		protected abstract QueueNode OnMiss(IFrame allocatedFrame, bool isWrite);
-		
+
 
 		protected sealed override void DoRead(uint pageid, byte[] result)
 		{
@@ -38,14 +38,14 @@ namespace Buffers.Managers
 			}
 			else
 			{
-				frame = pool.AllocFrame();
+				frame = new Frame(pool.AllocSlot());
 				frame.Id = pageid;
-				dev.Read(pageid, frame.Data);
+				dev.Read(pageid, pool[frame.DataSlotId]);
 				node = OnMiss(frame, false);
 			}
 
 			map[pageid] = node;
-			frame.Data.CopyTo(result, 0);
+			pool[frame.DataSlotId].CopyTo(result, 0);
 		}
 
 		protected sealed override void DoWrite(uint pageid, byte[] data)
@@ -60,13 +60,13 @@ namespace Buffers.Managers
 			}
 			else
 			{
-				frame = pool.AllocFrame();
+				frame = new Frame(pool.AllocSlot());
 				frame.Id = pageid;
 				node = OnMiss(frame, true);
 			}
 
 			map[pageid] = node;
-			data.CopyTo(frame.Data, 0);
+			data.CopyTo(pool[frame.DataSlotId], 0);
 			frame.Dirty = true;
 		}
 
@@ -80,7 +80,7 @@ namespace Buffers.Managers
 		{
 			if (frame.Dirty)
 			{
-				dev.Write(frame.Id, frame.Data);
+				dev.Write(frame.Id, pool[frame.DataSlotId]);
 				frame.Dirty = false;
 			}
 		}
