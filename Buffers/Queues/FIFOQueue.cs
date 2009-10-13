@@ -8,9 +8,10 @@ namespace Buffers.Queues
 	{
 		protected LinkedList<IFrame> queue = new LinkedList<IFrame>();
 
-		protected override sealed void OnCountQueue()
+		protected override sealed void DoCountQueue()
 		{
-			countQueueCallback();
+			if (countQueueCallback != null)
+				countQueueCallback();
 		}
 
 		public override sealed uint Size
