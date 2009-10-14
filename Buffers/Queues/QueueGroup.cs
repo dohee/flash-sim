@@ -40,12 +40,11 @@ namespace Buffers.Queues
 				countQueueCallback();
 		}
 
-		public override void AccessFrame(QueueNode node, out QueueNode newNode)
+		public override QueueNode AccessFrame(QueueNode node)
 		{
 			RoutingNode routing = NATInwards(node);
-			QueueNode returnednode;
-			queues[(int)routing.QueueIndex].AccessFrame(routing.InnerNode, out returnednode);
-			newNode = NATOutwards(routing.QueueIndex, returnednode);
+			QueueNode returnednode = queues[(int)routing.QueueIndex].AccessFrame(routing.InnerNode);
+			return NATOutwards(routing.QueueIndex, returnednode);
 		}
 
 		public override IFrame Dequeue(QueueNode node)

@@ -6,10 +6,10 @@ namespace Buffers.Queues
 {
 	public sealed class LRUQueue : FIFOQueue
 	{
-		public override void AccessFrame(QueueNode node, out QueueNode newNode)
+		public override QueueNode AccessFrame(QueueNode node)
 		{
 			Debug.Assert(node.Index == 0);
-			newNode = new QueueNode(AccessFrame(node.ListNode));
+			return new QueueNode(AccessFrame(node.ListNode));
 		}
 
 		public LinkedListNode<IFrame> AccessFrame(LinkedListNode<IFrame> node)

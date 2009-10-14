@@ -32,7 +32,7 @@ namespace Buffers.Queues
 		QueueNode Enqueue(IFrame frame);
 		IFrame Dequeue();
 		IFrame Dequeue(QueueNode node);
-		void AccessFrame(QueueNode node, out QueueNode newNode);
+		QueueNode AccessFrame(QueueNode node);
 	}
 
 
@@ -48,7 +48,7 @@ namespace Buffers.Queues
 		public abstract QueueNode Enqueue(IFrame frame);
 		public abstract IFrame Dequeue();
 		public abstract IFrame Dequeue(QueueNode node);
-		public abstract void AccessFrame(QueueNode node, out QueueNode newNode);
+		public abstract QueueNode AccessFrame(QueueNode node);
 
 		protected abstract void DoCountQueue();
 
