@@ -5,9 +5,9 @@ using Buffers.Memory;
 
 namespace Buffers.Queues
 {
-	public class ConcatenatedQueue : QueueGroup
+	public class ConcatenatedLRUQueue : QueueGroup
 	{
-		public ConcatenatedQueue(IQueue front, IQueue back)
+		public ConcatenatedLRUQueue(IQueue front, IQueue back)
 		{
 			queues.Add(front);
 			queues.Add(back);
@@ -27,17 +27,12 @@ namespace Buffers.Queues
 			return queues[1].Dequeue();
 		}
 
-		public override void AccessFrame(QueueNode node, out QueueNode newNode)
+		public override QueueNode AccessFrame(QueueNode node)
 		{
 			RoutingNode routing = NATInwards(node);
-			QueueNode returnednode;
-
-			if (routing.QueueIndex == 0)
-				queues[0].AccessFrame(routing.InnerNode, out returnednode);
-			else
-				returnednode = queues[0].Enqueue(queues[1].Dequeue(routing.InnerNode));
-
-			newNode = NATOutwards(0, returnednode);
+			QueueNode qn = queues[0].Enqueue(
+				queues[(int)routing.QueueIndex].Dequeue(routing.InnerNode));
+			return NATOutwards(0, qn);
 		}
 
 		public QueueNode BlowOneFrame()

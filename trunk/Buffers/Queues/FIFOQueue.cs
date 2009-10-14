@@ -42,10 +42,10 @@ namespace Buffers.Queues
 			return Dequeue(new QueueNode(queue.Last));
 		}
 
-		public override void AccessFrame(QueueNode node, out QueueNode newNode)
+		public override QueueNode AccessFrame(QueueNode node)
 		{
 			Debug.Assert(node.Index == 0);
-			newNode = node;
+			return node;
 		}
 
 	}
