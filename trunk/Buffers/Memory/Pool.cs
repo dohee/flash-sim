@@ -38,7 +38,8 @@ namespace Buffers.Memory
 			if (freeList.Count == 0)
 			{
 				fullHdlr();
-				Debug.Assert(freeList.Count > 0);
+				if (freeList.Count == 0)
+					throw new InvalidOperationException("the PoolFullHandler does not free any slot.");
 			}
 
 			int slotid = freeList.Pop();

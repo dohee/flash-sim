@@ -49,11 +49,13 @@
     <Compile Include="Devices\TrivalBlockDevice.cs" />
     <Compile Include="Managers\Base\BufferManagerBase.cs" />
     <Compile Include="Managers\Base\ManagerGroup.cs" />
+    <Compile Include="Managers\Tn.cs" />
     <Compile Include="Managers\TrivalManager.cs" />
     <Compile Include="Memory\Pool.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Managers\Base\FrameBasedManager.cs" />
     <Compile Include="Managers\LRU.cs" />
+    <Compile Include="Queues\DoubleConcatenatedLRUQueue.cs" />
     <Compile Include="Queues\FIFOQueue.cs" />
     <Compile Include="Queues\ConcatenatedLRUQueue.cs" />
     <Compile Include="Queues\Queue.cs" />

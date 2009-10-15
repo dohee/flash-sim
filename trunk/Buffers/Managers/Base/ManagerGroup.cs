@@ -9,6 +9,8 @@ namespace Buffers.Managers
 	{
 		private List<IBufferManager> mgrs = new List<IBufferManager>();
 
+		public ManagerGroup()
+			: base(null) { }
 
 		public int Count { get { return mgrs.Count; } }
 		public IBufferManager this[int index] { get { return mgrs[index]; } }

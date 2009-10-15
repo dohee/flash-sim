@@ -43,8 +43,8 @@ namespace Buffers.Queues
 		public override QueueNode AccessFrame(QueueNode node)
 		{
 			RoutingNode routing = NATInwards(node);
-			QueueNode returnednode = queues[(int)routing.QueueIndex].AccessFrame(routing.InnerNode);
-			return NATOutwards(routing.QueueIndex, returnednode);
+			QueueNode qn = queues[(int)routing.QueueIndex].AccessFrame(routing.InnerNode);
+			return NATOutwards(routing.QueueIndex, qn);
 		}
 
 		public override IFrame Dequeue(QueueNode node)
@@ -58,6 +58,17 @@ namespace Buffers.Queues
 			foreach (var queue in queues)
 				foreach (var frame in queue)
 					yield return frame;
+		}
+
+		public override uint Size
+		{
+			get
+			{
+				uint sum = 0;
+				foreach (var queue in queues)
+					sum += queue.Size;
+				return sum;
+			}
 		}
 
 
