@@ -5,7 +5,7 @@ namespace Buffers.Managers
 	public sealed class TrivalManager : BufferManagerBase
 	{
 		public TrivalManager()
-			: base() { }
+			: this(null) { }
 		public TrivalManager(IBlockDevice dev)
 			: base(dev) { }
 

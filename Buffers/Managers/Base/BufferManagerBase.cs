@@ -1,4 +1,5 @@
 ﻿using System;
+using Buffers.Devices;
 
 namespace Buffers.Managers
 {
@@ -12,12 +13,9 @@ namespace Buffers.Managers
 		protected abstract void DoWrite(uint pageid, byte[] data);
 		protected abstract void DoFlush();
 
-		public BufferManagerBase()
-			: this(new Buffers.Devices.TrivalBlockDevice())
-		{ }
 		public BufferManagerBase(IBlockDevice device)
 		{
-			this.dev = device;
+			this.dev = (device == null ? new TrivalBlockDevice() : device);
 		}
 		~BufferManagerBase()
 		{

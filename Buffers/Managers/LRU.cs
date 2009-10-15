@@ -10,7 +10,7 @@ namespace Buffers.Managers
 		private LRUQueue queue = new LRUQueue();
 
 		public LRU(uint npages)
-			: base(npages) { }
+			: this(null, npages) { }
 		public LRU(IBlockDevice dev, uint npages)
 			: base(dev, npages) { }
 
@@ -24,7 +24,7 @@ namespace Buffers.Managers
 
 		protected override QueueNode OnHit(QueueNode node, bool isWrite)
 		{
-			return queue.Enqueue(queue.Dequeue(node));
+			return queue.AccessFrame(node);
 		}
 
 		protected override QueueNode OnMiss(IFrame allocatedFrame, bool isWrite)

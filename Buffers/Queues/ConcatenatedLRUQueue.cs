@@ -15,7 +15,6 @@ namespace Buffers.Queues
 
 		public uint FrontQueueSize { get { return queues[0].Size; } }
 		public uint BackQueueSize { get { return queues[1].Size; } }
-		public override uint Size { get { return queues[0].Size + queues[1].Size; } }
 
 		public override QueueNode Enqueue(IFrame frame)
 		{
