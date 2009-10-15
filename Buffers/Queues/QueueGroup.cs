@@ -13,45 +13,40 @@ namespace Buffers.Queues
 		/// <summary>
 		/// QueueIndex -> RouteIndex
 		/// </summary>
-		protected List<uint> offsets = new List<uint>();
+		protected uint[] offsets = null;
 		/// <summary>
 		/// RouteIndex -> (QueueIndex, InnerRootIndex)
 		/// </summary>
-		protected List<Route> routes = new List<Route>();
-
-		private uint curRouteKey, curRouteValue;
+		protected Route[] routes = null;
 
 
-		protected sealed override void DoCountQueue()
+		protected void BuildRoutes()
 		{
+			List<uint> offsets = new List<uint>();
+			List<Route> routes = new List<Route>();
+
 			for (int i = 0; i < queues.Count; i++)
 			{
 				offsets.Add((uint)routes.Count);
-				curRouteKey = (uint)i;
-				curRouteValue = 0;
-				queues[i].CountQueue(this.OnInnerCountQueue);
+				for (int j = 0; j < queues[i].BasicQueueCount; j++)
+					routes.Add(new Route((uint)i, (uint)j));
 			}
+
+			this.offsets = offsets.ToArray();
+			this.routes = routes.ToArray();
 		}
 
-		private void OnInnerCountQueue()
+		protected RoutingNode NATInwards(QueueNode outerNode)
 		{
-			routes.Add(new Route(curRouteKey, curRouteValue++));
-			if (countQueueCallback != null)
-				countQueueCallback();
+			Route route = routes[(int)outerNode.Index];
+			return new RoutingNode(route.QueueIndex, route.InnerRouteIndex, outerNode.ListNode);
+		}
+		protected QueueNode NATOutwards(uint queueIndex, QueueNode innerNode)
+		{
+			uint routeIndex = innerNode.Index + offsets[(int)queueIndex];
+			return new QueueNode(routeIndex, innerNode.ListNode);
 		}
 
-		public override QueueNode AccessFrame(QueueNode node)
-		{
-			RoutingNode routing = NATInwards(node);
-			QueueNode qn = queues[(int)routing.QueueIndex].AccessFrame(routing.InnerNode);
-			return NATOutwards(routing.QueueIndex, qn);
-		}
-
-		public override IFrame Dequeue(QueueNode node)
-		{
-			RoutingNode routing = NATInwards(node);
-			return queues[(int)routing.QueueIndex].Dequeue(routing.InnerNode);
-		}
 
 		public override IEnumerator<IFrame> GetEnumerator()
 		{
@@ -71,16 +66,29 @@ namespace Buffers.Queues
 			}
 		}
 
-
-		protected RoutingNode NATInwards(QueueNode outerNode)
+		public override uint BasicQueueCount
 		{
-			Route route = routes[(int)outerNode.Index];
-			return new RoutingNode(route.QueueIndex, route.InnerRouteIndex, outerNode.ListNode);
+			get
+			{
+				uint sum = 0;
+				foreach (var queue in queues)
+					sum += queue.BasicQueueCount;
+				return sum;
+			}
 		}
-		protected QueueNode NATOutwards(uint queueIndex, QueueNode innerNode)
+
+	
+		public override QueueNode AccessFrame(QueueNode node)
 		{
-			uint routeIndex = innerNode.Index + offsets[(int)queueIndex];
-			return new QueueNode(routeIndex, innerNode.ListNode);
+			RoutingNode routing = NATInwards(node);
+			QueueNode qn = queues[(int)routing.QueueIndex].AccessFrame(routing.InnerNode);
+			return NATOutwards(routing.QueueIndex, qn);
+		}
+
+		public override IFrame Dequeue(QueueNode node)
+		{
+			RoutingNode routing = NATInwards(node);
+			return queues[(int)routing.QueueIndex].Dequeue(routing.InnerNode);
 		}
 
 
@@ -94,6 +102,27 @@ namespace Buffers.Queues
 			{
 				QueueIndex = queueIndex;
 				InnerRouteIndex = innerRouteIndex;
+			}
+
+			public override bool Equals(object obj)
+			{
+				if (obj == null)
+					return false;
+				if (this.GetType() != obj.GetType())
+					return false;
+
+				return this == (Route)obj;
+			}
+
+			public static bool operator ==(Route left, Route right)
+			{
+				return left.QueueIndex == right.QueueIndex &&
+					left.InnerRouteIndex == right.InnerRouteIndex;
+			}
+
+			public override int GetHashCode()
+			{
+				return QueueIndex.GetHashCode() ^ InnerRouteIndex.GetHashCode();
 			}
 		}
 
@@ -109,6 +138,27 @@ namespace Buffers.Queues
 			{
 				QueueIndex = major;
 				InnerNode = inner;
+			}
+
+			public override bool Equals(object obj)
+			{
+				if (obj == null)
+					return false;
+				if (this.GetType() != obj.GetType())
+					return false;
+
+				return this == (RoutingNode)obj;
+			}
+
+			public static bool operator ==(RoutingNode left, RoutingNode right)
+			{
+				return left.QueueIndex == right.QueueIndex &&
+					left.InnerNode == right.InnerNode;
+			}
+
+			public override int GetHashCode()
+			{
+				return QueueIndex.GetHashCode() ^ InnerNode.GetHashCode();
 			}
 		}
 

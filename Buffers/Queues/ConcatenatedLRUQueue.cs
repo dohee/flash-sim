@@ -11,6 +11,7 @@ namespace Buffers.Queues
 		{
 			queues.Add(front);
 			queues.Add(back);
+			BuildRoutes();
 		}
 
 		public uint FrontQueueSize { get { return queues[0].Size; } }

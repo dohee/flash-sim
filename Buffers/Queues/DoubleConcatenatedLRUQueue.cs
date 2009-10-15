@@ -13,6 +13,7 @@ namespace Buffers.Queues
 			this.q2 = q2;
 			queues.Add(q1);
 			queues.Add(q2);
+			BuildRoutes();
 		}
 
 		public uint Q1Size { get { return q1.Size; } }

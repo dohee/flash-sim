@@ -5,7 +5,7 @@ using Buffers.Queues;
 
 namespace Buffers.Managers
 {
-	public class Tn:FrameBasedManager
+	public class Tn : FrameBasedManager
 	{
 		private readonly DoubleConcatenatedLRUQueue am;
 		private readonly uint kickRatio;
@@ -32,8 +32,7 @@ namespace Buffers.Managers
 			am = new DoubleConcatenatedLRUQueue(
 				new ConcatenatedLRUQueue(new FIFOQueue(), new FIFOQueue()),
 				new ConcatenatedLRUQueue(new FIFOQueue(), new FIFOQueue()));
-			
-			am.CountQueue();
+
 			crlimit_ = CNRLimit = DNRLimit = npages / 2;
 
 			kickRatio = HowManyToKickWhenWriteInDR;

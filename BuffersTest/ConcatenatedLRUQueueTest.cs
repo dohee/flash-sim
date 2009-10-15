@@ -74,7 +74,6 @@ namespace BuffersTest
 			IQueue back = new FIFOQueue();
 			front.Enqueue(new Frame(10));
 			ConcatenatedLRUQueue target = new ConcatenatedLRUQueue(front, back);
-			target.CountQueue(null);
 			return target;
 		}
 
@@ -101,7 +100,6 @@ namespace BuffersTest
 				q4567 = new ConcatenatedLRUQueue(q45, q67);
 
 			ConcatenatedLRUQueue target = new ConcatenatedLRUQueue(q0123, q4567);
-			target.CountQueue(null);
 
 			FIFOs = q;
 			return target;
