@@ -17,7 +17,8 @@ namespace Buffers
 			ManagerGroup group = new ManagerGroup();
 
 			group.Add(new LRU(npages));
-			group.Add(new Tn(npages, 3));
+			group.Add(new Tn(npages, 3, 0));
+			group.Add(new Tn(npages, 3, npages / 4));
 			//group.Add(new Managers.FromNative.Tn(new TrivalBlockDevice(), npages, (int)npages / 2, 3, false, false));
 
 			return group;
