@@ -48,9 +48,9 @@ namespace Buffers.Queues
 			return NATOutwards((uint)queueIndex, qn);
 		}
 
-		public bool IsInQueue(QueueNode node, int queueIndex)
+		public int InWhichQueue(QueueNode node)
 		{
-			return NATInwards(node).QueueIndex == (uint)queueIndex;
+			return (int)(NATInwards(node).QueueIndex);
 		}
 	}
 }
