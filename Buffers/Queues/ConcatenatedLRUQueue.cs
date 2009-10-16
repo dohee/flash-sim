@@ -9,8 +9,7 @@ namespace Buffers.Queues
 	{
 		public ConcatenatedLRUQueue(IQueue front, IQueue back)
 		{
-			queues.Add(front);
-			queues.Add(back);
+			queues = new IQueue[] { front, back };
 			BuildRoutes();
 		}
 

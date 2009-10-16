@@ -7,7 +7,7 @@ namespace Buffers.Managers
 {
 	public class Tn : FrameBasedManager
 	{
-		private readonly DoubleConcatenatedLRUQueue am;
+		private readonly MultiConcatLRUQueue am;
 		private readonly uint kickRatio;
 		private readonly bool adjustDROnReadDR, enlargeCROnReadDNR;
 		private uint crlimit_;
@@ -29,9 +29,10 @@ namespace Buffers.Managers
 			bool AdjustDRWhenReadInDR, bool EnlargeCRWhenReadInDNR)
 			: base(dev, npages)
 		{
-			am = new DoubleConcatenatedLRUQueue(
+			am = new MultiConcatLRUQueue(new ConcatenatedLRUQueue[] {
 				new ConcatenatedLRUQueue(new FIFOQueue(), new FIFOQueue()),
-				new ConcatenatedLRUQueue(new FIFOQueue(), new FIFOQueue()));
+				new ConcatenatedLRUQueue(new FIFOQueue(), new FIFOQueue())
+			});
 
 			crlimit_ = CNRLimit = DNRLimit = npages / 2;
 
@@ -56,24 +57,24 @@ namespace Buffers.Managers
 
 		protected override void OnPoolFull()
 		{
-			bool crOverrun = (am.Q1FrontSize > CRLimit);
-			bool blowCR = crOverrun || (am.Q2FrontSize == 0);
+			bool crOverrun = (am.GetFrontSize(0) > CRLimit);
+			bool blowCR = crOverrun || (am.GetFrontSize(1) == 0);
 
-			QueueNode qn = blowCR ? am.BlowQ1() : am.BlowQ2();
+			QueueNode qn = blowCR ? am.BlowOneFrame(0) : am.BlowOneFrame(1);
 			WriteIfDirty(qn.ListNode.Value);
 			pool.FreeSlot(qn.ListNode.Value.DataSlotId);
 			qn.ListNode.Value.DataSlotId = -1;
 			map[qn.ListNode.Value.Id] = qn;
 
-			if (am.Q1BackSize > CNRLimit)
+			if (am.GetBackSize(0) > CNRLimit)
 			{
-				IFrame f = am.DequeueQ1();
+				IFrame f = am.Dequeue(0);
 				map.Remove(f.Id);
 			}
 
-			if (am.Q2BackSize > DNRLimit)
+			if (am.GetBackSize(1) > DNRLimit)
 			{
-				IFrame f = am.DequeueQ2();
+				IFrame f = am.Dequeue(1);
 				map.Remove(f.Id);
 			}
 		}
@@ -82,7 +83,7 @@ namespace Buffers.Managers
 		{
 			bool isRead = !isWrite;
 			bool resident = node.ListNode.Value.Resident;
-			bool inDirty = (resident ? node.ListNode.Value.Dirty : am.IsInQ2(node));
+			bool inDirty = (resident ? node.ListNode.Value.Dirty : am.IsInQueue(node, 1));
 			bool inClean = !inDirty;
 
 			if (inClean && isRead)
@@ -100,7 +101,7 @@ namespace Buffers.Managers
 				IFrame f = am.Dequeue(node);
 				if (!resident)
 					f.DataSlotId = pool.AllocSlot();
-				return am.EnqueueQ2(f);
+				return am.Enqueue(1, f);
 			}
 			else if (inDirty && isRead && resident)
 			{
@@ -115,7 +116,7 @@ namespace Buffers.Managers
 					EnlargeCRLimit(1);
 				IFrame f = am.Dequeue(node);
 				f.DataSlotId = pool.AllocSlot();
-				return am.EnqueueQ1(f);
+				return am.Enqueue(0, f);
 			}
 			else if (inDirty && isWrite)
 			{
@@ -136,9 +137,9 @@ namespace Buffers.Managers
 		protected override QueueNode OnMiss(IFrame allocatedFrame, bool isWrite)
 		{
 			if (isWrite)
-				return am.EnqueueQ2(allocatedFrame);
+				return am.Enqueue(1, allocatedFrame);
 			else
-				return am.EnqueueQ1(allocatedFrame);
+				return am.Enqueue(0, allocatedFrame);
 		}
 	}
 }

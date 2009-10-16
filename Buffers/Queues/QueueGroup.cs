@@ -9,7 +9,7 @@ namespace Buffers.Queues
 		/// <summary>
 		/// QueueIndex -> IQueue
 		/// </summary>
-		protected List<IQueue> queues = new List<IQueue>();
+		protected IQueue[] queues = null;
 		/// <summary>
 		/// QueueIndex -> RouteIndex
 		/// </summary>
@@ -25,7 +25,7 @@ namespace Buffers.Queues
 			List<uint> offsets = new List<uint>();
 			List<Route> routes = new List<Route>();
 
-			for (int i = 0; i < queues.Count; i++)
+			for (int i = 0; i < queues.Length; i++)
 			{
 				offsets.Add((uint)routes.Count);
 				for (int j = 0; j < queues[i].BasicQueueCount; j++)
@@ -120,6 +120,11 @@ namespace Buffers.Queues
 					left.InnerRouteIndex == right.InnerRouteIndex;
 			}
 
+			public static bool operator !=(Route left, Route right)
+			{
+				return !(left == right);
+			}
+
 			public override int GetHashCode()
 			{
 				return QueueIndex.GetHashCode() ^ InnerRouteIndex.GetHashCode();
@@ -154,6 +159,11 @@ namespace Buffers.Queues
 			{
 				return left.QueueIndex == right.QueueIndex &&
 					left.InnerNode == right.InnerNode;
+			}
+
+			public static bool operator !=(RoutingNode left, RoutingNode right)
+			{
+				return !(left == right);
 			}
 
 			public override int GetHashCode()
