@@ -55,7 +55,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Managers\FrameBasedManager.cs" />
     <Compile Include="Managers\LRU.cs" />
-    <Compile Include="Queues\DoubleConcatenatedLRUQueue.cs" />
+    <Compile Include="Queues\MultiConcatLRUQueue.cs" />
     <Compile Include="Queues\FIFOQueue.cs" />
     <Compile Include="Queues\ConcatenatedLRUQueue.cs" />
     <Compile Include="Queues\IQueue.cs" />

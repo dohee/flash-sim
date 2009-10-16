@@ -35,6 +35,11 @@ namespace Buffers.Queues
 			return left.Index == right.Index && left.ListNode == right.ListNode;
 		}
 
+		public static bool operator !=(QueueNode left, QueueNode right)
+		{
+			return !(left == right);
+		}
+
 		public override int GetHashCode()
 		{
 			return Index.GetHashCode() ^ ListNode.GetHashCode();
