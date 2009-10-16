@@ -13,7 +13,7 @@ namespace Buffers
 	{
 		private static ManagerGroup InitGroup()
 		{
-			const uint npages = 500;
+			const uint npages = 100;
 			ManagerGroup group = new ManagerGroup();
 
 			group.Add(new LRU(npages));
@@ -84,17 +84,29 @@ namespace Buffers
 
 		private static void GenerateOutput(ManagerGroup group, TextWriter output)
 		{
-			output.WriteLine("Group\tRead\t{0}\tWrite\t{1}\tFlush\t{2}\tCost\t{3}",
+			output.WriteLine("Group  Read {0}  Write {1}  Flush {2}  Cost {3}",
 				group.ReadCount, group.WriteCount, group.FlushCount,
 				Utils.CalcTotalCost(group));
+
+			int[] maxlens = { 0, 0, 0, 0 };
+			for (int i = 0; i < group.Count; i++)
+			{
+				IBlockDevice dev = group[i].AssociatedDevice;
+				maxlens[0] = Math.Max(maxlens[0], i.ToString().Length);
+				maxlens[1] = Math.Max(maxlens[0], dev.ReadCount.ToString().Length);
+				maxlens[2] = Math.Max(maxlens[0], dev.WriteCount.ToString().Length);
+				maxlens[3] = Math.Max(maxlens[0], Utils.CalcTotalCost(dev).ToString().Length);
+			}
+
+			string format = string.Format(
+				"Dev {{0,{0}}}  Read {{1,{1}}}  Write {{2,{2}}}  Cost {{3,{3}}}  {{4}}",
+				maxlens[0], maxlens[1], maxlens[2], maxlens[3]);
 
 			for (int i = 0; i < group.Count; i++)
 			{
 				IBlockDevice dev = group[i].AssociatedDevice;
-
-				output.WriteLine("Dev {3}\tRead\t{0}\tWrite\t{1}\tCost\t{2}",
-					dev.ReadCount, dev.WriteCount,
-					Utils.CalcTotalCost(dev), i);
+				output.WriteLine(format, i, dev.ReadCount, dev.WriteCount,
+					Utils.CalcTotalCost(dev), group[i].GetType().Name);
 			}
 		}
 	}
