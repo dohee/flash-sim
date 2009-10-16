@@ -48,6 +48,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="Devices\TrivalBlockDevice.cs" />
     <Compile Include="Managers\BufferManagerBase.cs" />
+    <Compile Include="Managers\CMFT.cs" />
     <Compile Include="Managers\ManagerGroup.cs" />
     <Compile Include="Managers\Tn.cs" />
     <Compile Include="Managers\TrivalManager.cs" />
@@ -55,6 +56,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Managers\FrameBasedManager.cs" />
     <Compile Include="Managers\LRU.cs" />
+    <Compile Include="Queues\IRRLRUQueue.cs" />
     <Compile Include="Queues\MultiConcatLRUQueue.cs" />
     <Compile Include="Queues\FIFOQueue.cs" />
     <Compile Include="Queues\ConcatenatedLRUQueue.cs" />

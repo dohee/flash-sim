@@ -4,7 +4,7 @@ using Buffers.Memory;
 
 namespace Buffers.Queues
 {
-	public sealed class LRUQueue : FIFOQueue
+	public class LRUQueue : FIFOQueue
 	{
 		public override QueueNode AccessFrame(QueueNode node)
 		{
