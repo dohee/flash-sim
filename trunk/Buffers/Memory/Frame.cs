@@ -29,8 +29,10 @@ namespace Buffers.Memory
 //This is the frame for inter reference recency
     public class IRRFrame : Frame
     {
-        private uint readIRR;
-        private uint writeIRR;
+        public uint readIRR;
+        public uint writeIRR;
+        public uint readRecency;
+        public uint writeRecency;
 
         public IRRFrame(uint id)
             : this(id, -1) { }
@@ -41,6 +43,25 @@ namespace Buffers.Memory
             readIRR = 0;
             writeIRR = 0;
 		}
+
+        //get the power of this page for evict selection
+        public double getPower()
+        {
+            double power = 0;
+            double aveReadIRR = ((double)readIRR+readRecency)/2;
+            double aveWriteIRR = ((double)writeIRR+writeRecency)/2;
+
+            if (aveReadIRR != 0)        //0 means this page has not been read before.
+            {
+                power += (double)Config.ReadCost / aveReadIRR;
+            }
+            if (aveWriteIRR != 0)
+            {
+                power += (double)Config.WriteCost / aveWriteIRR;
+            }
+            return power;
+        }
+
     }
 
 }
