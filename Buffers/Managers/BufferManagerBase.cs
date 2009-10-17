@@ -35,6 +35,8 @@ namespace Buffers.Managers
 			disposed = true;
 		}
 
+		public virtual string Name { get { return this.GetType().Name; } }
+		public virtual string Description { get { return Name; } }
 		public IBlockDevice AssociatedDevice { get { return dev; } }
 		public uint PageSize { get { return dev.PageSize; } }
 		public int ReadCount { get { return read; } }

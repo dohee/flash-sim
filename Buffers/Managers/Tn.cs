@@ -5,30 +5,46 @@ using Buffers.Queues;
 
 namespace Buffers.Managers
 {
+	public struct TnConfig
+	{
+		public bool AdjustDRWhenReadInDR;
+		public bool EnlargeCRWhenReadInDNR;
+		public uint SRLimit;
+		public uint SNRLimit;
+		public bool PickOffSRWhenHitInSR;
+
+		public TnConfig(bool AdjustDRWhenReadInDR, bool EnlargeCRWhenReadInDNR,
+			uint SRLimit, uint SNRLimit, bool PickOffSRWhenHitInSR)
+		{
+			this.AdjustDRWhenReadInDR = AdjustDRWhenReadInDR;
+			this.EnlargeCRWhenReadInDNR = EnlargeCRWhenReadInDNR;
+			this.SRLimit = SRLimit;
+			this.SNRLimit = SNRLimit;
+			this.PickOffSRWhenHitInSR = PickOffSRWhenHitInSR;
+		}
+	}
+
+
 	public class Tn : FrameBasedManager
 	{
 		private readonly MultiConcatLRUQueue q;
-		private readonly uint kickRatio;
-		private readonly bool adjustDROnReadDR, enlargeCROnReadDNR;
 
+		private readonly TnConfig conf;
+		private readonly uint kickn;
 		private uint crlimit_;
-		private readonly uint SRLimit;
-		private readonly uint CNRLimit, DNRLimit, SNRLimit;
+		private readonly uint CNRLimit, DNRLimit;
 
 
-		public Tn(uint npages, uint HowManyToKickWhenWriteInDR, uint SRLimit)
-			: this(null, npages, HowManyToKickWhenWriteInDR, SRLimit) { }
+		public Tn(uint npages, uint kickN)
+			: this(null, npages, kickN) { }
 
-		public Tn(IBlockDevice dev, uint npages, uint HowManyToKickWhenWriteInDR, uint SRLimit)
-			: this(dev, npages, HowManyToKickWhenWriteInDR, SRLimit, false, false) { }
+		public Tn(IBlockDevice dev, uint npages, uint kickN)
+			: this(dev, npages, kickN, new TnConfig()) { }
 
-		public Tn(uint npages, uint HowManyToKickWhenWriteInDR, uint SRLimit,
-			bool AdjustDRWhenReadInDR, bool EnlargeCRWhenReadInDNR)
-			: this(null, npages, HowManyToKickWhenWriteInDR, SRLimit,
-			AdjustDRWhenReadInDR, EnlargeCRWhenReadInDNR) { }
+		public Tn(uint npages, uint kickN, TnConfig conf)
+			: this(null, npages, kickN, conf) { }
 
-		public Tn(IBlockDevice dev, uint npages, uint HowManyToKickWhenWriteInDR, uint SRLimit,
-			bool AdjustDRWhenReadInDR, bool EnlargeCRWhenReadInDNR)
+		public Tn(IBlockDevice dev, uint npages, uint kickN, TnConfig conf)
 			: base(dev, npages)
 		{
 			q = new MultiConcatLRUQueue(new ConcatenatedLRUQueue[] {
@@ -37,17 +53,26 @@ namespace Buffers.Managers
 				new ConcatenatedLRUQueue(new FIFOQueue(), new FIFOQueue())
 			});
 
-			kickRatio = HowManyToKickWhenWriteInDR;
-			this.SRLimit = SRLimit;
-			adjustDROnReadDR = AdjustDRWhenReadInDR;
-			enlargeCROnReadDNR = EnlargeCRWhenReadInDNR;
+			this.conf = conf;
+			this.kickn = kickN;
 
-			crlimit_ = CNRLimit = DNRLimit = SNRLimit = npages / 2;
+			crlimit_ = CNRLimit = DNRLimit = npages / 2;
+		}
+
+		public override string Description
+		{
+			get
+			{
+				//TODO: 修改此属性
+				return base.Description;
+			}
 		}
 
 
 		private uint CRLimit { get { return crlimit_; } }
 		private uint DRLimit { get { return pool.NPages - crlimit_ - SRLimit; } }
+		private uint SRLimit { get { return conf.SRLimit; } }
+		private uint SNRLimit { get { return conf.SNRLimit; } }
 
 		private void EnlargeCRLimit(int relativeAmount)
 		{
@@ -113,14 +138,14 @@ namespace Buffers.Managers
 			}
 			else if (inDirty && isRead && resident)
 			{
-				if (adjustDROnReadDR)
+				if (conf.AdjustDRWhenReadInDR)
 					return q.AccessFrame(node);
 				else
 					return node;
 			}
 			else if (inDirty && isRead && !resident)
 			{
-				if (enlargeCROnReadDNR)
+				if (conf.EnlargeCRWhenReadInDNR)
 					EnlargeCRLimit(1);
 				IFrame f = q.Dequeue(node);
 				f.DataSlotId = pool.AllocSlot();
@@ -132,14 +157,17 @@ namespace Buffers.Managers
 				node = q.AccessFrame(node);
 				if (!resident)
 				{
-					EnlargeCRLimit(-(int)kickRatio);
+					EnlargeCRLimit(-(int)kickn);
 					node.ListNode.Value.DataSlotId = pool.AllocSlot();
 				}
 				return node;
 			}
 			else if (inSingle && resident)
 			{
-				return node;
+				if (conf.PickOffSRWhenHitInSR)
+					return q.Enqueue((isRead ? 0 : 1), q.Dequeue(node));
+				else
+					return node;
 			}
 			else if (inSingle && !resident)
 			{

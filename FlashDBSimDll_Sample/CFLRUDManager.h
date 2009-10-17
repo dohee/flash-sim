@@ -12,7 +12,7 @@
 class CFLRUDManager : public BufferManagerBase
 {
 public:
-	CFLRUDManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t iwindowSize);
+	CFLRUDManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t iwindowSize = 0);
 	virtual ~CFLRUDManager();
 
 protected:
