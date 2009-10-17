@@ -19,6 +19,9 @@ CFLRUDManager::CFLRUDManager(shared_ptr<IBlockDevice> pDevice, size_t nPages, si
 		throw std::runtime_error("windowSize_ larger than NumOfPages");
 	observingNum_ = npages_/2;
 	totalCost_ = 0;
+
+	if (windowSize_ == 0)
+		windowSize_ = npages_ / 2;
 }
 
 CFLRUDManager::~CFLRUDManager()

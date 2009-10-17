@@ -13,6 +13,7 @@
 
 #pragma managed
 #include "ClrDeviceWrapper.h"
+#include "NativeTrivalDeviceWrapper.h"
 using namespace std::tr1;
 using namespace cli;
 using namespace System;
@@ -21,30 +22,39 @@ using namespace System::Runtime::InteropServices;
 
 namespace Buffers {
 	namespace Managers {
-		namespace FromNative {
 
 
-public ref class WrapperBase abstract : public Buffers::IBufferManager
+public ref class Wrapper : public Buffers::IBufferManager
 {
-protected:
+private:
+	String^ name;
 	Buffers::IBlockDevice^ pdev;
 	size_t pagesize;
 	unsigned char* buffer;
 	::IBufferManager* pmgr;
 
-public:
-	WrapperBase(Buffers::IBlockDevice^ pdevice)
-		: pdev(pdevice),
+	Wrapper(const char* mgrname, Buffers::IBlockDevice^ pdevice, ::IBufferManager* pmanager)
+		: name(Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(mgrname)))),
+		pdev(pdevice),
 		pagesize(pdevice->PageSize),
 		buffer(new unsigned char[pagesize==0 ? 1 : pagesize]),
-		pmgr(NULL) { }
+		pmgr(pmanager) { }
 
-	virtual ~WrapperBase() {
+	Wrapper(const char* mgrname, ::TrivalBlockDevice* pdevice, ::IBufferManager* pmanager)
+		: name(Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(mgrname)))),
+		pdev(gcnew Buffers::Devices::FromNative::TrivalBlockDevice(pdevice)),
+		pagesize(pdev->PageSize),
+		buffer(new unsigned char[pagesize==0 ? 1 : pagesize]),
+		pmgr(pmanager) { }
+
+public:
+	virtual ~Wrapper() {
 		delete [] buffer;
 		delete pmgr;
 	}
 
-
+	virtual property String^ Name { String^ get() { return name; } }
+	virtual property String^ Description { String^ get() { return name; } }
 	virtual property size_t PageSize { size_t get() { return pagesize; } }
 	virtual property int ReadCount { int get() { return pmgr->GetReadCount(); } }
 	virtual property int WriteCount { int get() { return pmgr->GetWriteCount(); } }
@@ -68,22 +78,7 @@ public:
 
 	virtual void Flush() { pmgr->Flush(); }
 
-};
 
-
-#define PARTA(shortname)											\
-public ref class shortname : public WrapperBase {					\
-public:																\
-	shortname(Buffers::IBlockDevice^ pdevice, size_t npages
-
-#define PARTB(shortname)								)			\
-		: WrapperBase(pdevice) {									\
-		pmgr = new shortname##Manager(shared_ptr<::IBlockDevice>(	\
-			new ::ClrDeviceWrapper(pdevice)), npages
-
-#define PARTC									);					\
-	}																\
-}
 
 /* 万恶的 VS 竟然不完全支持下面的语法
 #define FDECL1(t1, a1)	t1 a1
@@ -103,24 +98,84 @@ public:																\
 #define FCAST6(t6, a6, ...) (t3) a6, FCAST5(__VA_ARGS__)
 #define FCAST7(t7, a7, ...) (t3) a7, FCAST6(__VA_ARGS__)
 #define FCAST8(t8, a8, ...) (t3) a8, FCAST7(__VA_ARGS__)
-
-#define WRAP0(s)		PARTA(s) PARTB(s) PARTC
-#define WRAP1(s, ...)	PARTA(s),FDECL1(__VA_ARGS__) PARTB(s),FCAST1(__VA_ARGS__) PARTC
-#define WRAP2(s, ...)	PARTA(s),FDECL2(__VA_ARGS__) PARTB(s),FCAST2(__VA_ARGS__) PARTC
-#define WRAP3(s, ...)	PARTA(s),FDECL3(__VA_ARGS__) PARTB(s),FCAST3(__VA_ARGS__) PARTC
-#define WRAP4(s, ...)	PARTA(s),FDECL4(__VA_ARGS__) PARTB(s),FCAST4(__VA_ARGS__) PARTC
-#define WRAP5(s, ...)	PARTA(s),FDECL5(__VA_ARGS__) PARTB(s),FCAST5(__VA_ARGS__) PARTC
-#define WRAP6(s, ...)	PARTA(s),FDECL6(__VA_ARGS__) PARTB(s),FCAST6(__VA_ARGS__) PARTC
-#define WRAP7(s, ...)	PARTA(s),FDECL7(__VA_ARGS__) PARTB(s),FCAST7(__VA_ARGS__) PARTC
-#define WRAP8(s, ...)	PARTA(s),FDECL8(__VA_ARGS__) PARTB(s),FCAST8(__VA_ARGS__) PARTC
 */
 
-#define WRAP0(s)					PARTA(s)					PARTB(s)			PARTC
-#define WRAP1(s,a,b)				PARTA(s),a b				PARTB(s),b			PARTC
-#define WRAP2(s,a,b,c,d)			PARTA(s),a b,c d			PARTB(s),b,d		PARTC
-#define WRAP3(s,a,b,c,d,e,f)		PARTA(s),a b,c d,e f		PARTB(s),b,d,f		PARTC
-#define WRAP4(s,a,b,c,d,e,f,g,h)	PARTA(s),a b,c d,e f,g h	PARTB(s),b,d,f,h	PARTC
 
+#define PART_A(s)														\
+	static Buffers::IBufferManager^										\
+	Create##s(Buffers::IBlockDevice^ pdevice, size_t npages
+
+#define PART_B(s)											) {			\
+		return gcnew Wrapper(											\
+		#s, pdevice, new s##Manager(shared_ptr<::IBlockDevice>(			\
+			new ::ClrDeviceWrapper(pdevice)), npages
+
+#define PART_C(s)									));					\
+	}																	\
+	static Buffers::IBufferManager^ Create##s(size_t npages
+
+#define PART_D(s)											) {			\
+		shared_ptr<::TrivalBlockDevice> pdev(new ::TrivalBlockDevice);	\
+		return gcnew Wrapper("Wrap<" #s ">", pdev.get(),				\
+			new s##Manager(pdev, npages
+
+#define PART_E							));								\
+	}
+
+
+#define WRAP0(s)		\
+	PART_A(s) PART_B(s)	\
+	PART_C(s) PART_D(s) PART_E
+
+#define WRAP1(s,a,b)			\
+	PART_A(s),a b PART_B(s),b	\
+	PART_C(s),a b PART_D(s),b PART_E
+
+#define WRAP2(s,a,b,c,d)				\
+	PART_A(s),a b,c d	PART_B(s),b,d	\
+	PART_C(s),a b,c d	PART_D(s),b,d PART_E
+
+#define WRAP3(s,a,b,c,d,e,f)				\
+	PART_A(s),a b,c d,e f	PART_B(s),b,d,f	\
+	PART_C(s),a b,c d,e f	PART_D(s),b,d,f PART_E
+
+#define WRAP4(s,a,b,c,d,e,f,g,h)					\
+	PART_A(s),a b,c d,e f,g h	PART_B(s),b,d,f,h	\
+	PART_C(s),a b,c d,e f,g h	PART_D(s),b,d,f,h PART_E
+
+
+WRAP0(CFLRUD);
+WRAP1(CFLRUD, size_t, initialWindowSize);
+WRAP1(CFLRU, size_t, windowSize);
+WRAP0(CMFT);
+WRAP0(LRU);
+WRAP0(LRUWSR);
+WRAP1(LRUWSR, size_t, maxCold);
+WRAP2(Tn, int, srLength, int, HowManyToKickWhenWriteInDR);
+WRAP4(Tn, int, srLength, int, HowManyToKickWhenWriteInDR, bool, AdjustDRWhenReadInDR, bool, EnlargeCRWhenReadInDNR);
+};
+
+
+/* 旧的 wrapper 实现
+#define WRAP0(s)					PART_A(s)					PART_B(s)			PART_C
+#define WRAP1(s,a,b)				PART_A(s),a b				PART_B(s),b			PART_C
+#define WRAP2(s,a,b,c,d)			PART_A(s),a b,c d			PART_B(s),b,d		PART_C
+#define WRAP3(s,a,b,c,d,e,f)		PART_A(s),a b,c d,e f		PART_B(s),b,d,f		PART_C
+#define WRAP4(s,a,b,c,d,e,f,g,h)	PART_A(s),a b,c d,e f,g h	PART_B(s),b,d,f,h	PART_C
+
+#define PART_A(shortname)											\
+public ref class shortname : public Wrapper {						\
+public:																\
+	shortname(Buffers::IBlockDevice^ pdevice, size_t npages
+
+#define PART_B(shortname)								)			\
+		: Wrapper(pdevice) {										\
+		pmgr = new shortname##Manager(shared_ptr<::IBlockDevice>(	\
+			new ::ClrDeviceWrapper(pdevice)), npages
+
+#define PART_C									);					\
+	}																\
+}
 
 WRAP1(CFLRUD, size_t, initialWindowSize);
 WRAP1(CFLRU, size_t, windowSize);
@@ -128,7 +183,7 @@ WRAP0(CMFT);
 WRAP0(LRU);
 WRAP1(LRUWSR, size_t, maxCold);
 WRAP4(Tn, int, srLength, int, HowManyToKickWhenWriteInDR, bool, AdjustDRWhenReadInDR, bool, EnlargeCRWhenReadInDNR);
+*/
 
-		};
 	};
 };

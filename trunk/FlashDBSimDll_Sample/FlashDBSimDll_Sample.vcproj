@@ -437,6 +437,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Native-&gt;CLR Wrapper"
+				>
+				<File
+					RelativePath=".\NativeTrivalDeviceWrapper.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\NativeTrivalDeviceWrapper.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="!Base"

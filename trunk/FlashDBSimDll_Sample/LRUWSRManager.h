@@ -10,7 +10,7 @@
 class LRUWSRManager : public BufferManagerBase
 {
 public:
-	LRUWSRManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t maxCold);
+	LRUWSRManager(std::tr1::shared_ptr<class IBlockDevice> pDevice, size_t nPages, size_t maxCold = 1);
 	virtual ~LRUWSRManager();
 
 protected:
