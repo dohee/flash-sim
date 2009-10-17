@@ -6,28 +6,29 @@ using Buffers.Memory;
 
 //my first c# programe.  Lv Yanfei
 //LRU class with IRR
-//这里使用frame只使用了frameid的属性。
+//这里使用frame,使用了frameid和dirty的属性，dirty＝0，1来表示读写。
+//将读和写操作都保存到一个队列里
+
 namespace Buffers.Queues
 {
     public class IRRLRUQueue :LRUQueue
     {
         //return IRR, IRR>=1(this value can be increased?), if IRR is <=0, this page is not resident.
-        public int accessIRR(Frame iFrame)
+        public uint accessIRR(Frame iFrame)
         {
-            int irr = 0;        //统计IRR，如果在队首，IRR就是1.
+            uint irr = 0;        //统计IRR，如果在队首，IRR就是1.
 
             Frame frameout=null;
             foreach (Frame frame in queue)
             {
                 irr++;
-                if (frame.Id == iFrame.Id)
+                if (frame.Id == iFrame.Id && frame.Dirty == iFrame.Dirty)
                 {
                     frameout = frame;
                     break;
                 }
             }
-
-
+            
             if (frameout!=null)//找到了
             {
                 queue.Remove(frameout);
