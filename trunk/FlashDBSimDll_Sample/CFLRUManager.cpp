@@ -121,11 +121,11 @@ void CFLRUManager::DoFlush()
 {
 	QueueType::iterator it, itend = queue_.end();
 
-	/*
+	
 	for (it = queue_.begin(); it != itend; ++it) {
-		cout << ((*it)->Dirty ? 1 : 0);
+		//cout << ((*it)->Dirty ? 1 : 0);
 		WriteIfDirty(*it);
 	}
-	cout << endl;
-	*/
+	//cout << endl;
+	
 }
