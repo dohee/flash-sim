@@ -135,7 +135,7 @@ namespace Buffers.Managers
                 {
                     if(frame.Dirty)
                     {
-                        map[frame.Id].writeIRR = j;
+                        map[frame.Id].writeRecency = j;
                     }
                     else{
                         map[frame.Id].readRecency = j;
