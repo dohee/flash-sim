@@ -24,61 +24,69 @@ namespace Buffers {
 	namespace Managers {
 
 
-public ref class Wrapper : public Buffers::IBufferManager
+public ref class Wrapper
 {
 private:
-	String^ name;
-	Buffers::IBlockDevice^ pdev;
-	size_t pagesize;
-	unsigned char* buffer;
-	::IBufferManager* pmgr;
+	Wrapper() { }
 
-	Wrapper(const char* mgrname, Buffers::IBlockDevice^ pdevice, ::IBufferManager* pmanager)
-		: name(Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(mgrname)))),
-		pdev(pdevice),
-		pagesize(pdevice->PageSize),
-		buffer(new unsigned char[pagesize==0 ? 1 : pagesize]),
-		pmgr(pmanager) { }
+	ref class WrapperInner : public Buffers::IBufferManager
+	{
+	private:
+		String^ name;
+		Buffers::IBlockDevice^ pdev;
+		size_t pagesize;
+		unsigned char* buffer;
+		::IBufferManager* pmgr;
 
-	Wrapper(const char* mgrname, ::TrivalBlockDevice* pdevice, ::IBufferManager* pmanager)
-		: name(Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(mgrname)))),
-		pdev(gcnew Buffers::Devices::FromNative::TrivalBlockDevice(pdevice)),
-		pagesize(pdev->PageSize),
-		buffer(new unsigned char[pagesize==0 ? 1 : pagesize]),
-		pmgr(pmanager) { }
+	public:
+		WrapperInner(const char* mgrname, Buffers::IBlockDevice^ pdevice, ::IBufferManager* pmanager)
+			: name(Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(mgrname)))),
+			pdev(pdevice),
+			pagesize(pdevice->PageSize),
+			buffer(new unsigned char[pagesize==0 ? 1 : pagesize]),
+			pmgr(pmanager) { }
+
+		WrapperInner(const char* mgrname, ::TrivalBlockDevice* pdevice, ::IBufferManager* pmanager)
+			: name(Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(mgrname)))),
+			pdev(gcnew Buffers::Devices::FromNative::TrivalBlockDevice(pdevice)),
+			pagesize(pdev->PageSize),
+			buffer(new unsigned char[pagesize==0 ? 1 : pagesize]),
+			pmgr(pmanager) { }
+
+		virtual ~WrapperInner() {
+			delete [] buffer;
+			delete pmgr;
+		}
+
+		virtual property String^ Name { String^ get() { return name; } }
+		virtual property String^ Description { String^ get() { return name; } }
+		virtual property size_t PageSize { size_t get() { return pagesize; } }
+		virtual property int ReadCount { int get() { return pmgr->GetReadCount(); } }
+		virtual property int WriteCount { int get() { return pmgr->GetWriteCount(); } }
+		virtual property int FlushCount { int get() { return -1; } }
+
+		virtual property Buffers::IBlockDevice^ AssociatedDevice {
+			Buffers::IBlockDevice^ get() { return pdev; }
+		}
+
+		virtual void Read(size_t pageid, array<unsigned char>^ result) {
+			pmgr->Read(pageid, buffer);
+			if (pagesize != 0)
+				Marshal::Copy(IntPtr(buffer), result, 0, pagesize);
+		}
+
+		virtual void Write(size_t pageid, array<unsigned char>^ data) {
+			if (pagesize != 0)
+				Marshal::Copy(data, 0, IntPtr(buffer), pagesize);
+			pmgr->Write(pageid, buffer);
+		}
+
+		virtual void Flush() { pmgr->Flush(); }
+
+	};
+
 
 public:
-	virtual ~Wrapper() {
-		delete [] buffer;
-		delete pmgr;
-	}
-
-	virtual property String^ Name { String^ get() { return name; } }
-	virtual property String^ Description { String^ get() { return name; } }
-	virtual property size_t PageSize { size_t get() { return pagesize; } }
-	virtual property int ReadCount { int get() { return pmgr->GetReadCount(); } }
-	virtual property int WriteCount { int get() { return pmgr->GetWriteCount(); } }
-	virtual property int FlushCount { int get() { return -1; } }
-
-	virtual property Buffers::IBlockDevice^ AssociatedDevice {
-		Buffers::IBlockDevice^ get() { return pdev; }
-	}
-
-	virtual void Read(size_t pageid, array<unsigned char>^ result) {
-		pmgr->Read(pageid, buffer);
-		if (pagesize != 0)
-			Marshal::Copy(IntPtr(buffer), result, 0, pagesize);
-	}
-
-	virtual void Write(size_t pageid, array<unsigned char>^ data) {
-		if (pagesize != 0)
-			Marshal::Copy(data, 0, IntPtr(buffer), pagesize);
-		pmgr->Write(pageid, buffer);
-	}
-
-	virtual void Flush() { pmgr->Flush(); }
-
-
 
 /* 万恶的 VS 竟然不完全支持下面的语法
 #define FDECL1(t1, a1)	t1 a1
@@ -106,7 +114,7 @@ public:
 	Create##s(Buffers::IBlockDevice^ pdevice, size_t npages
 
 #define PART_B(s)											) {			\
-		return gcnew Wrapper(											\
+		return gcnew WrapperInner(										\
 		#s, pdevice, new s##Manager(shared_ptr<::IBlockDevice>(			\
 			new ::ClrDeviceWrapper(pdevice)), npages
 
@@ -116,7 +124,7 @@ public:
 
 #define PART_D(s)											) {			\
 		shared_ptr<::TrivalBlockDevice> pdev(new ::TrivalBlockDevice);	\
-		return gcnew Wrapper("Wrap<" #s ">", pdev.get(),				\
+		return gcnew WrapperInner("Wrap<" #s ">", pdev.get(),			\
 			new s##Manager(pdev, npages
 
 #define PART_E							));								\
