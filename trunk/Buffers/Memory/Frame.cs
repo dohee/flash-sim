@@ -51,6 +51,9 @@ namespace Buffers.Memory
             double aveReadIRR = ((double)readIRR+readRecency)/2;
             double aveWriteIRR = ((double)writeIRR+writeRecency)/2;
 
+            if (readIRR == 0) aveReadIRR = readRecency; //only read once
+            if (writeIRR == 0) aveWriteIRR = writeRecency;  //only write once
+
             if (aveReadIRR != 0)        //0 means this page has not been read before.
             {
                 power += (double)Config.ReadCost / aveReadIRR;
