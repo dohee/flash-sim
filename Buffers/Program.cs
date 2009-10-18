@@ -52,6 +52,18 @@ namespace Buffers
 			GenerateOutput(group, Console.Out);
 		}
 
+
+		private static Stack<ConsoleColor> clrstack = new Stack<ConsoleColor>();
+		private static void PushColor(ConsoleColor newcolor)
+		{
+			clrstack.Push(Console.ForegroundColor);
+			Console.ForegroundColor = newcolor;
+		}
+		private static void PopColor()
+		{
+			Console.ForegroundColor = clrstack.Pop();
+		}
+
 		private static void OperateOnTrace(ManagerGroup group, TextReader input)
 		{
 			string line;
@@ -66,7 +78,11 @@ namespace Buffers
 					continue;
 
 				if (++count % 2000 == 0)
+				{
+					PushColor(ConsoleColor.Green);
 					Console.Error.WriteLine(count);
+					PopColor();
+				}
 #if DEBUG
 				if (count > 10000)
 					break;
@@ -89,7 +105,10 @@ namespace Buffers
 
 		private static void GenerateOutput(ManagerGroup group, TextWriter output)
 		{
-			output.WriteLine("Group  Read {0}  Write {1}  Flush {2}  Cost {3}",
+			PushColor(ConsoleColor.Yellow);
+			output.Write("Group  ");
+			PopColor();
+			output.WriteLine("Read {0}  Write {1}  Flush {2}  Cost {3}",
 				group.ReadCount, group.WriteCount, group.FlushCount,
 				Utils.CalcTotalCost(group));
 
@@ -103,15 +122,21 @@ namespace Buffers
 				maxlens[3] = Math.Max(maxlens[0], Utils.CalcTotalCost(dev).ToString().Length);
 			}
 
-			string format = string.Format(
-				"Dev {{0,{0}}}  Read {{1,{1}}}  Write {{2,{2}}}  Cost {{3,{3}}}  {{4}}",
-				maxlens[0], maxlens[1], maxlens[2], maxlens[3]);
+			string formatDev = string.Format("Dev {{0,{0}}}  ", maxlens[0]);
+			string formatCost = string.Format(
+				"Read {{0,{0}}}  Write {{1,{1}}}  Cost {{2,{2}}}  ",
+				maxlens[1], maxlens[2], maxlens[3]);
 
 			for (int i = 0; i < group.Count; i++)
 			{
 				IBlockDevice dev = group[i].AssociatedDevice;
-				output.WriteLine(format, i, dev.ReadCount, dev.WriteCount,
-					Utils.CalcTotalCost(dev), group[i].Description);
+				PushColor(ConsoleColor.Yellow);
+				output.Write(formatDev, i);
+				PopColor();
+				output.Write(formatCost, dev.ReadCount, dev.WriteCount, Utils.CalcTotalCost(dev));
+				PushColor(ConsoleColor.DarkBlue);
+				output.WriteLine(group[i].Description);
+				PopColor();
 			}
 		}
 	}
