@@ -16,15 +16,16 @@ namespace Buffers
 			const uint npages = 100;
 			ManagerGroup group = new ManagerGroup();
 			Math.Max(1, 2);
-			group.Add(new LRU(npages));
-			group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
-			group.Add(Wrapper.CreateCFLRUD(npages));
-			group.Add(new Tn(npages, 3, new TnConfig(false, false, 0, 0, false)));
-			group.Add(new Tn(npages, 3, new TnConfig(false, true, 0, 0, false)));
-			group.Add(new Tn(npages, 3, new TnConfig(true, false, 0, 0, false)));
-			group.Add(new Tn(npages, 3, new TnConfig(true, true, 0, 0, false)));
-			group.Add(new Tn(npages, 3, new TnConfig(false, false, npages / 4, npages / 2, false)));
-			group.Add(new Tn(npages, 3, new TnConfig(false, false, npages / 4, 0, true)));
+            group.Add(new LRU(npages));
+            group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
+            group.Add(Wrapper.CreateCFLRUD(npages));
+            group.Add(new Tn(npages, 3, new TnConfig(false, false, 0, 0, false)));
+            group.Add(new Tn(npages, 3, new TnConfig(false, true, 0, 0, false)));
+            group.Add(new Tn(npages, 3, new TnConfig(true, false, 0, 0, false)));
+            group.Add(new Tn(npages, 3, new TnConfig(true, true, 0, 0, false)));
+            group.Add(new Tn(npages, 3, new TnConfig(false, false, npages / 4, npages / 2, false)));
+            group.Add(new Tn(npages, 3, new TnConfig(false, false, npages / 4, 0, true)));
+            group.Add(new CMFT(npages));
 
 			return group;
 		}

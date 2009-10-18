@@ -22,6 +22,12 @@ namespace Buffers.Managers
         //Real data are all stored in map.
         protected Dictionary<uint, IRRFrame> map = new Dictionary<uint, IRRFrame>();
 
+        public CMFT(uint npages)
+            : this(null,npages)
+        {
+            pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
+        }
+
 		public CMFT(IBlockDevice dev, uint npages)
 			: base(dev)
 		{
@@ -62,6 +68,7 @@ namespace Buffers.Managers
 
                 if (!irrframe.Resident)     //miss non resident
                 {
+                    irrframe.DataSlotId = pool.AllocSlot();
                     dev.Read(pageid, pool[irrframe.DataSlotId]);
                     pool[irrframe.DataSlotId].CopyTo(result, 0);
                 }
@@ -114,22 +121,58 @@ namespace Buffers.Managers
 		}
 
         /// <summary>
-        /// ////////////////////////////
+        /// 
         /// </summary>
         void OnPoolFull()
         {
-            int j=0;
-            //求出每个的recency
+            Dictionary<uint, IRRFrame> residentMap = new Dictionary<uint, IRRFrame>();      //存储在内存的页面，供选择替换页面
+            uint j=0;
+            //对resident的页面求出每个的recency
             foreach (Frame frame in IRRQueue)
             {
                 j++;
+                if (map[frame.Id].Resident)
+                {
+                    if(frame.Dirty)
+                    {
+                        map[frame.Id].writeIRR = j;
+                    }
+                    else{
+                        map[frame.Id].readRecency = j;
+                    }
+                    residentMap[frame.Id] = map[frame.Id];
+                }  
             }
+
+            //在其中选出权重最低的页面
+            double minPower = Double.MaxValue;
+            IRRFrame minFrame = null;
+            foreach (KeyValuePair <uint, IRRFrame> i in residentMap)
+            {
+                IRRFrame irrFrame = i.Value;
+                double power = irrFrame.getPower();
+                if (power < minPower)
+                {
+                    minFrame = irrFrame;
+                    minPower = power;
+                }
+            }
+
+            //释放页面
+            WriteIfDirty(minFrame);
+            pool.FreeSlot(minFrame.DataSlotId);
+            map[minFrame.Id].DataSlotId=-1;
         }
 
 		protected override void DoFlush()
 		{
-			foreach (var entry in map)
-				WriteIfDirty(entry.Value);
+            foreach (var entry in map)
+            {
+                if (entry.Value.Resident)
+                {
+                    WriteIfDirty(entry.Value);
+                }
+            }
 		}
 
 		protected void WriteIfDirty(IFrame frame)
