@@ -15,7 +15,7 @@ namespace Buffers
 		{
 			const uint npages = 100;
 			ManagerGroup group = new ManagerGroup();
-
+			Math.Max(1, 2);
 			group.Add(new LRU(npages));
 			group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
 			group.Add(Wrapper.CreateCFLRUD(npages));
