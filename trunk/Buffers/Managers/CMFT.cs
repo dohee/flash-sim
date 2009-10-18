@@ -180,10 +180,8 @@ namespace Buffers.Managers
 			if (frame.Dirty)
 			{
 				dev.Write(frame.Id, pool[frame.DataSlotId]);
-				
+                frame.Dirty = false;
 			}
 		}
 	}
-       
-
 }

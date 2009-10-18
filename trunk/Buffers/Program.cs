@@ -13,7 +13,7 @@ namespace Buffers
 	{
 		private static ManagerGroup InitGroup()
 		{
-			const uint npages = 100;
+			const uint npages = 500;
 			ManagerGroup group = new ManagerGroup();
 			Math.Max(1, 2);
             group.Add(new LRU(npages));
