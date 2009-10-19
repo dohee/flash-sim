@@ -52,6 +52,7 @@
     <Compile Include="Managers\ManagerGroup.cs" />
     <Compile Include="Managers\Tn.cs" />
     <Compile Include="Managers\TrivalManager.cs" />
+    <Compile Include="Memory\IRRFrame.cs" />
     <Compile Include="Memory\Pool.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Managers\FrameBasedManager.cs" />
