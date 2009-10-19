@@ -33,6 +33,9 @@ namespace Buffers.Memory
 		public double getPower()
 		{
 			double power = 0;
+            //readRecency = readRecency * 1 / 2;
+            //writeRecency = writeRecency * 1 / 2;
+
 			double aveReadIRR = ((double)readIRR + readRecency) / 2;
 			double aveWriteIRR = ((double)writeIRR + writeRecency) / 2;
 
