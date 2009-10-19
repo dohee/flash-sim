@@ -143,6 +143,7 @@ namespace Buffers.Managers
 			}
 			else if (inDirty && isRead && resident)
 			{
+                //Random rand=new Random();
 				if (conf.AdjustDRWhenReadInDR)
 					return q.AccessFrame(node);
 				else
