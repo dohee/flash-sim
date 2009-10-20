@@ -75,7 +75,7 @@ namespace Buffers.Managers
 
 				//update IRR
 				uint irr = IRRQueue.accessIRR(irrframe);
-				irrframe.readIRR = irr;	//possiblely 0, no effect
+				irrframe.ReadIRR = irr;	//possiblely 0, no effect
 				if (irr == 0)
 				{
 					Frame frame = new Frame(pageid);
@@ -119,7 +119,7 @@ namespace Buffers.Managers
 
 				//update IRR
 				uint irr = IRRQueue.accessIRR(irrframe);
-				irrframe.writeIRR = irr;     //0 doesn't matter.
+				irrframe.WriteIRR = irr;     //0 doesn't matter.
 				if (irr == 0)
 				{
 					Frame frame = new Frame(pageid);
@@ -147,11 +147,11 @@ namespace Buffers.Managers
 				{
 					if (frame.Dirty)
 					{
-						map[frame.Id].writeRecency = j;
+						map[frame.Id].WriteRecency = j;
 					}
 					else
 					{
-						map[frame.Id].readRecency = j;
+						map[frame.Id].ReadRecency = j;
 					}
 					residentMap[frame.Id] = map[frame.Id];
 				}
@@ -163,7 +163,7 @@ namespace Buffers.Managers
 			foreach (KeyValuePair<uint, IRRFrame> i in residentMap)
 			{
 				IRRFrame irrFrame = i.Value;
-				double power = irrFrame.getPower();
+				double power = irrFrame.GetPower();
 				if (power < minPower)
 				{
 					minFrame = irrFrame;
