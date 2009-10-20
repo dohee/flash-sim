@@ -49,6 +49,7 @@
     <Compile Include="Devices\TrivalBlockDevice.cs" />
     <Compile Include="Managers\BufferManagerBase.cs" />
     <Compile Include="Managers\CMFT.cs" />
+    <Compile Include="Managers\CMFTByCat.cs" />
     <Compile Include="Managers\ManagerGroup.cs" />
     <Compile Include="Managers\Tn.cs" />
     <Compile Include="Managers\TrivalManager.cs" />

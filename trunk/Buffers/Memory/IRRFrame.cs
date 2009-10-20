@@ -10,10 +10,7 @@ namespace Buffers.Memory
 	/// </summary>
 	public class IRRFrame : Frame
 	{
-		public uint readIRR;
-		public uint writeIRR;
-		public uint readRecency;
-		public uint writeRecency;
+		private uint readIRR, writeIRR, readRecency, writeRecency;
 
 		public IRRFrame(uint id)
 			: this(id, -1) { }
@@ -25,12 +22,17 @@ namespace Buffers.Memory
 			writeIRR = 0;
 		}
 
+		public uint ReadIRR { get { return readIRR; } set { readIRR = value; } }
+		public uint WriteIRR { get { return writeIRR; } set { writeIRR = value; } }
+		public uint ReadRecency { get { return readRecency; } set { readRecency = value; } }
+		public uint WriteRecency { get { return writeRecency; } set { writeRecency = value; } }
+
 		
 		/// <summary>
 		/// get the power of this page for evict selection
 		/// </summary>
 		/// <returns></returns>
-		public double getPower()
+		public double GetPower()
 		{
 			double power = 0;
             //readRecency = readRecency * 1 / 2;
