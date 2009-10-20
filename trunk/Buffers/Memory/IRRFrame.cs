@@ -10,7 +10,8 @@ namespace Buffers.Memory
 	/// </summary>
 	public class IRRFrame : Frame
 	{
-		private uint readIRR, writeIRR, readRecency, writeRecency;
+		private uint readIRR = 0, writeIRR = 0;
+		private uint readRecency = 0, writeRecency = 0;
 
 		public IRRFrame(uint id)
 			: this(id, -1) { }

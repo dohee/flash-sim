@@ -8,7 +8,7 @@ namespace Buffers.Managers
 	public abstract class FrameBasedManager : BufferManagerBase
 	{
 		protected Pool pool;
-		protected Dictionary<uint, QueueNode> map = new Dictionary<uint, QueueNode>();
+		protected IDictionary<uint, QueueNode> map = new Dictionary<uint, QueueNode>();
 
 		public FrameBasedManager(IBlockDevice dev, uint npages)
 			: base(dev)
@@ -19,6 +19,11 @@ namespace Buffers.Managers
 		protected abstract void OnPoolFull();
 		protected abstract QueueNode OnHit(QueueNode node, bool isWrite);
 		protected abstract QueueNode OnMiss(IFrame allocatedFrame, bool isWrite);
+
+		protected virtual IFrame CreateFrame(uint pageid, int slotid)
+		{
+			return new Frame(pageid, slotid);
+		}
 
 
 		protected sealed override void DoRead(uint pageid, byte[] result)
@@ -33,7 +38,7 @@ namespace Buffers.Managers
 			}
 			else
 			{
-				frame = new Frame(pageid, pool.AllocSlot());
+				frame = CreateFrame(pageid, pool.AllocSlot());
 				dev.Read(pageid, pool[frame.DataSlotId]);
 				node = OnMiss(frame, false);
 			}
@@ -54,7 +59,7 @@ namespace Buffers.Managers
 			}
 			else
 			{
-				frame = new Frame(pageid, pool.AllocSlot());
+				frame = CreateFrame(pageid, pool.AllocSlot());
 				node = OnMiss(frame, true);
 			}
 
@@ -66,7 +71,10 @@ namespace Buffers.Managers
 		protected override void DoFlush()
 		{
 			foreach (var entry in map)
+			{
 				WriteIfDirty(entry.Value.ListNode.Value);
+				entry.Value.ListNode.Value.Dirty = false;
+			}
 		}
 
 		protected void WriteIfDirty(IFrame frame)
