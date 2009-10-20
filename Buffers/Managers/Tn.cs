@@ -203,5 +203,21 @@ namespace Buffers.Managers
 				return q.Enqueue(2, allocatedFrame);
 			}
 		}
+
+		protected override void DoFlush()
+		{
+			foreach (var mapitem in map)
+			{
+				IFrame f = mapitem.Value.ListNode.Value;
+				if (!f.Dirty)
+					continue;
+
+				dev.Write(f.Id, pool[f.DataSlotId]);
+				f.Dirty = false;
+
+				if (q.InWhichQueue(mapitem.Value) == 1)
+					map[f.Id] = q.Enqueue(0, q.Dequeue(mapitem.Value));
+			}
+		}
 	}
 }
