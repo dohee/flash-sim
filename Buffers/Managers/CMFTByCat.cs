@@ -23,7 +23,42 @@ namespace Buffers.Managers
 
 		protected override void OnPoolFull()
 		{
-			throw new NotImplementedException();
+			var residentList = new List<IRRFrame>();
+
+			for (int i = 0; i < irrQ.Count; i++)
+			{
+				var pair = irrQ[i];
+				IRRFrame f = map[pair.Key].ListNode.Value as IRRFrame;
+
+				if (!f.Resident)
+					continue;
+
+				residentList.Add(f);
+
+				if (pair.Value)
+					f.WriteRecency = (uint)(irrQ.Count - i);
+				else
+					f.ReadRecency = (uint)(irrQ.Count - i);
+			}
+
+			//在其中选出权重最低的页面
+			double minPower = Double.MaxValue;
+			IRRFrame minFrame = null;
+
+			foreach (var f in residentList)
+			{
+				double power = f.GetPower();
+				if (power < minPower)
+				{
+					minFrame = f;
+					minPower = power;
+				}
+			}
+
+			//释放页面
+			WriteIfDirty(minFrame);
+			pool.FreeSlot(minFrame.DataSlotId);
+			minFrame.DataSlotId = -1;
 		}
 
 		protected override QueueNode OnHit(QueueNode node, bool isWrite)
@@ -49,6 +84,9 @@ namespace Buffers.Managers
 		{
 			List<KeyValuePair<uint, bool>> q = new List<KeyValuePair<uint, bool>>();
 
+			public int Count { get { return q.Count; } }
+			public KeyValuePair<uint, bool> this[int index] { get { return q[index]; } }
+
 			public void Enqueue(uint pageid, bool dirty)
 			{
 				q.Add(new KeyValuePair<uint, bool>(pageid, dirty));
@@ -71,6 +109,7 @@ namespace Buffers.Managers
 				q.Add(new KeyValuePair<uint, bool>(pageid, dirty));
 				return (uint)pos + 1;
 			}
+
 		}
 	}
 }
