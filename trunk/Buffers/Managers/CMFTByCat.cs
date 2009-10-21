@@ -63,7 +63,18 @@ namespace Buffers.Managers
 
 		protected override QueueNode OnHit(QueueNode node, bool isWrite)
 		{
-			throw new NotImplementedException();
+			IRRFrame irrf = node.ListNode.Value as IRRFrame;
+			uint irr = irrQ.AccessIRR(irrf.Id, isWrite);
+
+			if (isWrite)
+				irrf.WriteIRR = irr;
+			else
+				irrf.ReadIRR = irr;
+
+			if (irr == 0)
+				irrQ.Enqueue(irrf.Id, isWrite);
+
+			return node;
 		}
 
 		protected override QueueNode OnMiss(IFrame allocatedFrame, bool isWrite)
@@ -75,6 +86,7 @@ namespace Buffers.Managers
 
 		protected override void DoFlush()
 		{
+			//FIXME do flush
 			base.DoFlush();
 		}
 
