@@ -29,7 +29,6 @@ namespace Buffers
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, true, 0, 0, false)));
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, npages / 2, false)));
 			group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
-			group.Add(new CMFT(npages));
 			group.Add(new CMFTByCat(npages));
 
 			return group;
@@ -47,7 +46,13 @@ namespace Buffers
 				else
 					reader = Console.In;
 
+				DateTime old = DateTime.Now;
 				OperateOnTrace(group, reader);
+				TimeSpan ts = DateTime.Now - old;
+
+				PushColor(ConsoleColor.Cyan);
+				Console.WriteLine(ts);
+				PopColor();
 			}
 			finally
 			{

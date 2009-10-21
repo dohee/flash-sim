@@ -8,6 +8,7 @@ using Buffers.Memory;
 //CMFT. Determine the victim page by weighted IRR.
 namespace Buffers.Managers
 {
+	[Obsolete("The algorithm by LYF is obsolete")]
 	class CMFT : BufferManagerBase
 	{
 		//the first version eliminate single queue.
@@ -34,6 +35,7 @@ namespace Buffers.Managers
 			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
 		}
 
+		public override string Name { get { return "Obsolete CMFT"; } }
 
 		/// <summary>
 		/// 

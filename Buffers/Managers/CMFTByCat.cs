@@ -15,6 +15,8 @@ namespace Buffers.Managers
 		public CMFTByCat(IBlockDevice dev, uint npages)
 			: base(dev, npages) { }
 
+		public override string Name { get { return "CMFT"; } }
+
 
 		protected override IFrame CreateFrame(uint pageid, int slotid)
 		{

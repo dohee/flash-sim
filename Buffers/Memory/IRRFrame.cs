@@ -36,8 +36,8 @@ namespace Buffers.Memory
 		public double GetPower()
 		{
 			double power = 0;
-			double weightedReadRecency = (double)readRecency * 1 / 4;
-			double weightedWriteRecency = (double)writeRecency * 1 / 4;
+			double weightedReadRecency = (double)readRecency * 1 / 1;
+			double weightedWriteRecency = (double)writeRecency * 1 / 1;
 
 			double aveReadIRR, aveWriteIRR;
 
