@@ -215,8 +215,8 @@ namespace Buffers.Managers
 				dev.Write(f.Id, pool[f.DataSlotId]);
 				f.Dirty = false;
 
-				if (q.InWhichQueue(mapitem.Value) == 1)
-					map[f.Id] = q.Enqueue(0, q.Dequeue(mapitem.Value));
+				//if (q.InWhichQueue(mapitem.Value) == 1)
+				//	map[f.Id] = q.Enqueue(0, q.Dequeue(mapitem.Value));
 			}
 		}
 	}

@@ -14,7 +14,7 @@ namespace Buffers.Queues
     public class IRRLRUQueue :LRUQueue
     {
         //return IRR, IRR>=1(this value can be increased?), if IRR is <=0, this page is not resident.
-        public uint accessIRR(Frame iFrame)
+        public uint accessIRR(uint id, bool dirty)
         {
             uint irr = 0;        //统计IRR，如果在队首，IRR就是1.
 
@@ -22,7 +22,7 @@ namespace Buffers.Queues
             foreach (Frame frame in queue)
             {
                 irr++;
-                if (frame.Id == iFrame.Id && frame.Dirty == iFrame.Dirty)
+                if (frame.Id == id && frame.Dirty == dirty)
                 {
                     frameout = frame;
                     break;

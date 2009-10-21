@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define ANALISE
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -13,21 +15,22 @@ namespace Buffers
 	{
 		private static ManagerGroup InitGroup()
 		{
-			const uint npages = 100;
+			const uint npages = 160;
+			uint ratio = (uint)Math.Round((double)Config.WriteCost / (double)Config.ReadCost);
 			ManagerGroup group = new ManagerGroup();
 
 			group.Add(new LRU(npages));
 			//group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
-			//group.Add(Wrapper.CreateCFLRUD(npages));
-			//uint ratio = (uint)(Config.WriteCost / Config.ReadCost);
+			group.Add(Wrapper.CreateCFLRUD(npages));
+			group.Add(Wrapper.CreateLRUWSR(npages));
 			//group.Add(new Tn(npages, ratio, new TnConfig(false, false, 0, 0, false)));
 			//group.Add(new Tn(npages, ratio, new TnConfig(false, true, 0, 0, false)));
-			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, 0, 0, false)));
+			group.Add(new Tn(npages, ratio, new TnConfig(true, false, 0, 0, false)));
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, true, 0, 0, false)));
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, npages / 2, false)));
-			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
+			group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
 			group.Add(new CMFT(npages));
-			// group.Add(new CMFTByCat(npages));
+			group.Add(new CMFTByCat(npages));
 
 			return group;
 		}
@@ -90,10 +93,15 @@ namespace Buffers
 				if (count > 10000)
 					break;
 #endif
+#if ANALISE
+				if (count == 372)
+					Console.WriteLine("Pause here");
+#endif
 
 				uint pageid = uint.Parse(parts[0]);
 				uint length = uint.Parse(parts[1]);
 				uint rw = uint.Parse(parts[2]);
+
 
 				if (rw == 0)
 					while (length-- != 0)
@@ -101,9 +109,12 @@ namespace Buffers
 				else
 					while (length-- != 0)
 						group.Write(pageid++, data);
+
+				AnalyseAndOutput(group, count);
 			}
 
 			group.Flush();
+
 		}
 
 		private static void GenerateOutput(ManagerGroup group, TextWriter output)
@@ -120,9 +131,9 @@ namespace Buffers
 			{
 				IBlockDevice dev = group[i].AssociatedDevice;
 				maxlens[0] = Math.Max(maxlens[0], i.ToString().Length);
-				maxlens[1] = Math.Max(maxlens[0], dev.ReadCount.ToString().Length);
-				maxlens[2] = Math.Max(maxlens[0], dev.WriteCount.ToString().Length);
-				maxlens[3] = Math.Max(maxlens[0], Utils.CalcTotalCost(dev).ToString().Length);
+				maxlens[1] = Math.Max(maxlens[1], dev.ReadCount.ToString().Length);
+				maxlens[2] = Math.Max(maxlens[2], dev.WriteCount.ToString().Length);
+				maxlens[3] = Math.Max(maxlens[3], Utils.CalcTotalCost(dev).ToString().Length);
 			}
 
 			string formatDev = string.Format("Dev {{0,{0}}}  ", maxlens[0]);
@@ -142,5 +153,50 @@ namespace Buffers
 				PopColor();
 			}
 		}
+
+		private static void AnalyseAndOutput(ManagerGroup group, int count)
+		{
+#if ANALISE
+			if (FindBug(group, count))
+				Console.WriteLine(count);
+#endif
+		}
+
+#if ANALISE
+		private static bool FindBug(ManagerGroup group, int count)
+		{
+			var lyfMap = ((CMFT)group[1]).map;
+			var catMap = ((CMFTByCat)group[2]).map;
+
+			if (lyfMap.Count != catMap.Count)
+				return true;
+
+			foreach (var lyfItem in lyfMap)
+			{
+				Buffers.Memory.IRRFrame lyfFrame = lyfItem.Value;
+				Buffers.Queues.QueueNode node;
+
+				if (catMap.TryGetValue(lyfItem.Key, out node))
+				{
+					Buffers.Memory.IRRFrame catFrame = (Buffers.Memory.IRRFrame)node.ListNode.Value;
+
+					if (lyfFrame.DataSlotId != catFrame.DataSlotId ||
+						lyfFrame.Dirty != catFrame.Dirty ||
+						lyfFrame.ReadIRR != catFrame.ReadIRR ||
+						lyfFrame.ReadRecency != catFrame.ReadRecency ||
+						lyfFrame.WriteIRR != catFrame.WriteIRR ||
+						lyfFrame.WriteRecency != catFrame.WriteRecency)
+						return true;
+				}
+				else
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+#endif
+
 	}
 }
