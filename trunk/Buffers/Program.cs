@@ -13,20 +13,21 @@ namespace Buffers
 	{
 		private static ManagerGroup InitGroup()
 		{
-			const uint npages = 5;
+			const uint npages = 100;
 			ManagerGroup group = new ManagerGroup();
-            //Math.Max(1, 2);
-            //group.Add(new LRU(npages));
-            //group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
-            //group.Add(Wrapper.CreateCFLRUD(npages));
-            //uint ratio = (uint)(Config.WriteCost / Config.ReadCost);
-            //group.Add(new Tn(npages, ratio, new TnConfig(false, false, 0, 0, false)));
-            //group.Add(new Tn(npages, ratio, new TnConfig(false, true, 0, 0, false)));
-            //group.Add(new Tn(npages, ratio, new TnConfig(true, false, 0, 0, false)));
-            //group.Add(new Tn(npages, ratio, new TnConfig(true, true, 0, 0, false)));
-            //group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, npages / 2, false)));
-            //group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
-            group.Add(new CMFT(npages));
+
+			group.Add(new LRU(npages));
+			//group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
+			//group.Add(Wrapper.CreateCFLRUD(npages));
+			//uint ratio = (uint)(Config.WriteCost / Config.ReadCost);
+			//group.Add(new Tn(npages, ratio, new TnConfig(false, false, 0, 0, false)));
+			//group.Add(new Tn(npages, ratio, new TnConfig(false, true, 0, 0, false)));
+			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, 0, 0, false)));
+			//group.Add(new Tn(npages, ratio, new TnConfig(true, true, 0, 0, false)));
+			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, npages / 2, false)));
+			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
+			group.Add(new CMFT(npages));
+			// group.Add(new CMFTByCat(npages));
 
 			return group;
 		}
@@ -136,7 +137,7 @@ namespace Buffers
 				output.Write(formatDev, i);
 				PopColor();
 				output.Write(formatCost, dev.ReadCount, dev.WriteCount, Utils.CalcTotalCost(dev));
-				PushColor(ConsoleColor.DarkBlue);
+				PushColor(ConsoleColor.DarkGray);
 				output.WriteLine(group[i].Description);
 				PopColor();
 			}

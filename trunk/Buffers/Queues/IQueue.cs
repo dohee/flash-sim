@@ -6,7 +6,7 @@ using Buffers.Memory;
 
 namespace Buffers.Queues
 {
-	public struct QueueNode
+	public struct QueueNode : IEquatable<QueueNode>
 	{
 		public readonly uint Index;
 		public readonly LinkedListNode<IFrame> ListNode;
@@ -20,29 +20,29 @@ namespace Buffers.Queues
 			ListNode = node;
 		}
 
+		public bool Equals(QueueNode other)
+		{
+			return Index == other.Index && ListNode == other.ListNode;
+		}
 		public override bool Equals(object obj)
 		{
-			if (obj == null)
-				return false;
-			if (this.GetType() != obj.GetType())
+			if (obj == null || this.GetType() != obj.GetType())
 				return false;
 
-			return this == (QueueNode)obj;
+			return Equals((QueueNode)obj);
+		}
+		public override int GetHashCode()
+		{
+			return Index.GetHashCode() ^ ListNode.GetHashCode();
 		}
 
 		public static bool operator ==(QueueNode left, QueueNode right)
 		{
-			return left.Index == right.Index && left.ListNode == right.ListNode;
+			return left.Equals(right);
 		}
-
 		public static bool operator !=(QueueNode left, QueueNode right)
 		{
-			return !(left == right);
-		}
-
-		public override int GetHashCode()
-		{
-			return Index.GetHashCode() ^ ListNode.GetHashCode();
+			return !left.Equals(right);
 		}
 	}
 

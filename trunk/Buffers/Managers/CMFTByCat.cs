@@ -5,7 +5,7 @@ using Buffers.Queues;
 
 namespace Buffers.Managers
 {
-	public class CMFTByCat:FrameBasedManager
+	public class CMFTByCat : FrameBasedManager
 	{
 		private FIFOQueue fifoQ = new FIFOQueue();
 		private IRRQueue irrQ = new IRRQueue();
@@ -41,7 +41,6 @@ namespace Buffers.Managers
 					f.ReadRecency = (uint)(irrQ.Count - i);
 			}
 
-			//在其中选出权重最低的页面
 			double minPower = Double.MaxValue;
 			IRRFrame minFrame = null;
 
@@ -55,7 +54,6 @@ namespace Buffers.Managers
 				}
 			}
 
-			//释放页面
 			WriteIfDirty(minFrame);
 			pool.FreeSlot(minFrame.DataSlotId);
 			minFrame.DataSlotId = -1;
@@ -74,6 +72,13 @@ namespace Buffers.Managers
 			if (irr == 0)
 				irrQ.Enqueue(irrf.Id, isWrite);
 
+			if (!irrf.Resident)
+			{
+				irrf.DataSlotId = pool.AllocSlot();
+				if (!isWrite)
+					dev.Read(irrf.Id, pool[irrf.DataSlotId]);
+			}
+
 			return node;
 		}
 
@@ -91,6 +96,36 @@ namespace Buffers.Managers
 		}
 
 
+
+		private struct SkeletalFrame : IEquatable<SkeletalFrame>
+		{
+			public readonly uint Id;
+			public readonly bool Dirty;
+
+			public SkeletalFrame(uint id, bool dirty)
+			{
+				Id = id;
+				Dirty = dirty;
+			}
+
+			public bool Equals(SkeletalFrame other)
+			{
+				return Id == other.Id && Dirty == other.Dirty;
+			}
+			public override bool Equals(object obj)
+			{
+				if (obj == null || this.GetType() != obj.GetType())
+					return false;
+
+				return Equals((SkeletalFrame)obj);
+			}
+			public override int GetHashCode()
+			{
+				return Id.GetHashCode() ^ Dirty.GetHashCode();
+			}
+			//public static 
+			//XXXXX
+		}
 
 		private class IRRQueue
 		{
@@ -112,7 +147,7 @@ namespace Buffers.Managers
 			}
 			public uint AccessIRR(uint pageid, bool dirty)
 			{
-				int pos = q.IndexOf(new KeyValuePair<uint, bool>(pageid, dirty));
+				int pos = q.LastIndexOf(new KeyValuePair<uint, bool>(pageid, dirty));
 
 				if (pos == -1)
 					return 0;
