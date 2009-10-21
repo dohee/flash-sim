@@ -146,7 +146,7 @@ namespace Buffers.Managers
 				if (map[frame.Id].Resident)
 				{
 					if (frame.Dirty)
-					{
+					{ 
 						map[frame.Id].WriteRecency = j;
 					}
 					else
