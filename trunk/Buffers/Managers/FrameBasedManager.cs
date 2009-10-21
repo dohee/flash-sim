@@ -8,7 +8,7 @@ namespace Buffers.Managers
 	public abstract class FrameBasedManager : BufferManagerBase
 	{
 		protected Pool pool;
-		protected IDictionary<uint, QueueNode> map = new Dictionary<uint, QueueNode>();
+		public IDictionary<uint, QueueNode> map = new Dictionary<uint, QueueNode>();
 
 		public FrameBasedManager(IBlockDevice dev, uint npages)
 			: base(dev)

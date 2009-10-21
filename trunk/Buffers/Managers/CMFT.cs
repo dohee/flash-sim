@@ -16,11 +16,11 @@ namespace Buffers.Managers
 
 		//IRR queue is for getting IRR. Storing all the readed/writen queue that may be also in single, non-resident page will be stored for a while.
 		//Only an auxiliary data structure, page id and dirty is needed. Read and write are stored in one IRRQueue
-		IRRLRUQueue IRRQueue = new IRRLRUQueue();
+		IRRLRUQueue irrQueue = new IRRLRUQueue();
 
 
 		//Real data are all stored in map.
-		protected Dictionary<uint, IRRFrame> map = new Dictionary<uint, IRRFrame>();
+		public Dictionary<uint, IRRFrame> map = new Dictionary<uint, IRRFrame>();
 
 		public CMFT(uint npages)
 			: this(null, npages)
@@ -58,7 +58,7 @@ namespace Buffers.Managers
 				//add to IRR queue
 				Frame frame = new Frame(pageid);
 				frame.Dirty = false;
-				IRRQueue.Enqueue(frame);
+				irrQueue.Enqueue(frame);
 
 				//(to be added) if the queue exceed a certain threshold, one frame should be kicked off.
 			}
@@ -74,13 +74,13 @@ namespace Buffers.Managers
 				}
 
 				//update IRR
-				uint irr = IRRQueue.accessIRR(irrframe);
+				uint irr = irrQueue.accessIRR(pageid, false);
 				irrframe.ReadIRR = irr;	//possiblely 0, no effect
 				if (irr == 0)
 				{
 					Frame frame = new Frame(pageid);
 					frame.Dirty = false;
-					IRRQueue.Enqueue(frame);
+					irrQueue.Enqueue(frame);
 				}
 			}
 		}
@@ -104,7 +104,7 @@ namespace Buffers.Managers
 				//add to IRR queue
 				Frame frame = new Frame(pageid);
 				frame.Dirty = true;
-				IRRQueue.Enqueue(frame);
+				irrQueue.Enqueue(frame);
 
 				//(to be added) if the queue exceed a certain threshold, one frame should be kicked off.
 			}
@@ -118,18 +118,18 @@ namespace Buffers.Managers
 				}
 
 				//update IRR
-				uint irr = IRRQueue.accessIRR(irrframe);
+				uint irr = irrQueue.accessIRR(pageid, true);
 				irrframe.WriteIRR = irr;     //0 doesn't matter.
 				if (irr == 0)
 				{
 					Frame frame = new Frame(pageid);
 					frame.Dirty = true;
-					IRRQueue.Enqueue(frame);
+					irrQueue.Enqueue(frame);
 				}
 			}
 
-			data.CopyTo(pool[irrframe.DataSlotId], 0);
 			irrframe.Dirty = true;
+			data.CopyTo(pool[irrframe.DataSlotId], 0);
 		}
 
 		/// <summary>
@@ -140,7 +140,7 @@ namespace Buffers.Managers
 			Dictionary<uint, IRRFrame> residentMap = new Dictionary<uint, IRRFrame>();      //存储在内存的页面，供选择替换页面
 			uint j = 0;
 			//对resident的页面求出每个的recency
-			foreach (Frame frame in IRRQueue)
+			foreach (Frame frame in irrQueue)
 			{
 				j++;
 				if (map[frame.Id].Resident)

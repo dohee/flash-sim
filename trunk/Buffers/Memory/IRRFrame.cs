@@ -28,7 +28,7 @@ namespace Buffers.Memory
 		public uint ReadRecency { get { return readRecency; } set { readRecency = value; } }
 		public uint WriteRecency { get { return writeRecency; } set { writeRecency = value; } }
 
-		
+
 		/// <summary>
 		/// get the power of this page for evict selection
 		/// </summary>
@@ -36,24 +36,34 @@ namespace Buffers.Memory
 		public double GetPower()
 		{
 			double power = 0;
-            //readRecency = readRecency * 1 / 2;
-            //writeRecency = writeRecency * 1 / 2;
+			double weightedReadRecency = (double)readRecency * 1 / 4;
+			double weightedWriteRecency = (double)writeRecency * 1 / 4;
 
-			double aveReadIRR = ((double)readIRR + readRecency) / 2;
-			double aveWriteIRR = ((double)writeIRR + writeRecency) / 2;
+			double aveReadIRR, aveWriteIRR;
 
-			if (readIRR == 0) aveReadIRR = readRecency; //only read once
-			if (writeIRR == 0) aveWriteIRR = writeRecency;  //only write once
+			if (readIRR == 0)
+				aveReadIRR = weightedReadRecency;
+			else
+				aveReadIRR = ((double)readIRR + weightedReadRecency) / 2;
+
+			if (writeIRR == 0)
+				aveWriteIRR = weightedWriteRecency;
+			else
+				aveWriteIRR = ((double)writeIRR + weightedWriteRecency) / 2;
 
 			if (aveReadIRR != 0)        //0 means this page has not been read before.
-			{
 				power += (double)Config.ReadCost / aveReadIRR;
-			}
+
 			if (aveWriteIRR != 0)
-			{
 				power += (double)Config.WriteCost / aveWriteIRR;
-			}
+
 			return power;
+		}
+
+		public override string ToString()
+		{
+			return string.Format("IRRFrame{{Id={0},Dirty={1},RR={2},WR={3},RIRR={4},WIRR={5}}}",
+				id, dirty, readRecency, writeRecency, readIRR, writeIRR);
 		}
 
 	}

@@ -24,5 +24,11 @@ namespace Buffers.Memory
 			this.id = id;
 			this.slotid = slotid;
 		}
+
+		public override string ToString()
+		{
+			return string.Format("IRRFrame{{Id={0},Dirty={1},SlotId={2}}}",
+				id, dirty, slotid);
+		}
 	}
 }
