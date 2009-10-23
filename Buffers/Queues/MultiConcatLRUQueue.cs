@@ -25,7 +25,7 @@ namespace Buffers.Queues
 		public uint GetBackSize(int queueIndex) { return q[queueIndex].BackQueueSize; }
 
 
-		public override QueueNode<T> Enqueue(T frame)
+		public override QueueNode<T> Enqueue(T item)
 		{
 			throw new NotSupportedException("Enqueue into which?");
 		}
@@ -34,9 +34,9 @@ namespace Buffers.Queues
 			throw new NotSupportedException("Dequeue from which?");
 		}
 
-		public QueueNode<T> Enqueue(int queueIndex, T frame)
+		public QueueNode<T> Enqueue(int queueIndex, T item)
 		{
-			QueueNode<T> qn = q[queueIndex].Enqueue(frame);
+			QueueNode<T> qn = q[queueIndex].Enqueue(item);
 			return NATOutwards((uint)queueIndex, qn);
 		}
 		public T Dequeue(int queueIndex)
@@ -47,11 +47,6 @@ namespace Buffers.Queues
 		{
 			QueueNode<T> qn = q[queueIndex].BlowOneFrame();
 			return NATOutwards((uint)queueIndex, qn);
-		}
-
-		public int InWhichQueue(QueueNode<T> node)
-		{
-			return (int)(NATInwards(node).QueueIndex);
 		}
 	}
 }

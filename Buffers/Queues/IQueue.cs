@@ -8,9 +8,12 @@ namespace Buffers.Queues
 		uint Size { get; }
 		uint BasicQueueCount { get; }
 
-		QueueNode<T> Enqueue(T frame);
+		QueueNode<T> Enqueue(T item);
 		T Dequeue();
 		T Dequeue(QueueNode<T> node);
-		QueueNode<T> AccessFrame(QueueNode<T> node);
+		QueueNode<T> Access(QueueNode<T> node);
+
+		uint GetRoute(QueueNode<T> node);
+		IList<uint> GetRoutePath(QueueNode<T> node);
 	}
 }

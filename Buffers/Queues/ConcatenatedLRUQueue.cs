@@ -15,9 +15,9 @@ namespace Buffers.Queues
 		public uint FrontQueueSize { get { return queues[0].Size; } }
 		public uint BackQueueSize { get { return queues[1].Size; } }
 
-		public override QueueNode<T> Enqueue(T frame)
+		public override QueueNode<T> Enqueue(T item)
 		{
-			QueueNode<T> qn = queues[0].Enqueue(frame);
+			QueueNode<T> qn = queues[0].Enqueue(item);
 			return NATOutwards(0, qn);
 		}
 		public override T Dequeue()
@@ -25,7 +25,7 @@ namespace Buffers.Queues
 			return queues[1].Dequeue();
 		}
 
-		public override QueueNode<T> AccessFrame(QueueNode<T> node)
+		public override QueueNode<T> Access(QueueNode<T> node)
 		{
 			RoutingNode routing = NATInwards(node);
 			QueueNode<T> qn = queues[0].Enqueue(

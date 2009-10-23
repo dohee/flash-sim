@@ -147,7 +147,7 @@ namespace BuffersTest
 			QueueNode<IFrame> qn = new QueueNode<IFrame>(0, fifos[0].Enqueue(new Frame(999)).ListNode);
 			fifos[0].Enqueue(new Frame(2));
 
-			QueueNode<IFrame> actural = target.AccessFrame(qn);
+			QueueNode<IFrame> actural = target.Access(qn);
 
 			Assert.AreEqual(0u, actural.Index);
 			Assert.AreEqual(999u, actural.ListNode.Value.Id);
@@ -166,7 +166,7 @@ namespace BuffersTest
 			QueueNode<IFrame> qn = new QueueNode<IFrame>(2, fifos[2].Enqueue(new Frame(999)).ListNode);
 			fifos[2].Enqueue(new Frame(22));
 
-			QueueNode<IFrame> actural = target.AccessFrame(qn);
+			QueueNode<IFrame> actural = target.Access(qn);
 
 			Assert.AreEqual(0u, actural.Index);
 			Assert.AreEqual(999u, actural.ListNode.Value.Id);

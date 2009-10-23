@@ -52,8 +52,8 @@ namespace Buffers.Queues
 		public override IEnumerator<T> GetEnumerator()
 		{
 			foreach (var queue in queues)
-				foreach (var frame in queue)
-					yield return frame;
+				foreach (var t in queue)
+					yield return t;
 		}
 
 		public override uint Size
@@ -79,10 +79,10 @@ namespace Buffers.Queues
 		}
 
 
-		public override QueueNode<T> AccessFrame(QueueNode<T> node)
+		public override QueueNode<T> Access(QueueNode<T> node)
 		{
 			RoutingNode routing = NATInwards(node);
-			QueueNode<T> qn = queues[(int)routing.QueueIndex].AccessFrame(routing.InnerNode);
+			QueueNode<T> qn = queues[(int)routing.QueueIndex].Access(routing.InnerNode);
 			return NATOutwards(routing.QueueIndex, qn);
 		}
 
@@ -92,9 +92,23 @@ namespace Buffers.Queues
 			return queues[(int)routing.QueueIndex].Dequeue(routing.InnerNode);
 		}
 
+		public override uint GetRoute(QueueNode<T> node)
+		{
+			return NATInwards(node).QueueIndex;
+		}
+
+		public override IList<uint> GetRoutePath(QueueNode<T> node)
+		{
+			RoutingNode routing = NATInwards(node);
+			var list = queues[(int)routing.QueueIndex].GetRoutePath(routing.InnerNode);
+			list.Add(routing.QueueIndex);
+			return list;
+		}
 
 
-		protected struct Route
+
+
+		protected struct Route : IEquatable<Route>
 		{
 			public readonly uint QueueIndex;
 			public readonly uint InnerRouteIndex;
@@ -105,34 +119,36 @@ namespace Buffers.Queues
 				InnerRouteIndex = innerRouteIndex;
 			}
 
-			public override bool Equals(object obj)
+			#region Equals 函数族
+			public bool Equals(Route other)
 			{
-				if (obj == null)
-					return false;
-				if (this.GetType() != obj.GetType())
-					return false;
-
-				return this == (Route)obj;
+				return QueueIndex == other.QueueIndex &&
+					InnerRouteIndex == other.InnerRouteIndex;
 			}
-
-			public static bool operator ==(Route left, Route right)
-			{
-				return left.QueueIndex == right.QueueIndex &&
-					left.InnerRouteIndex == right.InnerRouteIndex;
-			}
-
-			public static bool operator !=(Route left, Route right)
-			{
-				return !(left == right);
-			}
-
 			public override int GetHashCode()
 			{
 				return QueueIndex.GetHashCode() ^ InnerRouteIndex.GetHashCode();
 			}
+			public override bool Equals(object obj)
+			{
+				if (obj == null || GetType() != obj.GetType())
+					return false;
+				else
+					return Equals((Route)obj);
+			}
+			public static bool operator ==(Route left, Route right)
+			{
+				return left.Equals(right);
+			}
+			public static bool operator !=(Route left, Route right)
+			{
+				return !left.Equals(right);
+			}
+			#endregion
+
 		}
 
-		protected struct RoutingNode
+		protected struct RoutingNode : IEquatable<RoutingNode>
 		{
 			public readonly uint QueueIndex;
 			public readonly QueueNode<T> InnerNode;
@@ -146,31 +162,31 @@ namespace Buffers.Queues
 				InnerNode = inner;
 			}
 
-			public override bool Equals(object obj)
+			#region Equals 函数族
+			public bool Equals(RoutingNode other)
 			{
-				if (obj == null)
-					return false;
-				if (this.GetType() != obj.GetType())
-					return false;
-
-				return this == (RoutingNode)obj;
+				return QueueIndex == other.QueueIndex && InnerNode == other.InnerNode;
 			}
-
-			public static bool operator ==(RoutingNode left, RoutingNode right)
-			{
-				return left.QueueIndex == right.QueueIndex &&
-					left.InnerNode == right.InnerNode;
-			}
-
-			public static bool operator !=(RoutingNode left, RoutingNode right)
-			{
-				return !(left == right);
-			}
-
 			public override int GetHashCode()
 			{
 				return QueueIndex.GetHashCode() ^ InnerNode.GetHashCode();
 			}
+			public override bool Equals(object obj)
+			{
+				if (obj == null || GetType() != obj.GetType())
+					return false;
+				else
+					return Equals((RoutingNode)obj);
+			}
+			public static bool operator ==(RoutingNode left, RoutingNode right)
+			{
+				return left.Equals(right);
+			}
+			public static bool operator !=(RoutingNode left, RoutingNode right)
+			{
+				return !left.Equals(right);
+			}
+			#endregion
 		}
 
 	}

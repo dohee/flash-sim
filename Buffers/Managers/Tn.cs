@@ -25,7 +25,7 @@ namespace Buffers.Managers
 	}
 
 
-	public class Tn : FrameBasedManager
+	public sealed class Tn : FrameBasedManager
 	{
 		private readonly MultiConcatLRUQueue<IFrame> q;
 
@@ -120,14 +120,14 @@ namespace Buffers.Managers
 		{
 			bool isRead = !isWrite;
 			bool resident = node.ListNode.Value.Resident;
-			int inwhichqueue = q.InWhichQueue(node);
+			uint inwhichqueue = q.GetRoute(node);
 			bool inClean = (inwhichqueue == 0);
 			bool inDirty = (inwhichqueue == 1);
 			bool inSingle = (inwhichqueue == 2);
 
 			if (inClean && isRead)
 			{
-				node = q.AccessFrame(node);
+				node = q.Access(node);
 				if (!resident)
 				{
 					EnlargeCRLimit(1);
@@ -148,7 +148,7 @@ namespace Buffers.Managers
 			{
                 //Random rand=new Random();
 				if (conf.AdjustDRWhenReadInDR)
-					return q.AccessFrame(node);
+					return q.Access(node);
 				else
 					return node;
 			}
@@ -163,7 +163,7 @@ namespace Buffers.Managers
 			}
 			else if (inDirty && isWrite)
 			{
-				node = q.AccessFrame(node);
+				node = q.Access(node);
 				if (!resident)
 				{
 					EnlargeCRLimit(-(int)kickn);
