@@ -4,17 +4,17 @@ using Buffers.Memory;
 
 namespace Buffers.Queues
 {
-	public class LRUQueue : FIFOQueue
+	public class LRUQueue<T> : FIFOQueue<T>
 	{
-		public override QueueNode AccessFrame(QueueNode node)
+		public override QueueNode<T> AccessFrame(QueueNode<T> node)
 		{
 			Debug.Assert(node.Index == 0);
-			return new QueueNode(AccessFrame(node.ListNode));
+			return new QueueNode<T>(AccessFrame(node.ListNode));
 		}
 
-		public LinkedListNode<IFrame> AccessFrame(LinkedListNode<IFrame> node)
+		public LinkedListNode<T> AccessFrame(LinkedListNode<T> node)
 		{
-			IFrame frame = node.Value;
+			T frame = node.Value;
 			queue.Remove(node);
 			return queue.AddFirst(frame);
 		}

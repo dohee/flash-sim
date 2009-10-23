@@ -2,19 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Buffers.Memory;
 
 namespace Buffers.Queues
 {
-	public abstract class QueueBase : IQueue
+	public abstract class QueueBase<T> : IQueue<T>
 	{
 		public abstract uint Size { get; }
-		public abstract IEnumerator<IFrame> GetEnumerator();
+		public abstract IEnumerator<T> GetEnumerator();
 
-		public abstract QueueNode Enqueue(IFrame frame);
-		public abstract IFrame Dequeue();
-		public abstract IFrame Dequeue(QueueNode node);
-		public abstract QueueNode AccessFrame(QueueNode node);
+		public abstract QueueNode<T> Enqueue(T frame);
+		public abstract T Dequeue();
+		public abstract T Dequeue(QueueNode<T> node);
+		public abstract QueueNode<T> AccessFrame(QueueNode<T> node);
 
 		public virtual uint BasicQueueCount { get { return 1; } }
 		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }

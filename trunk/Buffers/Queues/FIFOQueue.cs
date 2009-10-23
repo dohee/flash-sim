@@ -1,42 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using Buffers.Memory;
 
 namespace Buffers.Queues
 {
-	public class FIFOQueue : QueueBase
+	public class FIFOQueue<T> : QueueBase<T>
 	{
-		protected LinkedList<IFrame> queue = new LinkedList<IFrame>();
+		protected LinkedList<T> queue = new LinkedList<T>();
 
 		public override sealed uint Size
 		{
 			get { return (uint)queue.Count; }
 		}
 
-		public override IEnumerator<IFrame> GetEnumerator()
+		public override IEnumerator<T> GetEnumerator()
 		{
 			return queue.GetEnumerator();
 		}
 
-		public override sealed QueueNode Enqueue(IFrame frame)
+		public override sealed QueueNode<T> Enqueue(T frame)
 		{
-			return new QueueNode(queue.AddFirst(frame));
+			return new QueueNode<T>(queue.AddFirst(frame));
 		}
 
-		public override sealed IFrame Dequeue(QueueNode node)
+		public override sealed T Dequeue(QueueNode<T> node)
 		{
 			Debug.Assert(node.Index == 0);
-			IFrame f = node.ListNode.Value;
+			T f = node.ListNode.Value;
 			queue.Remove(node.ListNode);
 			return f;
 		}
 
-		public override sealed IFrame Dequeue()
+		public override sealed T Dequeue()
 		{
-			return Dequeue(new QueueNode(queue.Last));
+			return Dequeue(new QueueNode<T>(queue.Last));
 		}
 
-		public override QueueNode AccessFrame(QueueNode node)
+		public override QueueNode<T> AccessFrame(QueueNode<T> node)
 		{
 			Debug.Assert(node.Index == 0);
 			return node;

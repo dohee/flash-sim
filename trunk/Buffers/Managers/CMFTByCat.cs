@@ -7,7 +7,7 @@ namespace Buffers.Managers
 {
 	public class CMFTByCat : FrameBasedManager
 	{
-		private FIFOQueue fifoQ = new FIFOQueue();
+		private FIFOQueue<IFrame> fifoQ = new FIFOQueue<IFrame>();
 		private IRRQueue irrQ = new IRRQueue();
 
 		public CMFTByCat(uint npages)
@@ -61,7 +61,7 @@ namespace Buffers.Managers
 			minFrame.DataSlotId = -1;
 		}
 
-		protected override QueueNode OnHit(QueueNode node, bool isWrite)
+		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
 		{
 			IRRFrame irrf = node.ListNode.Value as IRRFrame;
 			if (!irrf.Resident)
@@ -84,7 +84,7 @@ namespace Buffers.Managers
 			return node;
 		}
 
-		protected override QueueNode OnMiss(IFrame allocatedFrame, bool isWrite)
+		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
 		{
 			irrQ.Enqueue(allocatedFrame.Id, isWrite);
 			return fifoQ.Enqueue(allocatedFrame);
@@ -109,20 +109,21 @@ namespace Buffers.Managers
 				Dirty = dirty;
 			}
 
+			#region Equals 函数族
 			public bool Equals(SkeletalFrame other)
 			{
 				return Id == other.Id && Dirty == other.Dirty;
 			}
-			public override bool Equals(object obj)
-			{
-				if (obj == null || this.GetType() != obj.GetType())
-					return false;
-
-				return Equals((SkeletalFrame)obj);
-			}
 			public override int GetHashCode()
 			{
 				return Id.GetHashCode() ^ Dirty.GetHashCode();
+			}
+			public override bool Equals(object obj)
+			{
+				if (obj == null || GetType() != obj.GetType())
+					return false;
+				else
+					return Equals((SkeletalFrame)obj);
 			}
 			public static bool operator ==(SkeletalFrame left, SkeletalFrame right)
 			{
@@ -132,12 +133,7 @@ namespace Buffers.Managers
 			{
 				return !left.Equals(right);
 			}
-
-			public override string ToString()
-			{
-				return string.Format("SkeletalFrame{{Id={0},Dirty={1}}}",
-					Id, Dirty);
-			}
+			#endregion
 		}
 
 		private class IRRQueue

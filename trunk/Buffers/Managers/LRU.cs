@@ -7,7 +7,7 @@ namespace Buffers.Managers
 {
 	public class LRU : FrameBasedManager
 	{
-		private LRUQueue queue = new LRUQueue();
+		private LRUQueue<IFrame> queue = new LRUQueue<IFrame>();
 
 		public LRU(uint npages)
 			: this(null, npages) { }
@@ -22,12 +22,12 @@ namespace Buffers.Managers
 			pool.FreeSlot(frame.DataSlotId);
 		}
 
-		protected override QueueNode OnHit(QueueNode node, bool isWrite)
+		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
 		{
 			return queue.AccessFrame(node);
 		}
 
-		protected override QueueNode OnMiss(IFrame allocatedFrame, bool isWrite)
+		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
 		{
 			return queue.Enqueue(allocatedFrame);
 		}

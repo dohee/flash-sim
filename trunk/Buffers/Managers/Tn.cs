@@ -27,7 +27,7 @@ namespace Buffers.Managers
 
 	public class Tn : FrameBasedManager
 	{
-		private readonly MultiConcatLRUQueue q;
+		private readonly MultiConcatLRUQueue<IFrame> q;
 
 		private readonly TnConfig conf;
 		private readonly uint kickn;
@@ -47,10 +47,13 @@ namespace Buffers.Managers
 		public Tn(IBlockDevice dev, uint npages, uint kickN, TnConfig conf)
 			: base(dev, npages)
 		{
-			q = new MultiConcatLRUQueue(new ConcatenatedLRUQueue[] {
-				new ConcatenatedLRUQueue(new FIFOQueue(), new FIFOQueue()),
-				new ConcatenatedLRUQueue(new FIFOQueue(), new FIFOQueue()),
-				new ConcatenatedLRUQueue(new FIFOQueue(), new FIFOQueue())
+			q = new MultiConcatLRUQueue<IFrame>(new ConcatenatedLRUQueue<IFrame>[] {
+				new ConcatenatedLRUQueue<IFrame>(
+					new FIFOQueue<IFrame>(), new FIFOQueue<IFrame>()),
+				new ConcatenatedLRUQueue<IFrame>(
+					new FIFOQueue<IFrame>(), new FIFOQueue<IFrame>()),
+				new ConcatenatedLRUQueue<IFrame>(
+					new FIFOQueue<IFrame>(), new FIFOQueue<IFrame>())
 			});
 
 			this.conf = conf;
@@ -91,7 +94,7 @@ namespace Buffers.Managers
 
 		protected override void OnPoolFull()
 		{
-			QueueNode qn;
+			QueueNode<IFrame> qn;
 			if (q.GetFrontSize(0) > CRLimit) qn = q.BlowOneFrame(0);
 			else if (q.GetFrontSize(1) > DRLimit) qn = q.BlowOneFrame(1);
 			else if (q.GetFrontSize(2) > SRLimit) qn = q.BlowOneFrame(2);
@@ -113,7 +116,7 @@ namespace Buffers.Managers
 				map.Remove(q.Dequeue(2).Id);			
 		}
 
-		protected override QueueNode OnHit(QueueNode node, bool isWrite)
+		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
 		{
 			bool isRead = !isWrite;
 			bool resident = node.ListNode.Value.Resident;
@@ -189,7 +192,7 @@ namespace Buffers.Managers
 			}
 		}
 
-		protected override QueueNode OnMiss(IFrame allocatedFrame, bool isWrite)
+		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
 		{
 			if (SRLimit == 0)
 			{
@@ -215,6 +218,7 @@ namespace Buffers.Managers
 				dev.Write(f.Id, pool[f.DataSlotId]);
 				f.Dirty = false;
 
+				// FIXME move the whole DR queue to CR
 				//if (q.InWhichQueue(mapitem.Value) == 1)
 				//	map[f.Id] = q.Enqueue(0, q.Dequeue(mapitem.Value));
 			}

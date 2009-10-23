@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="!Base\IFrame.cs" />
+    <Compile Include="Memory\IFrame.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Devices\TrivalBlockDevice.cs" />
     <Compile Include="Managers\BufferManagerBase.cs" />
@@ -68,6 +68,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queues\QueueGroup.cs" />
     <Compile Include="Queues\QueueBase.cs" />
+    <Compile Include="Queues\QueueNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -82,6 +83,9 @@
       <Project>{5FBC737C-05B3-42D0-8A27-EFED2C84D0E6}</Project>
       <Name>Interfaces</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="!Base\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
