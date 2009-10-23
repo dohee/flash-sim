@@ -30,14 +30,14 @@ namespace Buffers.Managers
 			for (int i = 0; i < irrQ.Count; i++)
 			{
 				var pair = irrQ[i];
-				IRRFrame f = map[pair.Id].ListNode.Value as IRRFrame;
+				IRRFrame f = map[pair.PageId].ListNode.Value as IRRFrame;
 
 				if (!f.Resident)
 					continue;
 
 				residentList.Add(f);
 
-				if (pair.Dirty)
+				if (pair.IsWrite)
 					f.WriteRecency = (uint)(irrQ.Count - i);
 				else
 					f.ReadRecency = (uint)(irrQ.Count - i);
@@ -97,72 +97,33 @@ namespace Buffers.Managers
 		}
 
 
-
-		private struct SkeletalFrame : IEquatable<SkeletalFrame>
-		{
-			public readonly uint Id;
-			public readonly bool Dirty;
-
-			public SkeletalFrame(uint id, bool dirty)
-			{
-				Id = id;
-				Dirty = dirty;
-			}
-
-			#region Equals 函数族
-			public bool Equals(SkeletalFrame other)
-			{
-				return Id == other.Id && Dirty == other.Dirty;
-			}
-			public override int GetHashCode()
-			{
-				return Id.GetHashCode() ^ Dirty.GetHashCode();
-			}
-			public override bool Equals(object obj)
-			{
-				if (obj == null || GetType() != obj.GetType())
-					return false;
-				else
-					return Equals((SkeletalFrame)obj);
-			}
-			public static bool operator ==(SkeletalFrame left, SkeletalFrame right)
-			{
-				return left.Equals(right);
-			}
-			public static bool operator !=(SkeletalFrame left, SkeletalFrame right)
-			{
-				return !left.Equals(right);
-			}
-			#endregion
-		}
-
 		private class IRRQueue
 		{
-			List<SkeletalFrame> q = new List<SkeletalFrame>();
+			List<RWQuery> q = new List<RWQuery>();
 
 			public int Count { get { return q.Count; } }
-			public SkeletalFrame this[int index] { get { return q[index]; } }
+			public RWQuery this[int index] { get { return q[index]; } }
 
 			public void Enqueue(uint pageid, bool dirty)
 			{
-				q.Add(new SkeletalFrame(pageid, dirty));
+				q.Add(new RWQuery(pageid, dirty));
 			}
 			public void Dequeue(out uint pageid, out bool dirty)
 			{
 				var pair = q[0];
-				pageid = pair.Id;
-				dirty = pair.Dirty;
+				pageid = pair.PageId;
+				dirty = pair.IsWrite;
 				q.RemoveAt(0);
 			}
 			public uint AccessIRR(uint pageid, bool dirty)
 			{
-				int pos = q.LastIndexOf(new SkeletalFrame(pageid, dirty));
+				int pos = q.LastIndexOf(new RWQuery(pageid, dirty));
 
 				if (pos == -1)
 					return 0;
 
 				q.RemoveAt(pos);
-				q.Add(new SkeletalFrame(pageid, dirty));
+				q.Add(new RWQuery(pageid, dirty));
 				return (uint)(q.Count - pos);
 				//return (uint)(pos + 1);
 			}
