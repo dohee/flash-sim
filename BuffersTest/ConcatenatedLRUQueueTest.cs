@@ -68,12 +68,12 @@ namespace BuffersTest
 		/// 构建出一个简单的连接型队列，其中前部包含元素 10，后部为空
 		/// </summary>
 		/// <returns></returns>
-		private static ConcatenatedLRUQueue ConstructSimpleConcatQueue()
+		private static ConcatenatedLRUQueue<IFrame> ConstructSimpleConcatQueue()
 		{
-			IQueue front = new FIFOQueue();
-			IQueue back = new FIFOQueue();
+			IQueue<IFrame> front = new FIFOQueue<IFrame>();
+			IQueue<IFrame> back = new FIFOQueue<IFrame>();
 			front.Enqueue(new Frame(10));
-			ConcatenatedLRUQueue target = new ConcatenatedLRUQueue(front, back);
+			ConcatenatedLRUQueue<IFrame> target = new ConcatenatedLRUQueue<IFrame>(front, back);
 			return target;
 		}
 
@@ -81,25 +81,25 @@ namespace BuffersTest
 		/// 构建出一个嵌套的连接型队列。
 		/// </summary>
 		/// <returns></returns>
-		private static ConcatenatedLRUQueue ConstructNestedConcatQueue(out IQueue[] FIFOs)
+		private static ConcatenatedLRUQueue<IFrame> ConstructNestedConcatQueue(out IQueue<IFrame>[] FIFOs)
 		{
-			IQueue[] q = new FIFOQueue[8];
+			IQueue<IFrame>[] q = new FIFOQueue<IFrame>[8];
 			for (int i = 0; i < q.Length; i++)
 			{
-				q[i] = new FIFOQueue();
+				q[i] = new FIFOQueue<IFrame>();
 				q[i].Enqueue(new Frame((uint)(i * 10)));
 				q[i].Enqueue(new Frame((uint)(i * 10 + 1)));
 			}
 
-			IQueue q01 = new ConcatenatedLRUQueue(q[0], q[1]),
-				q23 = new ConcatenatedLRUQueue(q[2], q[3]),
-				q45 = new ConcatenatedLRUQueue(q[4], q[5]),
-				q67 = new ConcatenatedLRUQueue(q[6], q[7]);
+			IQueue<IFrame> q01 = new ConcatenatedLRUQueue<IFrame>(q[0], q[1]),
+				q23 = new ConcatenatedLRUQueue<IFrame>(q[2], q[3]),
+				q45 = new ConcatenatedLRUQueue<IFrame>(q[4], q[5]),
+				q67 = new ConcatenatedLRUQueue<IFrame>(q[6], q[7]);
 
-			IQueue q0123 = new ConcatenatedLRUQueue(q01, q23),
-				q4567 = new ConcatenatedLRUQueue(q45, q67);
+			IQueue<IFrame> q0123 = new ConcatenatedLRUQueue<IFrame>(q01, q23),
+				q4567 = new ConcatenatedLRUQueue<IFrame>(q45, q67);
 
-			ConcatenatedLRUQueue target = new ConcatenatedLRUQueue(q0123, q4567);
+			ConcatenatedLRUQueue<IFrame> target = new ConcatenatedLRUQueue<IFrame>(q0123, q4567);
 
 			FIFOs = q;
 			return target;
@@ -112,8 +112,8 @@ namespace BuffersTest
 		[TestMethod()]
 		public void BlowOneFrameSimpleTest()
 		{
-			ConcatenatedLRUQueue target = ConstructSimpleConcatQueue();
-			QueueNode actual = target.BlowOneFrame();
+			ConcatenatedLRUQueue<IFrame> target = ConstructSimpleConcatQueue();
+			QueueNode<IFrame> actual = target.BlowOneFrame();
 
 			Assert.AreEqual(1u, actual.Index);
 			Assert.AreEqual(10u, actual.ListNode.Value.Id);
@@ -126,9 +126,9 @@ namespace BuffersTest
 		[TestMethod()]
 		public void BlowOneFrameNestedTest()
 		{
-			IQueue[] fifos;
-			ConcatenatedLRUQueue target = ConstructNestedConcatQueue(out fifos);
-			QueueNode actual = target.BlowOneFrame();
+			IQueue<IFrame>[] fifos;
+			ConcatenatedLRUQueue<IFrame> target = ConstructNestedConcatQueue(out fifos);
+			QueueNode<IFrame> actual = target.BlowOneFrame();
 
 			Assert.AreEqual(4u, actual.Index);
 			Assert.AreEqual(30u, actual.ListNode.Value.Id);
@@ -141,13 +141,13 @@ namespace BuffersTest
 		[TestMethod()]
 		public void AccessFrameHitFrontTest()
 		{
-			IQueue[] fifos;
-			ConcatenatedLRUQueue target = ConstructNestedConcatQueue(out fifos);
+			IQueue<IFrame>[] fifos;
+			ConcatenatedLRUQueue<IFrame> target = ConstructNestedConcatQueue(out fifos);
 
-			QueueNode qn = new QueueNode(0, fifos[0].Enqueue(new Frame(999)).ListNode);
+			QueueNode<IFrame> qn = new QueueNode<IFrame>(0, fifos[0].Enqueue(new Frame(999)).ListNode);
 			fifos[0].Enqueue(new Frame(2));
 
-			QueueNode actural = target.AccessFrame(qn);
+			QueueNode<IFrame> actural = target.AccessFrame(qn);
 
 			Assert.AreEqual(0u, actural.Index);
 			Assert.AreEqual(999u, actural.ListNode.Value.Id);
@@ -160,13 +160,13 @@ namespace BuffersTest
 		[TestMethod()]
 		public void AccessFrameHitMiddleTest()
 		{
-			IQueue[] fifos;
-			ConcatenatedLRUQueue target = ConstructNestedConcatQueue(out fifos);
+			IQueue<IFrame>[] fifos;
+			ConcatenatedLRUQueue<IFrame> target = ConstructNestedConcatQueue(out fifos);
 
-			QueueNode qn = new QueueNode(2, fifos[2].Enqueue(new Frame(999)).ListNode);
+			QueueNode<IFrame> qn = new QueueNode<IFrame>(2, fifos[2].Enqueue(new Frame(999)).ListNode);
 			fifos[2].Enqueue(new Frame(22));
 
-			QueueNode actural = target.AccessFrame(qn);
+			QueueNode<IFrame> actural = target.AccessFrame(qn);
 
 			Assert.AreEqual(0u, actural.Index);
 			Assert.AreEqual(999u, actural.ListNode.Value.Id);

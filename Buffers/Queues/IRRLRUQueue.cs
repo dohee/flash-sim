@@ -13,7 +13,7 @@ namespace Buffers.Queues
 	///将读和写操作都保存到一个队列里.
 	/// </summary>
 	[Obsolete()]
-	public class IRRLRUQueue : LRUQueue
+	public class IRRLRUQueue : LRUQueue<IFrame>
 	{
 		//return IRR, IRR>=1(this value can be increased?), if IRR is <=0, this page is not resident.
 		public uint accessIRR(uint id, bool dirty)

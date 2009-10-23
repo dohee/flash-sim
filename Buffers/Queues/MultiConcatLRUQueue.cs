@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using Buffers.Memory;
 
 namespace Buffers.Queues
 {
-	public class MultiConcatLRUQueue : QueueGroup
+	public class MultiConcatLRUQueue<T> : QueueGroup<T>
 	{
-		private ConcatenatedLRUQueue[] q;
+		private ConcatenatedLRUQueue<T>[] q;
 
-		public MultiConcatLRUQueue(ICollection<ConcatenatedLRUQueue> queues)
+		public MultiConcatLRUQueue(ICollection<ConcatenatedLRUQueue<T>> queues)
 		{
-			q = new ConcatenatedLRUQueue[queues.Count];
+			q = new ConcatenatedLRUQueue<T>[queues.Count];
 
 			int i = 0;
 			foreach (var queue in queues)
@@ -24,31 +25,31 @@ namespace Buffers.Queues
 		public uint GetBackSize(int queueIndex) { return q[queueIndex].BackQueueSize; }
 
 
-		public override QueueNode Enqueue(IFrame frame)
+		public override QueueNode<T> Enqueue(T frame)
 		{
 			throw new NotSupportedException("Enqueue into which?");
 		}
-		public override IFrame Dequeue()
+		public override T Dequeue()
 		{
 			throw new NotSupportedException("Dequeue from which?");
 		}
 
-		public QueueNode Enqueue(int queueIndex, IFrame frame)
+		public QueueNode<T> Enqueue(int queueIndex, T frame)
 		{
-			QueueNode qn = q[queueIndex].Enqueue(frame);
+			QueueNode<T> qn = q[queueIndex].Enqueue(frame);
 			return NATOutwards((uint)queueIndex, qn);
 		}
-		public IFrame Dequeue(int queueIndex)
+		public T Dequeue(int queueIndex)
 		{
 			return q[queueIndex].Dequeue();
 		}
-		public QueueNode BlowOneFrame(int queueIndex)
+		public QueueNode<T> BlowOneFrame(int queueIndex)
 		{
-			QueueNode qn = q[queueIndex].BlowOneFrame();
+			QueueNode<T> qn = q[queueIndex].BlowOneFrame();
 			return NATOutwards((uint)queueIndex, qn);
 		}
 
-		public int InWhichQueue(QueueNode node)
+		public int InWhichQueue(QueueNode<T> node)
 		{
 			return (int)(NATInwards(node).QueueIndex);
 		}

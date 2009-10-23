@@ -4,12 +4,12 @@ using Buffers.Memory;
 
 namespace Buffers.Queues
 {
-	public abstract class QueueGroup : QueueBase
+	public abstract class QueueGroup<T> : QueueBase<T>
 	{
 		/// <summary>
 		/// QueueIndex -> IQueue
 		/// </summary>
-		protected IQueue[] queues = null;
+		protected IQueue<T>[] queues = null;
 		/// <summary>
 		/// QueueIndex -> RouteIndex
 		/// </summary>
@@ -36,19 +36,19 @@ namespace Buffers.Queues
 			this.routes = routes.ToArray();
 		}
 
-		protected RoutingNode NATInwards(QueueNode outerNode)
+		protected RoutingNode NATInwards(QueueNode<T> outerNode)
 		{
 			Route route = routes[(int)outerNode.Index];
 			return new RoutingNode(route.QueueIndex, route.InnerRouteIndex, outerNode.ListNode);
 		}
-		protected QueueNode NATOutwards(uint queueIndex, QueueNode innerNode)
+		protected QueueNode<T> NATOutwards(uint queueIndex, QueueNode<T> innerNode)
 		{
 			uint routeIndex = innerNode.Index + offsets[(int)queueIndex];
-			return new QueueNode(routeIndex, innerNode.ListNode);
+			return new QueueNode<T>(routeIndex, innerNode.ListNode);
 		}
 
 
-		public override IEnumerator<IFrame> GetEnumerator()
+		public override IEnumerator<T> GetEnumerator()
 		{
 			foreach (var queue in queues)
 				foreach (var frame in queue)
@@ -77,15 +77,15 @@ namespace Buffers.Queues
 			}
 		}
 
-	
-		public override QueueNode AccessFrame(QueueNode node)
+
+		public override QueueNode<T> AccessFrame(QueueNode<T> node)
 		{
 			RoutingNode routing = NATInwards(node);
-			QueueNode qn = queues[(int)routing.QueueIndex].AccessFrame(routing.InnerNode);
+			QueueNode<T> qn = queues[(int)routing.QueueIndex].AccessFrame(routing.InnerNode);
 			return NATOutwards(routing.QueueIndex, qn);
 		}
 
-		public override IFrame Dequeue(QueueNode node)
+		public override T Dequeue(QueueNode<T> node)
 		{
 			RoutingNode routing = NATInwards(node);
 			return queues[(int)routing.QueueIndex].Dequeue(routing.InnerNode);
@@ -134,12 +134,12 @@ namespace Buffers.Queues
 		protected struct RoutingNode
 		{
 			public readonly uint QueueIndex;
-			public readonly QueueNode InnerNode;
+			public readonly QueueNode<T> InnerNode;
 
-			public RoutingNode(uint major, uint innerindex, LinkedListNode<IFrame> innernode)
-				: this(major, new QueueNode(innerindex, innernode)) { }
+			public RoutingNode(uint major, uint innerindex, LinkedListNode<T> innernode)
+				: this(major, new QueueNode<T>(innerindex, innernode)) { }
 
-			public RoutingNode(uint major, QueueNode inner)
+			public RoutingNode(uint major, QueueNode<T> inner)
 			{
 				QueueIndex = major;
 				InnerNode = inner;

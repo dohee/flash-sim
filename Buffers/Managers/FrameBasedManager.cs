@@ -8,7 +8,7 @@ namespace Buffers.Managers
 	public abstract class FrameBasedManager : BufferManagerBase
 	{
 		protected Pool pool;
-		public IDictionary<uint, QueueNode> map = new Dictionary<uint, QueueNode>();
+		public IDictionary<uint, QueueNode<IFrame>> map = new Dictionary<uint, QueueNode<IFrame>>();
 
 		public FrameBasedManager(IBlockDevice dev, uint npages)
 			: base(dev)
@@ -17,8 +17,8 @@ namespace Buffers.Managers
 		}
 
 		protected abstract void OnPoolFull();
-		protected abstract QueueNode OnHit(QueueNode node, bool isWrite);
-		protected abstract QueueNode OnMiss(IFrame allocatedFrame, bool isWrite);
+		protected abstract QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite);
+		protected abstract QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite);
 
 		protected virtual IFrame CreateFrame(uint pageid, int slotid)
 		{
@@ -28,7 +28,7 @@ namespace Buffers.Managers
 
 		protected sealed override void DoRead(uint pageid, byte[] result)
 		{
-			QueueNode node;
+			QueueNode<IFrame> node;
 			IFrame frame;
 
 			if (map.TryGetValue(pageid, out node))
@@ -49,7 +49,7 @@ namespace Buffers.Managers
 
 		protected sealed override void DoWrite(uint pageid, byte[] data)
 		{
-			QueueNode node;
+			QueueNode<IFrame> node;
 			IFrame frame;
 
 			if (map.TryGetValue(pageid, out node))
