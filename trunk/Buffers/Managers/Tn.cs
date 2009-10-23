@@ -95,12 +95,12 @@ namespace Buffers.Managers
 		protected override void OnPoolFull()
 		{
 			QueueNode<IFrame> qn;
-			if (q.GetFrontSize(0) > CRLimit) qn = q.BlowOneFrame(0);
-			else if (q.GetFrontSize(1) > DRLimit) qn = q.BlowOneFrame(1);
-			else if (q.GetFrontSize(2) > SRLimit) qn = q.BlowOneFrame(2);
-			else if (q.GetFrontSize(0) != 0) qn = q.BlowOneFrame(0);
-			else if (q.GetFrontSize(1) != 0) qn = q.BlowOneFrame(1);
-			else qn = q.BlowOneFrame(2);
+			if (q.GetFrontSize(0) > CRLimit) qn = q.BlowOneItem(0);
+			else if (q.GetFrontSize(1) > DRLimit) qn = q.BlowOneItem(1);
+			else if (q.GetFrontSize(2) > SRLimit) qn = q.BlowOneItem(2);
+			else if (q.GetFrontSize(0) != 0) qn = q.BlowOneItem(0);
+			else if (q.GetFrontSize(1) != 0) qn = q.BlowOneItem(1);
+			else qn = q.BlowOneItem(2);
 
 			IFrame f = qn.ListNode.Value;
 			WriteIfDirty(f);
