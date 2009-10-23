@@ -5,7 +5,7 @@ using Buffers.Queues;
 
 namespace Buffers.Managers
 {
-	public class CMFTByCat : FrameBasedManager
+	public sealed class CMFTByCat : FrameBasedManager
 	{
 		private FIFOQueue<IFrame> fifoQ = new FIFOQueue<IFrame>();
 		private IRRQueue irrQ = new IRRQueue();

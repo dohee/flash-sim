@@ -18,9 +18,9 @@ namespace Buffers.Queues
 			return queue.GetEnumerator();
 		}
 
-		public override sealed QueueNode<T> Enqueue(T frame)
+		public override sealed QueueNode<T> Enqueue(T item)
 		{
-			return new QueueNode<T>(queue.AddFirst(frame));
+			return new QueueNode<T>(queue.AddFirst(item));
 		}
 
 		public override sealed T Dequeue(QueueNode<T> node)
@@ -36,7 +36,7 @@ namespace Buffers.Queues
 			return Dequeue(new QueueNode<T>(queue.Last));
 		}
 
-		public override QueueNode<T> AccessFrame(QueueNode<T> node)
+		public override QueueNode<T> Access(QueueNode<T> node)
 		{
 			Debug.Assert(node.Index == 0);
 			return node;

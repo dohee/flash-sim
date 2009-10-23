@@ -24,7 +24,7 @@ namespace Buffers.Managers
 
 		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
 		{
-			return queue.AccessFrame(node);
+			return queue.Access(node);
 		}
 
 		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
