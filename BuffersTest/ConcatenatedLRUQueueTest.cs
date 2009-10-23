@@ -113,7 +113,7 @@ namespace BuffersTest
 		public void BlowOneFrameSimpleTest()
 		{
 			ConcatenatedLRUQueue<IFrame> target = ConstructSimpleConcatQueue();
-			QueueNode<IFrame> actual = target.BlowOneFrame();
+			QueueNode<IFrame> actual = target.BlowOneItem();
 
 			Assert.AreEqual(1u, actual.Index);
 			Assert.AreEqual(10u, actual.ListNode.Value.Id);
@@ -128,7 +128,7 @@ namespace BuffersTest
 		{
 			IQueue<IFrame>[] fifos;
 			ConcatenatedLRUQueue<IFrame> target = ConstructNestedConcatQueue(out fifos);
-			QueueNode<IFrame> actual = target.BlowOneFrame();
+			QueueNode<IFrame> actual = target.BlowOneItem();
 
 			Assert.AreEqual(4u, actual.Index);
 			Assert.AreEqual(30u, actual.ListNode.Value.Id);

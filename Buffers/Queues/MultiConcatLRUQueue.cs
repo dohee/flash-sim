@@ -43,9 +43,9 @@ namespace Buffers.Queues
 		{
 			return q[queueIndex].Dequeue();
 		}
-		public QueueNode<T> BlowOneFrame(int queueIndex)
+		public QueueNode<T> BlowOneItem(int queueIndex)
 		{
-			QueueNode<T> qn = q[queueIndex].BlowOneFrame();
+			QueueNode<T> qn = q[queueIndex].BlowOneItem();
 			return NATOutwards((uint)queueIndex, qn);
 		}
 	}
