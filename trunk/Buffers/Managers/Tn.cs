@@ -92,30 +92,6 @@ namespace Buffers.Managers
 		}
 
 
-		protected override void OnPoolFull()
-		{
-			QueueNode<IFrame> qn;
-			if (q.GetFrontSize(0) > CRLimit) qn = q.BlowOneItem(0);
-			else if (q.GetFrontSize(1) > DRLimit) qn = q.BlowOneItem(1);
-			else if (q.GetFrontSize(2) > SRLimit) qn = q.BlowOneItem(2);
-			else if (q.GetFrontSize(0) != 0) qn = q.BlowOneItem(0);
-			else if (q.GetFrontSize(1) != 0) qn = q.BlowOneItem(1);
-			else qn = q.BlowOneItem(2);
-
-			IFrame f = qn.ListNode.Value;
-			WriteIfDirty(f);
-			pool.FreeSlot(f.DataSlotId);
-			f.DataSlotId = -1;
-			map[f.Id] = qn;
-
-			if (q.GetBackSize(0) > CNRLimit)
-				map.Remove(q.Dequeue(0).Id);
-			if (q.GetBackSize(1) > DNRLimit)
-				map.Remove(q.Dequeue(1).Id);
-			if (q.GetBackSize(2) > SNRLimit)
-				map.Remove(q.Dequeue(2).Id);			
-		}
-
 		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
 		{
 			bool isRead = !isWrite;
@@ -207,21 +183,49 @@ namespace Buffers.Managers
 			}
 		}
 
+		protected override void OnPoolFull()
+		{
+			QueueNode<IFrame> qn;
+			if (q.GetFrontSize(0) > CRLimit) qn = q.BlowOneItem(0);
+			else if (q.GetFrontSize(1) > DRLimit) qn = q.BlowOneItem(1);
+			else if (q.GetFrontSize(2) > SRLimit) qn = q.BlowOneItem(2);
+			else if (q.GetFrontSize(0) != 0) qn = q.BlowOneItem(0);
+			else if (q.GetFrontSize(1) != 0) qn = q.BlowOneItem(1);
+			else qn = q.BlowOneItem(2);
+
+			IFrame f = qn.ListNode.Value;
+			WriteIfDirty(f);
+			pool.FreeSlot(f.DataSlotId);
+			f.DataSlotId = -1;
+			map[f.Id] = qn;
+
+			if (q.GetBackSize(0) > CNRLimit)
+				map.Remove(q.Dequeue(0).Id);
+			if (q.GetBackSize(1) > DNRLimit)
+				map.Remove(q.Dequeue(1).Id);
+			if (q.GetBackSize(2) > SNRLimit)
+				map.Remove(q.Dequeue(2).Id);
+		}
+
 		protected override void DoFlush()
 		{
-			foreach (var mapitem in map)
+			var drpages = new List<uint>();
+
+			foreach (var entry in map)
 			{
-				IFrame f = mapitem.Value.ListNode.Value;
+				IFrame f = entry.Value.ListNode.Value;
 				if (!f.Dirty)
 					continue;
 
 				dev.Write(f.Id, pool[f.DataSlotId]);
 				f.Dirty = false;
 
-				// FIXME move the whole DR queue to CR
-				//if (q.InWhichQueue(mapitem.Value) == 1)
-				//	map[f.Id] = q.Enqueue(0, q.Dequeue(mapitem.Value));
+				if (q.GetRoute(entry.Value) == 1)
+					drpages.Add(entry.Key);
 			}
+
+			foreach (var pageid in drpages)
+				map[pageid] = q.Enqueue(0, q.Dequeue(map[pageid]));
 		}
 	}
 }

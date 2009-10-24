@@ -28,7 +28,7 @@ namespace Buffers.Memory
 		/// <returns></returns>
 		public double GetPower()
 		{
-			double power = 0;
+			double p1=0, p2=0;
 			double weightedReadRecency = (double)readRecency * 1 / 1;
 			double weightedWriteRecency = (double)writeRecency * 1 / 1;
 
@@ -45,12 +45,12 @@ namespace Buffers.Memory
 				aveWriteIRR = ((double)writeIRR + weightedWriteRecency) / 2;
 
 			if (aveReadIRR != 0)        //0 means this page has not been read before.
-				power += (double)Config.ReadCost / aveReadIRR;
+				p1=(double)Config.ReadCost / aveReadIRR;
 
 			if (aveWriteIRR != 0)
-				power += (double)Config.WriteCost / aveWriteIRR;
+				p2= (double)Config.WriteCost / aveWriteIRR;
 
-			return power;
+			return Math.Max(p1, p2);
 		}
 
 		public override string ToString()
