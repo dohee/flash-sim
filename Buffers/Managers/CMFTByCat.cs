@@ -16,6 +16,7 @@ namespace Buffers.Managers
 			: base(dev, npages) { }
 
 		public override string Name { get { return "CMFT"; } }
+		public override string Description { get { return "NPages=" + pool.NPages; } }
 
 
 		protected override IFrame CreateFrame(uint pageid, int slotid)
@@ -125,7 +126,6 @@ namespace Buffers.Managers
 				q.RemoveAt(pos);
 				q.Add(new RWQuery(pageid, dirty));
 				return (uint)(q.Count - pos);
-				//return (uint)(pos + 1);
 			}
 
 		}
