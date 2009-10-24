@@ -8,8 +8,8 @@ namespace Buffers.Memory
 	{
 		public delegate void PoolFullHandler();
 		private byte[][] data;
-		private bool[] dataEmpty;
-		private Stack<int> freeList;
+		private int[] freeLink;
+		private int freeLinkHead;
 		private PoolFullHandler fullHdlr;
 
 		public Pool(uint npages, uint pagesize, PoolFullHandler handler)
@@ -18,16 +18,17 @@ namespace Buffers.Memory
 			Debug.Assert(handler != null);
 
 			data = new byte[npages][];
-			dataEmpty = new bool[npages];
-			freeList = new Stack<int>((int)npages);
+			freeLink = new int[npages];
 			fullHdlr = handler;
 
 			for (int i = 0; i < data.Length; i++)
 			{
 				data[i] = new byte[pagesize];
-				dataEmpty[i] = true;
-				freeList.Push(i);
+				freeLink[i] = i + 1;
 			}
+
+			freeLink[freeLink.Length - 1] = -1;
+			freeLinkHead = 0;
 		}
 
 		public uint NPages { get { return (uint)data.Length; } }
@@ -35,29 +36,31 @@ namespace Buffers.Memory
 
 		public int AllocSlot()
 		{
-			if (freeList.Count == 0)
+			if (freeLinkHead == -1)
 			{
 				fullHdlr();
-				if (freeList.Count == 0)
+				if (freeLinkHead == -1)
 					throw new InvalidOperationException("the PoolFullHandler does not free any slot.");
 			}
 
-			int slotid = freeList.Pop();
-			dataEmpty[slotid] = false;
+			int slotid = freeLinkHead;
+			freeLinkHead = freeLink[slotid];
+			freeLink[slotid] = -2;
 			return slotid;
 		}
 
 		public void FreeSlot(int slotid)
 		{
-			freeList.Push(slotid);
-			dataEmpty[slotid] = true;
+			Debug.Assert(freeLink[slotid] == -2);
+			freeLink[slotid] = freeLinkHead;
+			freeLinkHead = slotid;
 		}
 
 		public byte[] this[int index]
 		{
 			get
 			{
-				Debug.Assert(dataEmpty[index] == false);
+				Debug.Assert(freeLink[index] == -2);
 				return data[index];
 			}
 		}

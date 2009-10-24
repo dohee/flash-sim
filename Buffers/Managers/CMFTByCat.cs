@@ -92,7 +92,7 @@ namespace Buffers.Managers
 
 		protected override void DoFlush()
 		{
-			//FIXME do flush
+			//TODO do flush
 			base.DoFlush();
 		}
 
