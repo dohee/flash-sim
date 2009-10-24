@@ -17,7 +17,7 @@
     <StartupObject>
     </StartupObject>
     <TargetZone>LocalIntranet</TargetZone>
-    <GenerateManifests>true</GenerateManifests>
+    <GenerateManifests>false</GenerateManifests>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
     <ExcludedPermissions>
     </ExcludedPermissions>

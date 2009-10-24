@@ -27,8 +27,10 @@ namespace Buffers.Queues
 		{
 			get
 			{
-				Debug.Assert(queues.Length == 2);
-				return queues[1].Size;
+				if (queues.Length == 2)
+					return queues[1].Size;
+				else
+					return 0;
 			}
 		}
 
@@ -40,7 +42,7 @@ namespace Buffers.Queues
 		}
 		public override T Dequeue()
 		{
-			if (queues.Length == 1 || queues[1].Size == 0)
+			if (BackQueueSize == 0)
 				return queues[0].Dequeue();
 			else
 				return queues[1].Dequeue();
