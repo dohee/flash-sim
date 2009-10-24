@@ -31,6 +31,7 @@ namespace Buffers
 			group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
 			group.Add(new CMFTByCat(npages));
 			group.Add(new OldBlowerByCat(npages));
+			group.Add(new BlowerByCat(npages));
 
 			return group;
 		}

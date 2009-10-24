@@ -60,12 +60,15 @@ namespace Buffers.Managers
 
 			if (f.HasNodeOf(isWrite))
 			{
-				f.SetNodeOf(isWrite, queryQ.Enqueue(1, queryQ.Dequeue(f.GetNodeOf(isWrite))));
-				//TODO enlarge?
-			}
-			else
-			{
-				f.SetNodeOf(isWrite, queryQ.Enqueue((isWrite ? 1 : 0), f.Id));
+				QueueNode<uint> rwnode = f.GetNodeOf(isWrite);
+				uint queueIndex = queryQ.GetRoute(rwnode);
+
+				queryQ.Dequeue(rwnode);
+	
+				if (queueIndex == 2U && !isWrite)
+					blowReadQuota -= 1;
+				else if (queueIndex == 3U && isWrite)
+					blowReadQuota += 3;
 			}
 
 			if (!f.Resident)
@@ -75,6 +78,7 @@ namespace Buffers.Managers
 					dev.Read(f.Id, pool[f.DataSlotId]);
 			}
 
+			f.SetNodeOf(isWrite, queryQ.Enqueue((isWrite ? 1 : 0), f.Id));
 			return node;
 		}
 
@@ -87,10 +91,81 @@ namespace Buffers.Managers
 
 		protected override void OnPoolFull()
 		{
-			throw new NotImplementedException();
+			while (true)
+			{
+				BlowResult r;
+
+				if (blowReadQuota > 0)
+				{
+					r = TryBlow(false);
+					--blowReadQuota;
+				}
+				else
+				{
+					r = TryBlow(true);
+					++blowReadQuota;
+				}
+
+				if (r == BlowResult.Succeeded)
+					break;
+			}
 		}
 
+		private BlowResult TryBlow(bool isWrite)
+		{
+			int queueIndex = isWrite ? 1 : 0;
+			int otherQueueIndex = isWrite ? 0 : 1;
+			int nrQueueIndex = isWrite ? 3 : 2;
+			int otherNRQueueIndex = isWrite ? 2 : 3;
+
+			// 空队列判断
+			if (queryQ.GetFrontSize(queueIndex) == 0)
+				return BlowResult.QueueIsEmpty;
+
+			// 实施吹风
+			QueueNode<uint> rwnode = queryQ.BlowOneItem(queueIndex);
+			FrameWithRWQuery f = map[rwnode.ListNode.Value].ListNode.Value as FrameWithRWQuery;
+			f.SetNodeOf(isWrite, rwnode);
+
+			// 找出该项在另一条队列的位置
+			IList<uint> otherRoute = null;
+			if (f.HasNodeOf(!isWrite))
+				otherRoute = queryQ.GetRoutePath(f.GetNodeOf(!isWrite));
+
+			// 不释放存在于另一条队列的头队列的项
+			if (otherRoute != null &&
+				otherRoute[otherRoute.Count - 1] == otherQueueIndex &&
+				otherRoute[otherRoute.Count - 2] == 0)
+				return BlowResult.ExistsInAnotherQueue;
+			
+			// 实施释放
+			WriteIfDirty(f);
+			pool.FreeSlot(f.DataSlotId);
+			f.DataSlotId = -1;
+
+			// 重设被释放的项在队列中的位置
+			f.SetNodeOf(isWrite, queryQ.Enqueue(nrQueueIndex,
+				queryQ.Dequeue(f.GetNodeOf(isWrite))));
+
+			if (otherRoute != null &&
+				otherRoute[otherRoute.Count - 1] == otherQueueIndex &&
+				otherRoute[otherRoute.Count - 2] == 1)
+			{
+				f.SetNodeOf(!isWrite, queryQ.Enqueue(otherNRQueueIndex,
+					queryQ.Dequeue(f.GetNodeOf(!isWrite))));
+			}
+
+			// 成功
+			return BlowResult.Succeeded;
+		}
+
+		protected override void DoFlush()
+		{
+			// TODO do flush
+			base.DoFlush();
+		}
 	}
+
 
 	public sealed class OldBlowerByCat : FrameBasedManager
 	{
@@ -114,7 +189,7 @@ namespace Buffers.Managers
 		}
 
 		public override string Name { get { return "OldBlower"; } }
-		public override string Description { get { return "By=Cat,NPages=" + pool.NPages; } }
+		public override string Description { get { return "NPages=" + pool.NPages; } }
 
 
 		protected override IFrame CreateFrame(uint pageid, int slotid)
