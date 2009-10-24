@@ -59,7 +59,7 @@ private:
 		}
 
 		virtual property String^ Name { String^ get() { return name; } }
-		virtual property String^ Description { String^ get() { return name; } }
+		virtual property String^ Description { String^ get() { return nullptr; } }
 		virtual property size_t PageSize { size_t get() { return pagesize; } }
 		virtual property int ReadCount { int get() { return pmgr->GetReadCount(); } }
 		virtual property int WriteCount { int get() { return pmgr->GetWriteCount(); } }

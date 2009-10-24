@@ -20,7 +20,7 @@ namespace Buffers
 			ManagerGroup group = new ManagerGroup();
 
 			group.Add(new LRU(npages));
-			//group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
+			group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
 			//group.Add(Wrapper.CreateCFLRUD(npages));
 			//group.Add(Wrapper.CreateLRUWSR(npages));
 			//group.Add(new Tn(npages, ratio, new TnConfig(false, false, 0, 0, false)));
@@ -51,7 +51,7 @@ namespace Buffers
 				OperateOnTrace(group, reader);
 				TimeSpan ts = DateTime.Now - old;
 
-				PushColor(ConsoleColor.Cyan);
+				PushColor(ConsoleColor.Magenta);
 				Console.WriteLine(ts);
 				PopColor();
 			}
@@ -150,13 +150,24 @@ namespace Buffers
 			for (int i = 0; i < group.Count; i++)
 			{
 				IBlockDevice dev = group[i].AssociatedDevice;
+
 				PushColor(ConsoleColor.Yellow);
 				output.Write(formatDev, i);
 				PopColor();
 				output.Write(formatCost, dev.ReadCount, dev.WriteCount, Utils.CalcTotalCost(dev));
-				PushColor(ConsoleColor.DarkGray);
-				output.WriteLine(group[i].Description);
+
+				PushColor(ConsoleColor.Cyan);
+				output.Write(group[i].Name + " ");
 				PopColor();
+
+				if (group[i].Description != null)
+				{
+					PushColor(ConsoleColor.DarkGray);
+					output.Write(group[i].Description);
+					PopColor();
+				}
+
+				output.WriteLine();
 			}
 		}
 

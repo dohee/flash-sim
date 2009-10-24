@@ -14,6 +14,8 @@ namespace Buffers.Managers
 		public LRU(IBlockDevice dev, uint npages)
 			: base(dev, npages) { }
 
+		public override string Description { get { return "NPages=" + pool.NPages; } }
+
 		protected override void OnPoolFull()
 		{
 			IFrame frame = queue.Dequeue();

@@ -67,7 +67,7 @@ namespace Buffers.Managers
 			get
 			{
 				return string.Format(
-					"Tn (NPages={0},KickN={1},AdjustDR={2},EnlargeCR={3},SRLimit={4},SNRLimit={5},KickOffSR={6})",
+					"NPages={0},KickN={1},AdjustDR={2},EnlargeCR={3},SRLimit={4},SNRLimit={5},KickOffSR={6}",
 					pool.NPages, kickn,
 					conf.AdjustDRWhenReadInDR ? 1 : 0,
 					conf.EnlargeCRWhenReadInDNR ? 1 : 0,
