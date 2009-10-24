@@ -16,7 +16,7 @@ namespace Buffers.Managers
 			: base(dev, npages) { }
 
 		public override string Name { get { return "CMFT"; } }
-		public override string Description { get { return "NPages=" + pool.NPages; } }
+		public override string Description { get { return "By=Cat,NPages=" + pool.NPages; } }
 
 
 		protected override IFrame CreateFrame(uint pageid, int slotid)

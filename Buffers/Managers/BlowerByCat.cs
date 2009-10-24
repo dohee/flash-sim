@@ -16,7 +16,7 @@ namespace Buffers.Managers
 			: this(null, npages) { }
 
 		public BlowerByCat(IBlockDevice dev, uint npages)
-			: base(dev,npages)
+			: base(dev, npages)
 		{
 			queryQ = new MultiConcatLRUQueue<uint>(new ConcatenatedLRUQueue<uint>[]{
 				new ConcatenatedLRUQueue<uint>(
@@ -25,6 +25,10 @@ namespace Buffers.Managers
 					new FIFOQueue<uint>(), new FIFOQueue<uint>())
 			});
 		}
+
+		public override string Name { get { return "Blower"; } }
+		public override string Description { get { return "By=Cat,NPages=" + pool.NPages; } }
+
 
 		protected override IFrame CreateFrame(uint pageid, int slotid)
 		{
@@ -54,12 +58,12 @@ namespace Buffers.Managers
 		{
 			while (true)
 			{
-				BlowResult r1 = TryBlow(false);
-				if (r1 == BlowResult.Succeeded)
-					break;
-
 				BlowResult r2 = TryBlow(true);
 				if (r2 == BlowResult.Succeeded)
+					break;
+
+				BlowResult r1 = TryBlow(false);
+				if (r1 == BlowResult.Succeeded)
 					break;
 
 				Debug.Assert(r1 != BlowResult.QueueIsEmpty ||
@@ -146,7 +150,7 @@ namespace Buffers.Managers
 			}
 			public QueueNode<uint> GetNodeOf(bool isWrite)
 			{
-				return isWrite? NodeOfRead : NodeOfWrite;
+				return isWrite ? NodeOfRead : NodeOfWrite;
 			}
 			public void SetNodeOf(bool isWrite, QueueNode<uint> value)
 			{
