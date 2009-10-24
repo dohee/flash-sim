@@ -10,6 +10,7 @@ namespace Buffers.Managers
 	{
 		private FIFOQueue<IFrame> fifoQ = new FIFOQueue<IFrame>();
 		private MultiConcatLRUQueue<uint> queryQ;
+		private bool blowWrite = false;
 
 
 		public BlowerByCat(uint npages)
@@ -58,16 +59,10 @@ namespace Buffers.Managers
 		{
 			while (true)
 			{
-				BlowResult r2 = TryBlow(true);
-				if (r2 == BlowResult.Succeeded)
+				BlowResult r = TryBlow(blowWrite);
+				blowWrite = !blowWrite;
+				if (r == BlowResult.Succeeded)
 					break;
-
-				BlowResult r1 = TryBlow(false);
-				if (r1 == BlowResult.Succeeded)
-					break;
-
-				Debug.Assert(r1 != BlowResult.QueueIsEmpty ||
-					r2 != BlowResult.QueueIsEmpty);
 			}
 		}
 
