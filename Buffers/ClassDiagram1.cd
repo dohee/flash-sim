@@ -7,16 +7,16 @@
     <Position X="3.04" Y="0.5" Height="0.382" Width="1.369" />
   </Comment>
   <Comment CommentText="队列">
-    <Position X="5.127" Y="0.512" Height="0.382" Width="1.369" />
+    <Position X="7.377" Y="0.512" Height="0.382" Width="1.369" />
   </Comment>
   <Comment CommentText="设备">
-    <Position X="10.306" Y="0.5" Height="0.382" Width="1.369" />
+    <Position X="12.556" Y="0.5" Height="0.382" Width="1.369" />
   </Comment>
   <Comment CommentText="缓存管理器">
-    <Position X="12.306" Y="0.5" Height="0.382" Width="1.369" />
+    <Position X="14.556" Y="0.5" Height="0.382" Width="1.369" />
   </Comment>
   <Class Name="Buffers.Devices.TrivalBlockDevice" BaseTypeListCollapsed="true">
-    <Position X="10.25" Y="3.5" Width="1.5" />
+    <Position X="12.5" Y="3.5" Width="1.5" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
@@ -27,7 +27,7 @@
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="Buffers.Managers.BufferManagerBase">
-    <Position X="12.25" Y="3.75" Width="1.75" />
+    <Position X="14.5" Y="3.75" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
@@ -38,14 +38,14 @@
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="Buffers.Managers.TrivalManager">
-    <Position X="14.5" Y="3.5" Width="1.75" />
+    <Position X="16.75" Y="3.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAgAAAAAIAAAAAEAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Managers\TrivalManager.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Buffers.Memory.Pool">
-    <Position X="3" Y="3.25" Width="1.5" />
+    <Position X="3" Y="1.25" Width="1.5" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
       <Compartment Name="Nested Types" Collapsed="false" />
@@ -58,58 +58,60 @@
       </Delegate>
     </NestedTypes>
     <TypeIdentifier>
-      <HashCode>AQAAAAAAAAAAAAAACAAAAIAAIAAAAAAAAAAQEgEAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAABCAAAAAAAIAAAAAAAAAAQEgEAAEA=</HashCode>
       <FileName>Memory\Pool.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Buffers.Queues.FIFOQueue">
-    <Position X="7.25" Y="3.75" Width="1.75" />
+  <Class Name="Buffers.Queues.FIFOQueue&lt;T&gt;">
+    <Position X="9.5" Y="4" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
       <Compartment Name="Properties" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AABQAAAAAAAAgBAAAABAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AABAAAAAAAAAgFAAAABAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
       <FileName>Queues\FIFOQueue.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Buffers.Queues.LRUQueue">
-    <Position X="7.25" Y="6.25" Width="1.75" />
+  <Class Name="Buffers.Queues.LRUQueue&lt;T&gt;">
+    <Position X="9.5" Y="6.5" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAQAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Queues\LRUQueue.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Buffers.Queues.QueueBase">
-    <Position X="5" Y="3.75" Width="1.75" />
+  <Class Name="Buffers.Queues.QueueBase&lt;T&gt;">
+    <Position X="7.25" Y="4" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AABQAAAAAAAAgBAAAABAAAAAAAAABAAEAAAAAAAAAAA=</HashCode>
+      <HashCode>IABAAAAAAAAAgFAAAABAAAAAAAAABAAEAAAAAAAAAAA=</HashCode>
       <FileName>Queues\QueueBase.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Buffers.Queues.QueueGroup">
-    <Position X="5" Y="6.25" Width="1.75" />
+  <Class Name="Buffers.Queues.QueueGroup&lt;T&gt;">
+    <Position X="7.25" Y="7" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <NestedTypes>
-      <Struct Name="Buffers.Queues.QueueGroup.Route" Collapsed="true">
+      <Struct Name="Buffers.Queues.QueueGroup&lt;T&gt;.Route" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>Queues\QueueGroup.cs</NewMemberFileName>
         </TypeIdentifier>
+        <Lollipop Position="0.2" />
       </Struct>
-      <Struct Name="Buffers.Queues.QueueGroup.RoutingNode" Collapsed="true">
+      <Struct Name="Buffers.Queues.QueueGroup&lt;T&gt;.RoutingNode" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>Queues\QueueGroup.cs</NewMemberFileName>
         </TypeIdentifier>
+        <Lollipop Position="0.2" />
       </Struct>
     </NestedTypes>
     <TypeIdentifier>
-      <HashCode>QAAQAAAAAAAAgBAAAABAAABBAAgABAAAAAAAAAAAAAE=</HashCode>
+      <HashCode>YAAAAAAAAAAAgFAAAABAAABBAAgABAAAAAAAAAAAAAE=</HashCode>
       <FileName>Queues\QueueGroup.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -128,17 +130,17 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Buffers.Managers.FrameBasedManager">
-    <Position X="14.5" Y="6.5" Width="1.75" />
+    <Position X="16.75" Y="6.5" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>IAAAEAAAAAgQAAAAIAAAAAEAAAAAAABQAAgAAAAAAAA=</HashCode>
+      <HashCode>IAAAEAAAAAgQAAAAIAAAAAEAAAAAAAFQAAgAAAAAAAA=</HashCode>
       <FileName>Managers\FrameBasedManager.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Buffers.Managers.ManagerGroup" Collapsed="true">
-    <Position X="14.5" Y="5.5" Width="1.75" />
+    <Position X="16.75" Y="5.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAIAAAAAAAggABAAKAAAAAUAAAAAAAAEAAAAAAAAAAA=</HashCode>
       <FileName>Managers\ManagerGroup.cs</FileName>
@@ -146,88 +148,163 @@
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="Buffers.Managers.LRU" Collapsed="true">
-    <Position X="16.75" Y="6.5" Width="1.5" />
+    <Position X="19" Y="6.5" Width="1.5" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>IAAAAAAAAAAAAAAAAABAAAAAAAAAAABQAAAAAAAAAAA=</HashCode>
+      <HashCode>IAAAAAAAAAAgAAAAAABAAAAAAAAAAABQAAAAAAAAAAA=</HashCode>
       <FileName>Managers\LRU.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Buffers.Program">
     <Position X="0.5" Y="4.25" Width="2" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
     <TypeIdentifier>
-      <HashCode>AAAAAAAQAAAAAAAAAAAABAAAAAAAAAAAAAAABAAAAAQ=</HashCode>
+      <HashCode>AAAAAAAQAAAAAAAAAAAAJAAAAAAAAAAAAAAADBAQAAQ=</HashCode>
       <FileName>Program.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Buffers.Queues.ConcatenatedLRUQueue">
-    <Position X="4" Y="9.75" Width="1.75" />
-    <TypeIdentifier>
-      <HashCode>AABQAAAAEAAAAAAAAAAAAAAIAAAABAAAAACAAAAAAAA=</HashCode>
-      <FileName>Queues\ConcatenatedLRUQueue.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="Buffers.Managers.Wrapper">
-    <Position X="16.75" Y="1.25" Width="2" />
-    <Compartments>
-      <Compartment Name="Fields" Collapsed="true" />
-      <Compartment Name="Properties" Collapsed="true" />
-    </Compartments>
-    <TypeIdentifier />
-  </Class>
   <Class Name="Buffers.Managers.Tn" Collapsed="true">
-    <Position X="16.75" Y="7.5" Width="1.5" />
+    <Position X="19" Y="7.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>IgAAAAAgBCAggAAAAAAAQAAABAAAAABQACAAEAAAEgA=</HashCode>
+      <HashCode>IgAAAAAgBCAggAAAAAAAQAEABAAAAABQACAAEAAAEgA=</HashCode>
       <FileName>Managers\Tn.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Buffers.Queues.MultiConcatLRUQueue">
-    <Position X="6" Y="9.75" Width="1.75" />
+  <Class Name="Buffers.Queues.MultiConcatLRUQueue&lt;T&gt;">
+    <Position X="8.25" Y="10.75" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AABAAAAAAAAQAACAAAAAAAAIAACABAIAACAAAAAAAAA=</HashCode>
+      <HashCode>AABAAAAAAAAQAACAAAAAAAAAAAAABAIEACAAAAAAAAA=</HashCode>
       <FileName>Queues\MultiConcatLRUQueue.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Struct Name="Buffers.Queues.QueueNode">
-    <Position X="7.25" Y="1.25" Width="1.75" />
+  <Class Name="Buffers.Managers.BlowerByCat" Collapsed="true">
+    <Position X="19" Y="8.75" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Buffers.Managers.BlowerByCat.BlowResult" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Managers\BlowerByCat.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Class Name="Buffers.Managers.BlowerByCat.FrameWithRWQuery" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Managers\BlowerByCat.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>IAAAAAAIAAAgACAAAAAAAAUAAAAAAAFwAAAIAAAAAAA=</HashCode>
+      <FileName>Managers\BlowerByCat.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Buffers.Managers.CMFT" Collapsed="true">
+    <Position X="14.5" Y="8.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAAAgQAAAAIAAAAAUAIAAAAAAQAAgAAAAAAAA=</HashCode>
+      <FileName>Managers\CMFT.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Buffers.Managers.CMFTByCat" Collapsed="true">
+    <Position X="19" Y="8" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="Buffers.Managers.CMFTByCat.IRRQueue" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Managers\CMFTByCat.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAgAAAAAAAAAAUAAAAAAAFwAAAAAAAAAQA=</HashCode>
+      <FileName>Managers\CMFTByCat.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Buffers.Memory.Frame" Collapsed="true">
+    <Position X="4.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAABEBQAAQAAAAAAAAAAAQAAAAAAAAgA=</HashCode>
+      <FileName>Memory\Frame.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Buffers.Memory.IRRFrame">
+    <Position X="4.75" Y="4" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAoAAAACAQAAEAEAAAAAAEAAAARAAAAAAAAAAAAI=</HashCode>
+      <FileName>Memory\IRRFrame.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Buffers.Queues.ConcatenatedLRUQueue&lt;T&gt;">
+    <Position X="6.25" Y="10.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAEAAAAEAAAAAAAAAAAAAABAAEAACAAAAAAAA=</HashCode>
+      <FileName>Queues\ConcatenatedLRUQueue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Buffers.Queues.IRRLRUQueue">
+    <Position X="9.5" Y="8.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Queues\IRRLRUQueue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="Buffers.Queues.QueueNode&lt;T&gt;">
+    <Position X="9.5" Y="1.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAEAEAAAAiA=</HashCode>
-      <FileName>Queues\IQueue.cs</FileName>
+      <FileName>Queues\QueueNode.cs</FileName>
     </TypeIdentifier>
+    <Lollipop Position="0.2" />
   </Struct>
   <Struct Name="Buffers.Managers.TnConfig" Collapsed="true">
-    <Position X="18.5" Y="7.5" Width="1.5" />
+    <Position X="20.75" Y="7.25" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
     <TypeIdentifier>
       <HashCode>AgBAAAAgAAAAAAAAAAAAAAAAACAAAAAAAQAAAAAAAAA=</HashCode>
       <FileName>Managers\Tn.cs</FileName>
     </TypeIdentifier>
   </Struct>
+  <Struct Name="Buffers.Memory.RWQuery">
+    <Position X="4.75" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAEAAgAAAAAAAAAAAAIAAAAAAAAAAAiA=</HashCode>
+      <FileName>Memory\RWQuery.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Struct>
   <Interface Name="Buffers.IBufferManager">
-    <Position X="12.25" Y="1.25" Width="4" />
+    <Position X="14.5" Y="1.25" Width="4" />
     <TypeIdentifier />
   </Interface>
-  <Interface Name="Buffers.Queues.IQueue">
-    <Position X="5" Y="1.25" Width="1.75" />
+  <Interface Name="Buffers.Queues.IQueue&lt;T&gt;">
+    <Position X="7.25" Y="1.25" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AABQAAAAAAAAgAAAAABAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>IABAAAAAAAAAgEAAAABAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
       <FileName>Queues\IQueue.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="Buffers.IBlockDevice">
-    <Position X="10.25" Y="1.25" Width="1.5" />
+    <Position X="12.5" Y="1.25" Width="1.5" />
     <TypeIdentifier />
   </Interface>
-  <Interface Name="Buffers.IFrame">
-    <Position X="3" Y="1.25" Width="1.5" />
+  <Interface Name="Buffers.Memory.IFrame">
+    <Position X="4.75" Y="1.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAACAAAAAAAAAABAAQAAAAAAAAAAAAAAQAAAAAAAAAA=</HashCode>
-      <FileName>!Base\IFrame.cs</FileName>
+      <FileName>Memory\IFrame.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Font Name="新宋体" Size="9" />
