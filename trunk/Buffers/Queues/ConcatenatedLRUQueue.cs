@@ -6,14 +6,31 @@ namespace Buffers.Queues
 {
 	public class ConcatenatedLRUQueue<T> : QueueGroup<T>
 	{
+		public ConcatenatedLRUQueue(IQueue<T> front)
+			: this(front, null) { }
+
 		public ConcatenatedLRUQueue(IQueue<T> front, IQueue<T> back)
 		{
-			queues = new IQueue<T>[] { front, back };
+			if (back == null)
+				queues = new IQueue<T>[] { front };
+			else
+				queues = new IQueue<T>[] { front, back };
+
 			BuildRoutes();
 		}
 
-		public uint FrontQueueSize { get { return queues[0].Size; } }
-		public uint BackQueueSize { get { return queues[1].Size; } }
+		public uint FrontQueueSize
+		{
+			get { return queues[0].Size; }
+		}
+		public uint BackQueueSize
+		{
+			get
+			{
+				Debug.Assert(queues.Length == 2);
+				return queues[1].Size;
+			}
+		}
 
 
 		public override QueueNode<T> Enqueue(T item)
@@ -23,7 +40,10 @@ namespace Buffers.Queues
 		}
 		public override T Dequeue()
 		{
-			return queues[1].Dequeue();
+			if (queues.Length == 1 || queues[1].Size == 0)
+				return queues[0].Dequeue();
+			else
+				return queues[1].Dequeue();
 		}
 
 		public override QueueNode<T> Access(QueueNode<T> node)
@@ -36,6 +56,7 @@ namespace Buffers.Queues
 
 		public QueueNode<T> BlowOneItem()
 		{
+			Debug.Assert(queues.Length == 2);
 			T victim = queues[0].Dequeue();
 			QueueNode<T> qn = queues[1].Enqueue(victim);
 			return NATOutwards(1, qn);
