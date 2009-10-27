@@ -22,7 +22,7 @@ namespace Buffers.Managers
 
 		uint windowSize;
 
-		int quota = 0;			//为非负就是在read窗口里，否则就是在write窗口里。
+		int quota_ = 0;			//为非负就是在read窗口里，否则就是在write窗口里。
 	
 		//Real data are all stored in map.
 		public Dictionary<uint, Frame> map = new Dictionary<uint, Frame>();
@@ -36,10 +36,20 @@ namespace Buffers.Managers
 			: base(dev)
 		{
 			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
-			windowSize = npages / 2;
+			windowSize = npages *1/ 2;
 		}
 
 		public override string Name { get { return "Blow by lyf"; } }
+
+		private int Quota
+		{
+			get { return quota_; }
+			set
+			{
+				quota_ = value;
+				Console.WriteLine(value);
+			}
+		}
 
 
 		int LastIndexOfResident(IList<uint> list)
@@ -53,7 +63,7 @@ namespace Buffers.Managers
 		}
 
 
-		bool IsInReadWindow(uint frameId)
+		bool IsInReadWindow(uint pageid)
 		{
 			int endResidentIndex = LastIndexOfResident(readQueue) + 1;
 			int begin;
@@ -61,18 +71,19 @@ namespace Buffers.Managers
 			if (endResidentIndex == 0)
 				return false;
 
-			if (quota < 0)
+			if (Quota < 0)
 				begin = endResidentIndex;
 			else
-				begin = Math.Max(0, endResidentIndex - quota);
+				begin = Math.Max(0, endResidentIndex - Quota);
 
-			int index = readQueue.IndexOf(frameId, begin,
+			int index = readQueue.IndexOf(pageid, begin,
 				Math.Min((int)windowSize, readQueue.Count - begin));
 
+			Console.WriteLine(Math.Min((int)windowSize, readQueue.Count - begin));
 			return index >= 0;
 		}
 
-		bool IsInWriteWindow(uint frameId)
+		bool IsInWriteWindow(uint pageid)
 		{
 			int endResidentIndex = LastIndexOfResident(writeQueue) + 1;
 			int begin;
@@ -80,14 +91,13 @@ namespace Buffers.Managers
 			if (endResidentIndex == 0)
 				return false;
 
-			if (-quota < 0)
+			if (-Quota < 0)
 				begin = endResidentIndex;
 			else
-				begin = Math.Max(0, endResidentIndex - (-quota));
+				begin = Math.Max(0, endResidentIndex - (-Quota));
 
-			int index = writeQueue.IndexOf(frameId, begin,
+			int index = writeQueue.IndexOf(pageid, begin,
 				Math.Min((int)windowSize, writeQueue.Count - begin));
-
 			return index >= 0;
 		}
 
@@ -130,7 +140,7 @@ namespace Buffers.Managers
 				//update 
 				if (IsInReadWindow(pageid))
 				{
-					//quota += -1;
+					Quota += -1;
 				}
 
 				readQueue.Remove(pageid);
@@ -171,7 +181,7 @@ namespace Buffers.Managers
 				//update
 				if (IsInWriteWindow(pageid))
 				{
-					//quota += 3;//TODO
+					Quota += 3;//TODO
 				}
 
 				writeQueue.Remove(pageid);
@@ -197,15 +207,17 @@ namespace Buffers.Managers
 
 		void OnPoolFull()
 		{
-			int checkReadIndex = LastIndexOfResident(readQueue);
-			int checkWriteIndex = LastIndexOfResident(writeQueue);
+			int lastReadResident = LastIndexOfResident(readQueue);
+			int lastWriteResident = LastIndexOfResident(writeQueue);
+			int checkReadIndex = lastReadResident, checkWriteIndex = lastWriteResident;
 			uint victim = uint.MaxValue;
+			int tmpQuota = Quota;
 
 			while (true)
 			{
-				if (quota >= 0)
+				if (tmpQuota >= 0)
 				{
-					quota--;
+					tmpQuota--;
 
 					if (checkReadIndex == -1)
 						continue;
@@ -224,7 +236,7 @@ namespace Buffers.Managers
 				}
 				else
 				{
-					quota+=3;
+					tmpQuota++;
 
 					if (checkWriteIndex == -1)
 						continue;
@@ -249,6 +261,19 @@ namespace Buffers.Managers
 			pool.FreeSlot(map[victim].DataSlotId);
 			map[victim].DataSlotId = -1;
 
+			int index = readQueue.IndexOf(victim);
+			if (index != -1 && index <= lastReadResident)
+			{
+				readQueue.Insert(lastReadResident + 1, victim);
+				readQueue.RemoveAt(index);
+			}
+
+			index = writeQueue.IndexOf(victim);
+			if (index != -1 && index <= lastWriteResident)
+			{
+				writeQueue.Insert(lastWriteResident + 1, victim);
+				writeQueue.RemoveAt(index);
+			}
 
 		}
 
@@ -264,7 +289,7 @@ namespace Buffers.Managers
 			}
 		}
 
-		int residentCount(IEnumerable<uint> list)
+		int ResidentCount(IEnumerable<uint> list)
 		{
 			int sum = 0;
 
