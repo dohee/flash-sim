@@ -15,7 +15,7 @@ namespace Buffers
 	{
 		private static ManagerGroup InitGroup()
 		{
-			const uint npages = 10;
+			const uint npages = 100;
 			uint ratio = (uint)Math.Round((double)Config.WriteCost / (double)Config.ReadCost);
 			ManagerGroup group = new ManagerGroup();
 
@@ -31,7 +31,8 @@ namespace Buffers
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
 			//group.Add(new CMFTByCat(npages));
 			//group.Add(new OldBlowerByCat(npages));
-			group.Add(new BlowerByCat(npages));
+			//group.Add(new BlowerByCat(npages));
+			group.Add(new BlowerByLyf(npages));
 
 			return group;
 		}
