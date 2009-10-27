@@ -49,10 +49,10 @@ namespace Buffers.Managers
 				quota_ = value;
 				int maxQuota = LastIndexOfResident(readQueue);
 				int minQuota = LastIndexOfResident(writeQueue);
-				if (quota_ >= maxQuota)
-					quota_ = maxQuota;
-				if (quota_ <= -minQuota)
-					quota_ = -minQuota;
+				//if (quota_ >= maxQuota)
+				//	quota_ = maxQuota;
+				//if (quota_ <= -minQuota)
+				//	quota_ = -minQuota;
 
 				Console.WriteLine(quota_);
 			}
@@ -256,7 +256,7 @@ namespace Buffers.Managers
 				}
 			}
 
-
+			Quota = tmpQuota;
 			//释放页面
 			WriteIfDirty(map[victim]);
 			pool.FreeSlot(map[victim].DataSlotId);
