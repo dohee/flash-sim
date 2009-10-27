@@ -65,7 +65,7 @@ namespace Buffers.Managers
 
 				queryQ.Dequeue(rwnode);
 	
-				if (queueIndex == 2U && !isWrite)
+				if (queueIndex == 2U && isRead)
 					blowReadQuota -= 1;
 				else if (queueIndex == 3U && isWrite)
 					blowReadQuota += 3;
@@ -153,6 +153,26 @@ namespace Buffers.Managers
 			{
 				f.SetNodeOf(!isWrite, queryQ.Enqueue(otherNRQueueIndex,
 					queryQ.Dequeue(f.GetNodeOf(!isWrite))));
+			}
+
+			// 限制 NR 队列的长度
+			while (queryQ.GetFrontSize(2) > pool.NPages / 2)
+			{
+				uint id = queryQ.Dequeue(2);
+				FrameWithRWQuery dying = map[id].ListNode.Value as FrameWithRWQuery;
+				dying.ClearNodeOfRead();
+
+				if (!dying.HasNodeOfWrite)
+					map.Remove(id);
+			}
+			while (queryQ.GetFrontSize(3) > pool.NPages / 2)
+			{
+				uint id = queryQ.Dequeue(3);
+				FrameWithRWQuery dying = map[id].ListNode.Value as FrameWithRWQuery;
+				dying.ClearNodeOfWrite();
+
+				if (!dying.HasNodeOfRead)
+					map.Remove(id);
 			}
 
 			// 成功
@@ -302,20 +322,20 @@ namespace Buffers.Managers
 
 		public bool HasNodeOf(bool isWrite)
 		{
-			return isWrite ? HasNodeOfRead : HasNodeOfWrite;
+			return !isWrite ? HasNodeOfRead : HasNodeOfWrite;
 		}
 		public QueueNode<uint> GetNodeOf(bool isWrite)
 		{
-			return isWrite ? NodeOfRead : NodeOfWrite;
+			return !isWrite ? NodeOfRead : NodeOfWrite;
 		}
 		public void SetNodeOf(bool isWrite, QueueNode<uint> value)
 		{
-			if (isWrite) NodeOfRead = value;
+			if (!isWrite) NodeOfRead = value;
 			else NodeOfWrite = value;
 		}
 		public void ClearNodeOf(bool isWrite)
 		{
-			if (isWrite) ClearNodeOfRead();
+			if (!isWrite) ClearNodeOfRead();
 			else ClearNodeOfWrite();
 		}
 	}
