@@ -45,8 +45,11 @@ namespace Buffers.Managers
 
 		public override string Name { get { return "Blow by lyf"; } }
 
-		bool inReadWindow(uint frameId)
+		bool IsInReadWindow(uint frameId)
 		{
+			if (lastReadResident == null)
+				return false;
+
 			//找到quota的页面
 			LinkedListNode<uint> frame = lastReadResident;
 			for (int i = 0; i < quota; i++)
@@ -73,9 +76,12 @@ namespace Buffers.Managers
 
 		}
 
-		bool inWriteWindow(uint frameId)
+		bool IsInWriteWindow(uint frameId)
 		{
 			//找到quota的页面
+			if (lastWriteResident == null)
+				return false;
+
 			LinkedListNode<uint> frame = lastWriteResident;
 			for (int i = 0; i < -quota; i++)
 			{
@@ -122,7 +128,7 @@ namespace Buffers.Managers
 
 				//add to queue;
 				readQueue.AddFirst(pageid);
-				blowFrame.readNode = readQueue.First;
+				blowFrame.ReadNode = readQueue.First;
 				if (lastReadResident == null)
 				{
 					lastReadResident = readQueue.First;
@@ -142,20 +148,20 @@ namespace Buffers.Managers
 				}
 
 				//update 
-				Debug.Assert(blowFrame.readNode != null);
-				if (inReadWindow(blowFrame.Id))
+				if (IsInReadWindow(blowFrame.Id))
 				{
 					quota += -1;
 				}
 
 				readQueue.AddFirst(blowFrame.Id);
-				if (lastReadResident.Value == blowFrame.readNode.Value)
+				if (lastReadResident == blowFrame.ReadNode)
 				{
-					Debug.Assert(lastReadResident == blowFrame.readNode);
 					lastReadResident = lastReadResident.Previous;
 				}
-				readQueue.Remove(blowFrame.readNode);
-				blowFrame.readNode = readQueue.First;
+				if (blowFrame.ReadNode!=null)
+					readQueue.Remove(blowFrame.ReadNode);
+
+				blowFrame.ReadNode = readQueue.First;
 			}
 		}
 
@@ -177,7 +183,7 @@ namespace Buffers.Managers
 
 				//add to wirte queue
 				writeQueue.AddFirst(pageid);
-				blowFrame.writeNode = writeQueue.First;
+				blowFrame.WriteNode = writeQueue.First;
 				if (lastWriteResident == null)
 				{
 					lastWriteResident = writeQueue.First;
@@ -195,19 +201,20 @@ namespace Buffers.Managers
 				}
 
 				//update
-				Debug.Assert(blowFrame.writeNode != null);
-				if (inWriteWindow(blowFrame.Id))
+				if (IsInWriteWindow(blowFrame.Id))
 				{
 					quota += 3;//TODO
 				}
 
 				writeQueue.AddFirst(blowFrame.Id);
-				if (lastWriteResident.Value == blowFrame.Id)
+				if (lastWriteResident == blowFrame.WriteNode)
 				{
 					lastWriteResident = lastWriteResident.Previous;
 				}
-				writeQueue.Remove(blowFrame.writeNode);
-				blowFrame.writeNode = writeQueue.First;
+				if (blowFrame.WriteNode!=null)
+					writeQueue.Remove(blowFrame.WriteNode);
+
+				blowFrame.WriteNode = writeQueue.First;
 			}
 
 			blowFrame.Dirty = true;
@@ -215,7 +222,7 @@ namespace Buffers.Managers
 		}
 
 
-		bool inQueue(LinkedList<uint> queue, uint targetFrame, uint lastFrame)
+		static bool IsInQueue(LinkedList<uint> queue, uint targetFrame, uint lastFrame)
 		{
 			foreach (uint item in queue)
 			{
@@ -234,35 +241,62 @@ namespace Buffers.Managers
 			LinkedListNode<uint> readFrame = lastReadResident;
 			LinkedListNode<uint> writeFrame = lastWriteResident;
 
-			uint victim=uint.MaxValue;
+			uint victim = uint.MaxValue;
 			for (; ; )
 			{
 				if (quota >= 0)
 				{
-					if(!inQueue(writeQueue, readFrame.Value, lastWriteResident.Value))
-					{
-						victim = readFrame.Value;
-						break;
-					}
 					quota--;
-					if(readFrame.Previous!=null)
+
+					if (readFrame != null)
+					{
+						bool isResident = map[readFrame.Value].Resident;
+						bool isInQueue = false;
+
+						if (writeFrame != null)
+							isInQueue = IsInQueue(writeQueue, readFrame.Value, writeFrame.Value);
+
+						if (isResident && !isInQueue)
+						{
+							victim = readFrame.Value;
+
+							if (readFrame == lastReadResident)
+								lastReadResident = lastReadResident.Previous;
+
+							break;
+						}
 						readFrame = readFrame.Previous;
+					}
 				}
 				else
 				{
-					if (!inQueue(readQueue, writeFrame.Value, lastReadResident.Value))
-					{
-						victim = writeFrame.Value;
-						break;
-					}
 					quota++;
-					if (writeFrame.Previous!=null)
+
+					if (writeFrame != null)
 					{
-						writeFrame = writeFrame.Previous;
+						bool isResident = map[writeFrame.Value].Resident;
+						bool isInQueue = false;
+
+						if (readFrame != null)
+							isInQueue = IsInQueue(readQueue, writeFrame.Value, readFrame.Value);
+
+						if (isResident && !isInQueue)
+						{
+							victim = writeFrame.Value;
+
+							if (writeFrame == lastWriteResident)
+								lastWriteResident = lastWriteResident.Previous;
+
+							break;
+						}
+						if (writeFrame.Previous != null)
+						{
+							writeFrame = writeFrame.Previous;
+						}
 					}
 				}
 			}
-			
+
 
 			//释放页面
 			WriteIfDirty(map[victim]);
