@@ -25,7 +25,7 @@ namespace Buffers
 			//group.Add(Wrapper.CreateLRUWSR(npages));
 			//group.Add(new Tn(npages, ratio, new TnConfig(false, false, 0, 0, false)));
 			//group.Add(new Tn(npages, ratio, new TnConfig(false, true, 0, 0, false)));
-			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, 0, 0, false)));
+			group.Add(new Tn(npages, ratio, new TnConfig(true, false, 0, 0, false)));
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, true, 0, 0, false)));
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, npages / 2, false)));
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));

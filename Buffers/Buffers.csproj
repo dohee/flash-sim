@@ -51,6 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Managers\BlowerByCat.cs" />
+    <Compile Include="Managers\BlowerByLyf.cs" />
+    <Compile Include="Memory\BlowFrame.cs" />
     <Compile Include="Memory\IFrame.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Devices\TrivalBlockDevice.cs" />
@@ -66,6 +68,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Managers\FrameBasedManager.cs" />
     <Compile Include="Managers\LRU.cs" />
+    <Compile Include="Queues\BlowQueue.cs" />
     <Compile Include="Queues\IRRLRUQueue.cs" />
     <Compile Include="Queues\MultiConcatLRUQueue.cs" />
     <Compile Include="Queues\FIFOQueue.cs" />
