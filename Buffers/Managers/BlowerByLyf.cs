@@ -47,7 +47,14 @@ namespace Buffers.Managers
 			set
 			{
 				quota_ = value;
-				Console.WriteLine(value);
+				int maxQuota = LastIndexOfResident(readQueue);
+				int minQuota = LastIndexOfResident(writeQueue);
+				if (quota_ >= maxQuota)
+					quota_ = maxQuota;
+				if (quota_ <= -minQuota)
+					quota_ = -minQuota;
+
+				Console.WriteLine(quota_);
 			}
 		}
 
@@ -68,9 +75,6 @@ namespace Buffers.Managers
 			int endResidentIndex = LastIndexOfResident(readQueue) + 1;
 			int begin;
 			
-			if (endResidentIndex == 0)
-				return false;
-
 			if (Quota < 0)
 				begin = endResidentIndex;
 			else
@@ -79,7 +83,7 @@ namespace Buffers.Managers
 			int index = readQueue.IndexOf(pageid, begin,
 				Math.Min((int)windowSize, readQueue.Count - begin));
 
-			Console.WriteLine(Math.Min((int)windowSize, readQueue.Count - begin));
+			//Console.WriteLine(Math.Min((int)windowSize, readQueue.Count - begin));
 			return index >= 0;
 		}
 
@@ -87,9 +91,6 @@ namespace Buffers.Managers
 		{
 			int endResidentIndex = LastIndexOfResident(writeQueue) + 1;
 			int begin;
-
-			if (endResidentIndex == 0)
-				return false;
 
 			if (-Quota < 0)
 				begin = endResidentIndex;
@@ -108,18 +109,18 @@ namespace Buffers.Managers
 		/// <param name="result"></param>
 		protected sealed override void DoRead(uint pageid, byte[] result)
 		{
-			Frame Frame;
+			Frame frame;
 
 			//if not in hash map
-			if (!map.TryGetValue(pageid, out Frame))
+			if (!map.TryGetValue(pageid, out frame))
 			{
 				//add to hash map
-				Frame = new Frame(pageid, pool.AllocSlot());
-				map[pageid] = Frame;
+				frame = new Frame(pageid, pool.AllocSlot());
+				map[pageid] = frame;
 
 				//load the page
-				dev.Read(pageid, pool[Frame.DataSlotId]);
-				pool[Frame.DataSlotId].CopyTo(result, 0);
+				dev.Read(pageid, pool[frame.DataSlotId]);
+				pool[frame.DataSlotId].CopyTo(result, 0);
 
 				//add to queue;
 				readQueue.Insert(0, pageid);
@@ -128,14 +129,7 @@ namespace Buffers.Managers
 			}
 			else//in hash map
 			{
-				Frame = map[pageid];
-
-				if (!Frame.Resident)     //miss non resident
-				{
-					Frame.DataSlotId = pool.AllocSlot();
-					dev.Read(pageid, pool[Frame.DataSlotId]);
-					pool[Frame.DataSlotId].CopyTo(result, 0);
-				}
+				frame = map[pageid];
 
 				//update 
 				if (IsInReadWindow(pageid))
@@ -143,6 +137,13 @@ namespace Buffers.Managers
 					Quota += -1;
 				}
 
+				
+				if (!frame.Resident)     //miss non resident
+				{
+					frame.DataSlotId = pool.AllocSlot();
+					dev.Read(pageid, pool[frame.DataSlotId]);
+					pool[frame.DataSlotId].CopyTo(result, 0);
+				}
 				readQueue.Remove(pageid);
 				readQueue.Insert(0, pageid);
 			}
@@ -155,14 +156,14 @@ namespace Buffers.Managers
 		/// <param name="data"></param>
 		protected sealed override void DoWrite(uint pageid, byte[] data)
 		{
-			Frame Frame;
+			Frame frame;
 
 			//if not in hash map
-			if (!map.TryGetValue(pageid, out Frame))
+			if (!map.TryGetValue(pageid, out frame))
 			{
 				//add to hash map
-				Frame = new Frame(pageid, pool.AllocSlot());
-				map[pageid] = Frame;
+				frame = new Frame(pageid, pool.AllocSlot());
+				map[pageid] = frame;
 
 				//add to wirte queue
 				writeQueue.Insert(0,pageid);
@@ -171,12 +172,7 @@ namespace Buffers.Managers
 			}
 			else//in hash map
 			{
-				Frame = map[pageid];
-
-				if (!Frame.Resident)     //miss non resident allocate a slot
-				{
-					Frame.DataSlotId = pool.AllocSlot();
-				}
+				frame = map[pageid];
 
 				//update
 				if (IsInWriteWindow(pageid))
@@ -184,12 +180,17 @@ namespace Buffers.Managers
 					Quota += 3;//TODO
 				}
 
+				if (!frame.Resident)     //miss non resident allocate a slot
+				{
+					frame.DataSlotId = pool.AllocSlot();
+				}
+
 				writeQueue.Remove(pageid);
 				writeQueue.Insert(0, pageid);
 			}
 
-			Frame.Dirty = true;
-			data.CopyTo(pool[Frame.DataSlotId], 0);
+			frame.Dirty = true;
+			data.CopyTo(pool[frame.DataSlotId], 0);
 		}
 
 
