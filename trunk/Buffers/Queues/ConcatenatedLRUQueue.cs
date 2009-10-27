@@ -34,6 +34,16 @@ namespace Buffers.Queues
 			}
 		}
 
+		public override IEnumerator<T> GetEnumerator()
+		{
+			if (queues.Length == 2)
+				foreach (T item in queues[1])
+					yield return item;
+
+			foreach (T item in queues[0])
+				yield return item;
+		}
+
 
 		public override QueueNode<T> Enqueue(T item)
 		{
