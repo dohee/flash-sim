@@ -264,6 +264,17 @@ namespace Buffers.Managers
 			}
 		}
 
+		int residentCount(IEnumerable<uint> list)
+		{
+			int sum = 0;
+
+			foreach (uint item in list)
+				if (map[item].Resident)
+					sum++;
+
+			return sum;
+		}
+
 		protected void WriteIfDirty(IFrame frame)
 		{
 			if (frame.Dirty)
