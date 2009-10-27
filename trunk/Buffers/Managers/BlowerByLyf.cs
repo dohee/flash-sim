@@ -214,6 +214,18 @@ namespace Buffers.Managers
 			data.CopyTo(pool[blowFrame.DataSlotId], 0);
 		}
 
+
+		bool inQueue(LinkedList<uint> queue, uint targetFrame, uint lastFrame)
+		{
+			foreach (uint item in queue)
+			{
+				if(item==targetFrame)
+					return true;
+				if (item == lastFrame)
+					return false;
+			}
+			return false;//ifnull
+		}
 		/// <summary>
 		/// 
 		/// </summary>
@@ -222,15 +234,42 @@ namespace Buffers.Managers
 			LinkedListNode<uint> readFrame = lastReadResident;
 			LinkedListNode<uint> writeFrame = lastWriteResident;
 
+			uint victim=uint.MaxValue;
 			for (; ; )
 			{
-				
+				if (quota >= 0)
+				{
+					if(!inQueue(writeQueue, readFrame.Value, lastWriteResident.Value))
+					{
+						victim = readFrame.Value;
+						break;
+					}
+					quota--;
+					if(readFrame.Previous!=null)
+						readFrame = readFrame.Previous;
+				}
+				else
+				{
+					if (!inQueue(readQueue, writeFrame.Value, lastReadResident.Value))
+					{
+						victim = writeFrame.Value;
+						break;
+					}
+					quota++;
+					if (writeFrame.Previous!=null)
+					{
+						writeFrame = writeFrame.Previous;
+					}
+				}
 			}
+			
 
 			//释放页面
-			//WriteIfDirty(minFrame);
-			//pool.FreeSlot(minFrame.DataSlotId);
-			//map[minFrame.Id].DataSlotId = -1;
+			WriteIfDirty(map[victim]);
+			pool.FreeSlot(map[victim].DataSlotId);
+			map[victim].DataSlotId = -1;
+
+
 		}
 
 
