@@ -17,19 +17,15 @@ namespace Buffers.Managers
 
 		//
 		//An auxiliary data structure, only page id is used. store read and write operation separately.
-		LinkedList<uint> readQueue = new LinkedList<uint>();
-		LinkedList<uint> writeQueue = new LinkedList<uint>();
-
-		LinkedListNode<uint> lastReadResident;
-		LinkedListNode<uint> lastWriteResident;
+		List<uint> readQueue = new List<uint>();
+		List<uint> writeQueue = new List<uint>();
 
 		uint windowSize;
 
 		int quota = 0;			//为非负就是在read窗口里，否则就是在write窗口里。
-		
-
+	
 		//Real data are all stored in map.
-		public Dictionary<uint, BlowFrame> map = new Dictionary<uint, BlowFrame>();
+		public Dictionary<uint, Frame> map = new Dictionary<uint, Frame>();
 
 		public BlowerByLyf(uint npages)
 			: this(null, npages)
@@ -45,65 +41,54 @@ namespace Buffers.Managers
 
 		public override string Name { get { return "Blow by lyf"; } }
 
+
+		int LastIndexOfResident(IList<uint> list)
+		{
+			for (int i = list.Count - 1; i >= 0; i--)
+			{
+				if (map[list[i]].Resident)
+					return i;
+			}
+			return -1;
+		}
+
+
 		bool IsInReadWindow(uint frameId)
 		{
-			if (lastReadResident == null)
+			int endResidentIndex = LastIndexOfResident(readQueue) + 1;
+			int begin;
+			
+			if (endResidentIndex == 0)
 				return false;
 
-			//找到quota的页面
-			LinkedListNode<uint> frame = lastReadResident;
-			for (int i = 0; i < quota; i++)
-			{
-				if (frame.Previous != null)
-				{
-					frame = frame.Previous;
-				}
-			}
+			if (quota < 0)
+				begin = endResidentIndex;
+			else
+				begin = Math.Max(0, endResidentIndex - quota);
 
-			//看看是不是在窗口里
-			for (int i = 0; i < windowSize; i++)
-			{
-				if (frame.Value == frameId)
-				{
-					return true;
-				}
-				if (frame.Next != null)
-				{
-					frame = frame.Next;
-				}
-			}
-			return false;
+			int index = readQueue.IndexOf(frameId, begin,
+				Math.Min((int)windowSize, readQueue.Count - begin));
 
+			return index >= 0;
 		}
 
 		bool IsInWriteWindow(uint frameId)
 		{
-			//找到quota的页面
-			if (lastWriteResident == null)
+			int endResidentIndex = LastIndexOfResident(writeQueue) + 1;
+			int begin;
+
+			if (endResidentIndex == 0)
 				return false;
 
-			LinkedListNode<uint> frame = lastWriteResident;
-			for (int i = 0; i < -quota; i++)
-			{
-				if (frame.Previous != null)
-				{
-					frame = frame.Previous;
-				}
-			}
+			if (-quota < 0)
+				begin = endResidentIndex;
+			else
+				begin = Math.Max(0, endResidentIndex - (-quota));
 
-			//看看是不是在窗口里
-			for (int i = 0; i < windowSize; i++)
-			{
-				if (frame.Value == frameId)
-				{
-					return true;
-				}
-				if (frame.Next != null)
-				{
-					frame = frame.Next;
-				}
-			}
-			return false;
+			int index = writeQueue.IndexOf(frameId, begin,
+				Math.Min((int)windowSize, writeQueue.Count - begin));
+
+			return index >= 0;
 		}
 
 		/// <summary>
@@ -113,55 +98,43 @@ namespace Buffers.Managers
 		/// <param name="result"></param>
 		protected sealed override void DoRead(uint pageid, byte[] result)
 		{
-			BlowFrame blowFrame;
+			Frame Frame;
 
 			//if not in hash map
-			if (!map.TryGetValue(pageid, out blowFrame))
+			if (!map.TryGetValue(pageid, out Frame))
 			{
 				//add to hash map
-				blowFrame = new BlowFrame(pageid, pool.AllocSlot());
-				map[pageid] = blowFrame;
+				Frame = new Frame(pageid, pool.AllocSlot());
+				map[pageid] = Frame;
 
 				//load the page
-				dev.Read(pageid, pool[blowFrame.DataSlotId]);
-				pool[blowFrame.DataSlotId].CopyTo(result, 0);
+				dev.Read(pageid, pool[Frame.DataSlotId]);
+				pool[Frame.DataSlotId].CopyTo(result, 0);
 
 				//add to queue;
-				readQueue.AddFirst(pageid);
-				blowFrame.ReadNode = readQueue.First;
-				if (lastReadResident == null)
-				{
-					lastReadResident = readQueue.First;
-				}
+				readQueue.Insert(0, pageid);
 
 				//(to be added) if the queue exceed a certain threshold, one frame should be kicked off.
 			}
 			else//in hash map
 			{
-				blowFrame = map[pageid];
+				Frame = map[pageid];
 
-				if (!blowFrame.Resident)     //miss non resident
+				if (!Frame.Resident)     //miss non resident
 				{
-					blowFrame.DataSlotId = pool.AllocSlot();
-					dev.Read(pageid, pool[blowFrame.DataSlotId]);
-					pool[blowFrame.DataSlotId].CopyTo(result, 0);
+					Frame.DataSlotId = pool.AllocSlot();
+					dev.Read(pageid, pool[Frame.DataSlotId]);
+					pool[Frame.DataSlotId].CopyTo(result, 0);
 				}
 
 				//update 
-				if (IsInReadWindow(blowFrame.Id))
+				if (IsInReadWindow(pageid))
 				{
-					quota += -1;
+					//quota += -1;
 				}
 
-				readQueue.AddFirst(blowFrame.Id);
-				if (lastReadResident == blowFrame.ReadNode)
-				{
-					lastReadResident = lastReadResident.Previous;
-				}
-				if (blowFrame.ReadNode!=null)
-					readQueue.Remove(blowFrame.ReadNode);
-
-				blowFrame.ReadNode = readQueue.First;
+				readQueue.Remove(pageid);
+				readQueue.Insert(0, pageid);
 			}
 		}
 
@@ -172,53 +145,41 @@ namespace Buffers.Managers
 		/// <param name="data"></param>
 		protected sealed override void DoWrite(uint pageid, byte[] data)
 		{
-			BlowFrame blowFrame;
+			Frame Frame;
 
 			//if not in hash map
-			if (!map.TryGetValue(pageid, out blowFrame))
+			if (!map.TryGetValue(pageid, out Frame))
 			{
 				//add to hash map
-				blowFrame = new BlowFrame(pageid, pool.AllocSlot());
-				map[pageid] = blowFrame;
+				Frame = new Frame(pageid, pool.AllocSlot());
+				map[pageid] = Frame;
 
 				//add to wirte queue
-				writeQueue.AddFirst(pageid);
-				blowFrame.WriteNode = writeQueue.First;
-				if (lastWriteResident == null)
-				{
-					lastWriteResident = writeQueue.First;
-				}
+				writeQueue.Insert(0,pageid);
 
 				//(to be added) if the queue exceed a certain threshold, one frame should be kicked off.
 			}
 			else//in hash map
 			{
-				blowFrame = map[pageid];
+				Frame = map[pageid];
 
-				if (!blowFrame.Resident)     //miss non resident allocate a slot
+				if (!Frame.Resident)     //miss non resident allocate a slot
 				{
-					blowFrame.DataSlotId = pool.AllocSlot();
+					Frame.DataSlotId = pool.AllocSlot();
 				}
 
 				//update
-				if (IsInWriteWindow(blowFrame.Id))
+				if (IsInWriteWindow(pageid))
 				{
-					quota += 3;//TODO
+					//quota += 3;//TODO
 				}
 
-				writeQueue.AddFirst(blowFrame.Id);
-				if (lastWriteResident == blowFrame.WriteNode)
-				{
-					lastWriteResident = lastWriteResident.Previous;
-				}
-				if (blowFrame.WriteNode!=null)
-					writeQueue.Remove(blowFrame.WriteNode);
-
-				blowFrame.WriteNode = writeQueue.First;
+				writeQueue.Remove(pageid);
+				writeQueue.Insert(0, pageid);
 			}
 
-			blowFrame.Dirty = true;
-			data.CopyTo(pool[blowFrame.DataSlotId], 0);
+			Frame.Dirty = true;
+			data.CopyTo(pool[Frame.DataSlotId], 0);
 		}
 
 
@@ -233,67 +194,52 @@ namespace Buffers.Managers
 			}
 			return false;//ifnull
 		}
-		/// <summary>
-		/// 
-		/// </summary>
+
 		void OnPoolFull()
 		{
-			LinkedListNode<uint> readFrame = lastReadResident;
-			LinkedListNode<uint> writeFrame = lastWriteResident;
-
+			int checkReadIndex = LastIndexOfResident(readQueue);
+			int checkWriteIndex = LastIndexOfResident(writeQueue);
 			uint victim = uint.MaxValue;
-			for (; ; )
+
+			while (true)
 			{
 				if (quota >= 0)
 				{
 					quota--;
 
-					if (readFrame != null)
-					{
-						bool isResident = map[readFrame.Value].Resident;
-						bool isInQueue = false;
+					if (checkReadIndex == -1)
+						continue;
 
-						if (writeFrame != null)
-							isInQueue = IsInQueue(writeQueue, readFrame.Value, writeFrame.Value);
+					uint pageid = readQueue[checkReadIndex];
+					checkReadIndex--;
 
-						if (isResident && !isInQueue)
-						{
-							victim = readFrame.Value;
+					if (!map[pageid].Resident)
+						continue;
 
-							if (readFrame == lastReadResident)
-								lastReadResident = lastReadResident.Previous;
+					if (writeQueue.IndexOf(pageid, 0, checkWriteIndex + 1) >= 0)
+						continue;
 
-							break;
-						}
-						readFrame = readFrame.Previous;
-					}
+					victim = pageid;
+					break;
 				}
 				else
 				{
-					quota++;
+					quota+=3;
 
-					if (writeFrame != null)
-					{
-						bool isResident = map[writeFrame.Value].Resident;
-						bool isInQueue = false;
+					if (checkWriteIndex == -1)
+						continue;
 
-						if (readFrame != null)
-							isInQueue = IsInQueue(readQueue, writeFrame.Value, readFrame.Value);
+					uint pageid = writeQueue[checkWriteIndex];
+					checkWriteIndex--;
 
-						if (isResident && !isInQueue)
-						{
-							victim = writeFrame.Value;
+					if (!map[pageid].Resident)
+						continue;
 
-							if (writeFrame == lastWriteResident)
-								lastWriteResident = lastWriteResident.Previous;
+					if (readQueue.IndexOf(pageid, 0, checkReadIndex + 1) >= 0)
+						continue;
 
-							break;
-						}
-						if (writeFrame.Previous != null)
-						{
-							writeFrame = writeFrame.Previous;
-						}
-					}
+					victim = pageid;
+					break;
 				}
 			}
 
