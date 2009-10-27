@@ -19,7 +19,7 @@ namespace Buffers
 			uint ratio = (uint)Math.Round((double)Config.WriteCost / (double)Config.ReadCost);
 			ManagerGroup group = new ManagerGroup();
 
-			//group.Add(new LRU(npages));
+			group.Add(new LRU(npages));
 			//group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
 			//group.Add(Wrapper.CreateCFLRUD(npages));
 			//group.Add(Wrapper.CreateLRUWSR(npages));
@@ -31,7 +31,7 @@ namespace Buffers
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
 			//group.Add(new CMFTByCat(npages));
 			//group.Add(new OldBlowerByCat(npages));
-			//group.Add(new BlowerByCat(npages));
+			group.Add(new BlowerByCat(npages));
 			group.Add(new BlowerByLyf(npages));
 
 			return group;

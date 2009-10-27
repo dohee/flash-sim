@@ -66,9 +66,9 @@ namespace Buffers.Managers
 				queryQ.Dequeue(rwnode);
 	
 				if (queueIndex == 2U && isRead)
-					blowReadQuota -= 1;
+					/*blowReadQuota -= 1*/;
 				else if (queueIndex == 3U && isWrite)
-					blowReadQuota += 3;
+					/*blowReadQuota += 3*/;
 			}
 
 			if (!f.Resident)
@@ -103,7 +103,7 @@ namespace Buffers.Managers
 				else
 				{
 					r = TryBlow(true);
-					++blowReadQuota;
+					blowReadQuota+=3;
 				}
 
 				if (r == BlowResult.Succeeded)
@@ -187,6 +187,7 @@ namespace Buffers.Managers
 	}
 
 
+	[Obsolete()]
 	public sealed class OldBlowerByCat : FrameBasedManager
 	{
 		private FIFOQueue<IFrame> fifoQ = new FIFOQueue<IFrame>();
