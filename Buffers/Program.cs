@@ -102,7 +102,7 @@ namespace Buffers
 					break;
 #endif
 #if ANALISE
-				if (count == 372)
+				if (count == 149)
 					Console.WriteLine("Pause here");
 #endif
 
@@ -118,7 +118,7 @@ namespace Buffers
 					while (length-- != 0)
 						group.Write(pageid++, data);
 
-				AnalyseAndOutput(group, count);
+				//AnalyseAndOutput(group, count);
 			}
 
 			group.Flush();
@@ -173,15 +173,15 @@ namespace Buffers
 			}
 		}
 
-		private static void AnalyseAndOutput(ManagerGroup group, int count)
+/*		private static void AnalyseAndOutput(ManagerGroup group, int count)
 		{
 #if ANALISE
 			if (FindBug(group, count))
 				Console.WriteLine(count);
 #endif
-		}
+		}*/
 
-#if ANALISE
+/*#if ANALISE
 		private static bool FindBug(ManagerGroup group, int count)
 		{
 			var lyfMap = ((CMFT)group[1]).map;
@@ -215,7 +215,7 @@ namespace Buffers
 
 			return false;
 		}
-#endif
+#endif*/
 
 	}
 }
