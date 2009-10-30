@@ -9,7 +9,8 @@ using System.Diagnostics;
 //Blower. Determine victim by two separate queues. each queue stores read and write operation separately. 
 namespace Buffers.Managers
 {
-	class BlowerByLyf : BufferManagerBase
+	//这一版尝试不移动page的位置。也就是说resident队列里也可能有nonresident的页面。
+	class BlowerByLyf2 : BufferManagerBase
 	{
 		//the first version eliminate single queue.
 		//LRUQueue single;        //Store the pages that was only referenced once. limited by a threshold. From 2Q
@@ -94,12 +95,12 @@ namespace Buffers.Managers
 			//System.Console.WriteLine("Cleannum:" + (CleanCount(readQueue) + CleanCount(writeQueue)));
 		}
 
-		public BlowerByLyf(uint npages)
+		public BlowerByLyf2(uint npages)
 			: this(null, npages)
 		{
 		}
 
-		public BlowerByLyf(IBlockDevice dev, uint npages)
+		public BlowerByLyf2(IBlockDevice dev, uint npages)
 			: base(dev)
 		{
 			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
@@ -108,7 +109,7 @@ namespace Buffers.Managers
 			//writeLimit = (int)npages * 2 / 3;
 		}
 
-		public override string Name { get { return "Blow by lyf"; } }
+		public override string Name { get { return "Blow2 by lyf"; } }
 
 		/*		private int Quota
 				{
@@ -140,7 +141,7 @@ namespace Buffers.Managers
 				}
 			}
 
-#if DEBUG //判断是不是前面还有nonresident的。
+/*#if DEBUG //判断是不是前面还有nonresident的。
 			for (int i = index; i >= 0; i--)
 			{
 				if (!map[list[i]].Resident)
@@ -148,8 +149,8 @@ namespace Buffers.Managers
 					Debug.Assert(false);
 				}
 			}
-#endif
-			Debug.Assert(index <= pool.NPages);
+#endif*/
+			//Debug.Assert(index <= pool.NPages);
 			return index;
 			//return -1;
 		}
@@ -226,11 +227,11 @@ namespace Buffers.Managers
 				if (!frame.Resident)     //miss non resident
 				{
 					//在writeQueue里前移到resident里
-					int index = writeQueue.IndexOf(pageid);
-					if (index != -1)
-					{
-						writeQueue.RemoveAt(index);
-					}
+					//int index = writeQueue.IndexOf(pageid);
+					//if (index != -1)
+					//{
+					//    writeQueue.RemoveAt(index);
+					//}
 
 
 					frame.DataSlotId = pool.AllocSlot();
@@ -238,12 +239,12 @@ namespace Buffers.Managers
 					pool[frame.DataSlotId].CopyTo(result, 0);
 
 					//移到resident的末尾
-					if (index != -1)
-					{
-						int lastWriteResident = LastIndexOfResident(writeQueue);
-						Debug.Assert(index > lastWriteResident);
-						writeQueue.Insert(lastWriteResident + 1, pageid);
-					}
+					//if (index != -1)
+					//{
+					//    int lastWriteResident = LastIndexOfResident(writeQueue);
+					//    Debug.Assert(index > lastWriteResident);
+					//    writeQueue.Insert(lastWriteResident + 1, pageid);
+					//}
 				}
 				readQueue.Remove(pageid);
 				readQueue.Insert(0, pageid);
@@ -297,21 +298,21 @@ namespace Buffers.Managers
 				if (!frame.Resident)     //miss non resident allocate a slot
 				{
 					//在readQueue里前移到resident里
-					int index = readQueue.IndexOf(pageid);
-					if (index != -1)
-					{
-						readQueue.RemoveAt(index);
-					}
+					//int index = readQueue.IndexOf(pageid);
+					//if (index != -1)
+					//{
+					//    readQueue.RemoveAt(index);
+					//}
 
 					frame.DataSlotId = pool.AllocSlot();
 
 					//移到resident的末尾
-					if (index != -1)
-					{
-						int lastReadResident = LastIndexOfResident(readQueue);
-						Debug.Assert(index > lastReadResident);
-						readQueue.Insert(lastReadResident + 1, pageid);
-					}
+					//if (index != -1)
+					//{
+					//    int lastReadResident = LastIndexOfResident(readQueue);
+					//    Debug.Assert(index > lastReadResident);
+					//    readQueue.Insert(lastReadResident + 1, pageid);
+					//}
 				}
 
 				writeQueue.Remove(pageid);
@@ -401,7 +402,7 @@ namespace Buffers.Managers
 			pool.FreeSlot(map[victim].DataSlotId);
 			map[victim].DataSlotId = -1;
 
-			int index = readQueue.IndexOf(victim);
+/*			int index = readQueue.IndexOf(victim);
 			if (index != -1 && index <= lastReadResident)
 			{
 				readQueue.Insert(lastReadResident + 1, victim);
@@ -413,7 +414,7 @@ namespace Buffers.Managers
 			{
 				writeQueue.Insert(lastWriteResident + 1, victim);
 				writeQueue.RemoveAt(index);
-			}
+			}*/
 		}
 
 
