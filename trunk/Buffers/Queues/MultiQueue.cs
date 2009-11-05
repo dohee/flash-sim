@@ -7,15 +7,24 @@ namespace Buffers.Queues
 {
 	public interface IConcatHandler<T>
 	{
-		MultiQueue<T> Queue{get;}
+		MultiList<T> MultiList { get; }
 	}
 
-	public class MultiQueue<T>
+	public class MultiListNode<T>
+	{
+		public MultiList<T> MultiList { get; }
+		public MultiListNode<T> Previous { get; }
+		public MultiListNode<T> Next { get; }
+		public T Value { get; }
+	}
+
+
+	public class MultiList<T>
 	{
 		/// <summary>
 		/// QueueIndex -> IQueue
 		/// </summary>
-		protected Queue<T>[] queues = null;
+		protected LinkedList<T>[] queues = null;
 
 		/// <summary>
 		/// QueueIndex -> NextQueueIndex
@@ -28,9 +37,9 @@ namespace Buffers.Queues
 		protected int[] prevs = null;
 
 
-		public MultiQueue(IEnumerable<Queue<T>> queues)
+		public MultiList(IEnumerable<LinkedList<T>> queues)
 		{
-			this.queues = queues.ToArray<Queue<T>>();
+			this.queues = queues.ToArray<LinkedList<T>>();
 			this.nexts = new int[this.queues.Length];
 			this.prevs = new int[this.queues.Length];
 
@@ -41,14 +50,21 @@ namespace Buffers.Queues
 			}
 		}
 
+		/// <summary>
+		/// 设置一个连接。
+		/// </summary>
+		/// <param name="index">位于连接头部的队列。</param>
+		/// <param name="next">位于连接尾部的队列。为 -1 表明删除此连接。</param>
+		/// <returns></returns>
 		public IConcatHandler<T> SetConcat(int index, int next)
 		{
+			Debug.Assert(index > 0 && index < queues.Length);
 			Debug.Assert(next > -1 && next < queues.Length);
 
-			if (nexts[index] != -1)
-			{
-				
-			}
+			BreakConcat(index);
+
+			if (next == -1)
+				return null;
 
 			nexts[index] = next;
 			prevs[next] = index;
@@ -56,11 +72,25 @@ namespace Buffers.Queues
 		}
 
 		/// <summary>
+		/// 打破第 index 个队列与跟第 index 个队列尾部相连的队列的连接。
+		/// </summary>
+		private void BreakConcat(int index)
+		{
+			int next = nexts[index];
+			nexts[index] = -1;
+
+			if (next != -1)
+				prevs[next] = -1;
+		}
+
+		/// <summary>
 		/// 移除并返回位于第 index 个队列开始处的对象。
 		/// </summary>
 		public T Dequeue(int index)
 		{
-			return queues[index].Dequeue();
+			T item = queues[index].Last.Value;
+			queues[index].RemoveLast();
+			return item;
 		}
 
 
@@ -68,16 +98,16 @@ namespace Buffers.Queues
 
 		private class ConcatHandler : IConcatHandler<T>
 		{
-			public readonly MultiQueue<T> ThisObject;
-			public readonly int QueueIndex;
+			public readonly MultiList<T> ThisObject;
+			public readonly int Index;
 
-			public ConcatHandler(MultiQueue<T> obj, int index)
+			public ConcatHandler(MultiList<T> obj, int index)
 			{
 				ThisObject = obj;
-				QueueIndex = index;
+				Index = index;
 			}
 
-			public MultiQueue<T> Queue
+			public MultiList<T> MultiList
 			{
 				get { return ThisObject; }
 			}

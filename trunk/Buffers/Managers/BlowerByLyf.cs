@@ -38,6 +38,7 @@ namespace Buffers.Managers
 			get
 			{
 				if (isLimitRead)
+
 				{
 					int readResidentSize = LastIndexOfResident(readQueue) + 1;
 					return (readResidentSize - readLimit);
