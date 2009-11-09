@@ -8,16 +8,13 @@ Great cost gap exists between read and write a page for flash memory. CMFT is pr
 
 The estimation of the popularity of one page is a problem. Direct idea is adopting real access frequency of a page which uses the number of operations on one page in a certain period time. Another idea is adopting access interval, the operation number between two continuous on one page. However, these don’t fit this situation properly. The costs above are read and write a page in flash memory, which is corresponding to the occurring number of these operations. Real access to the flash takes place when a page misses from buffer. We use IRR (Inter-Reference Recency in paper LIRS) to reflect the potential replace possibility of the page. IRR is defined as the pages accessed between two continuous accesses to a page. The following table1 is an example of the IRR of a page.
 
-{{{
-											Recency	IRR
-E 									x		0	inf
-D 		x					x				2	3
-C 				x							4	inf
-B 			x		x						3	1
-A 	x					x		x			1	1
-
-VTime	1	2	3	4	5	6	7	8	9	10		
-}}}
+||       ||   ||   ||   ||   ||   ||   ||   ||   ||   ||    || Recency || IRR ||
+||   E   ||   ||   ||   ||   ||   ||   ||   ||   || x ||    || 0 || inf ||
+||   D   ||   || x ||   ||   ||   ||   || x ||   ||   ||    || 2 || 3 ||
+||   C   ||   ||   ||   || x ||   ||   ||   ||   ||   ||    || 4 || inf ||
+||   B   ||   ||   || x ||   || x ||   ||   ||   ||   ||    || 3 || 1 ||
+||   A   || x ||   ||   ||   ||   || x ||   || x ||   ||    || 1 || 1 ||
+|| VTime || 1 || 2 || 3 || 4 || 5 || 6 || 7 || 8 || 9 || 10 ||  ||  ||
 
 Thus we have:  (Observation: the replace number of optimal replacement algorithm is no more than 2*IRR)
 
