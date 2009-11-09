@@ -23,7 +23,9 @@ IRR reflects the page number needed between two continuous accesses to a page. A
 This IRR can’t adjust itself when a page is hot for a while and then not accessed forever. For example, if page A is read twice in a short time and never read forever, the very short IRR is recorded and never updated. This will make a cold page seems hot forever. So we use recency of a page to fix the IRR. The recency of a page is number of pages accessed after a page is accessed (see table1). The recency of a page is the potential future IRR, as the IRR never less than corresponding recency. We use average of recency and the IRR to reflect the hotness of one page.
 
 CMFT gives each page a weight considering the popularity and the cost. The formula is defined as follows:
-{{{weight = readcost/(readrecency+readIRR) + writecost/(writerecency+writeIRR).}}}
+{{{
+weight = readcost/(readrecency+readIRR) + writecost/(writerecency+writeIRR)
+}}}
 
 The weight is the estimation of the benefit to hold this page in cache. Each time the page with the lowest weight will be selected as victim (example needed). 
 
@@ -43,8 +45,10 @@ When the cache is full, the resident page on the LRU side of the windows will be
 
 = Ananlysis =
 
-The Blow selects victim approximately according to the following formula:
-{{{weight = max(readcost*read frequency, writecost*write frequency)}}}
+The Blow selects victim approximately according to the following formula: 
+{{{
+weight = max(readcost*read frequency, writecost*write frequency)
+}}}
 
 Proof:
 
