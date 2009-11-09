@@ -29,7 +29,7 @@ weight = readcost/(readrecency+readIRR) + writecost/(writerecency+writeIRR)
 
 The weight is the estimation of the benefit to hold this page in cache. Each time the page with the lowest weight will be selected as victim (example needed). 
 
-=== Realization of CMFT ===
+== Realization of CMFT ==
 
 An access occurs to a page, this operation is recorded in an LRU Queue. Read and write operations to the same page are recorded as different entries in Queue. Each time a page is accessed the IRR is recorded. Read and write operations are recorded as different IRR. When a replacement is needed, the recency of a page is got and weight of each page is calculated using the above formula. The algorithm is as follows (algorithm needed).
 
@@ -43,7 +43,7 @@ The structure of Blow algorithm is illustrated in the figure2. Read and write op
  
 When the cache is full, the resident page on the LRU side of the windows will be checked first from the LRU end, if they are not in the resident queue of the other queue it will be selected as victim. Or page will be get in read and write queue in turn, if the page is not in the other queue, it is determined to be the replacement page.(Algorithm..) This algorithm can be implemented in the O(1) time in average.(a proof need?) The best time state-of-art algorithm replacement for flash memory is also O(1) in average. 
 
-= Ananlysis =
+=== Ananlysis ===
 
 The Blow selects victim approximately according to the following formula: 
 {{{
