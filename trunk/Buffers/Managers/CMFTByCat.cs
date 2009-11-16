@@ -7,8 +7,9 @@ namespace Buffers.Managers
 {
 	public sealed class CMFTByCat : FrameBasedManager
 	{
+		private uint opCounter = 0;
 		private FIFOQueue<IFrame> fifoQ = new FIFOQueue<IFrame>();
-		private IRRQueue irrQ = new IRRQueue();
+		//private IRRQueue irrQ = new IRRQueue();
 
 		public CMFTByCat(uint npages)
 			: this(null, npages) { }
@@ -26,9 +27,9 @@ namespace Buffers.Managers
 
 		protected override void OnPoolFull()
 		{
-			var residentList = new List<IRRFrame>();
+			//var residentList = new List<IRRFrame>();
 
-			for (int i = 0; i < irrQ.Count; i++)
+			/*for (int i = 0; i < irrQ.Count; i++)
 			{
 				var pair = irrQ[i];
 				IRRFrame f = map[pair.PageId].ListNode.Value as IRRFrame;
@@ -42,13 +43,21 @@ namespace Buffers.Managers
 					f.WriteRecency = (uint)(irrQ.Count - i);
 				else
 					f.ReadRecency = (uint)(irrQ.Count - i);
-			}
+			}*/
 
 			double minPower = Double.MaxValue;
 			IRRFrame minFrame = null;
 
-			foreach (var f in residentList)
+			foreach (var mapEntry in map.Values)
 			{
+				
+				IRRFrame f = (IRRFrame) mapEntry.ListNode.Value;
+				if (!f.Resident)
+				{
+					continue;
+				}
+				f.ReadRecency = opCounter - f.lastReadRecency;
+				f.WriteRecency = opCounter - f.lastWriteRecency;
 				double power = f.GetPower();
 				if (power < minPower)
 				{
@@ -64,30 +73,46 @@ namespace Buffers.Managers
 
 		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
 		{
+			opCounter++;
 			IRRFrame irrf = node.ListNode.Value as IRRFrame;
 			if (!irrf.Resident)
 			{
 				irrf.DataSlotId = pool.AllocSlot();
-				if (!isWrite)
-					dev.Read(irrf.Id, pool[irrf.DataSlotId]);
+				dev.Read(irrf.Id, pool[irrf.DataSlotId]);
 			}
 
-			uint irr = irrQ.AccessIRR(irrf.Id, isWrite);
-
 			if (isWrite)
-				irrf.WriteIRR = irr;
+			{
+				irrf.WriteIRR = (irrf.lastWriteRecency==0)? 0:opCounter - irrf.lastWriteRecency;
+				irrf.lastWriteRecency = opCounter;
+			}
 			else
-				irrf.ReadIRR = irr;
+			{
+				irrf.ReadIRR = (irrf.lastReadRecency == 0) ? 0 : opCounter - irrf.lastReadRecency;
+				irrf.lastReadRecency = opCounter;
+			}
 
-			if (irr == 0)
-				irrQ.Enqueue(irrf.Id, isWrite);
+			//if (irr == 0)
+			//    irrQ.Enqueue(irrf.Id, isWrite);
 
 			return node;
 		}
 
 		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
 		{
-			irrQ.Enqueue(allocatedFrame.Id, isWrite);
+			opCounter++;
+			IRRFrame irrf = allocatedFrame as IRRFrame;
+			if (isWrite)
+			{
+				irrf.WriteIRR = (irrf.lastWriteRecency == 0) ? 0 : opCounter - irrf.lastWriteRecency;
+				irrf.lastWriteRecency = opCounter;
+			}
+			else
+			{
+				irrf.ReadIRR = (irrf.lastReadRecency == 0) ? 0 : opCounter - irrf.lastReadRecency;
+				irrf.lastReadRecency = opCounter;
+			}
+			//irrQ.Enqueue(allocatedFrame.Id, isWrite);
 			return fifoQ.Enqueue(allocatedFrame);
 		}
 
