@@ -12,6 +12,7 @@ namespace Buffers.Memory
 	{
 		private uint readIRR = 0, writeIRR = 0;
 		private uint readRecency = 0, writeRecency = 0;
+		public uint lastReadRecency = 0, lastWriteRecency = 0;
 
 		public IRRFrame(uint id) : base(id) { }
 		public IRRFrame(uint id, int slotid) : base(id, slotid) { }

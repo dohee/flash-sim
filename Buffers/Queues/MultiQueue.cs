@@ -12,10 +12,10 @@ namespace Buffers.Queues
 
 	public class MultiListNode<T>
 	{
-		public MultiList<T> MultiList { get; }
-		public MultiListNode<T> Previous { get; }
-		public MultiListNode<T> Next { get; }
-		public T Value { get; }
+		public MultiList<T> MultiList { get { return null; } }
+		public MultiListNode<T> Previous { get { return null; } }
+		public MultiListNode<T> Next { get { return null; } }
+		public T Value { get{return default(T); }}
 	}
 
 
