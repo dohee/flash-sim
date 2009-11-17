@@ -62,3 +62,15 @@ Second step: the victim selection process have the formula (readcost*read freque
 Improvement with a single queue (next step work)
 
 == Tn ==
+Tn apllies similiar idea of ARC. The main point is verification and self-tuning. Tn can learn the best parameter automatically from the "mistake" made by its previous decision. "Better Later than never". We stored the previous decision information for a while to detect whether the algorithm has ever made some mistakes before. This kind of mistake can be described as "if I had hold some page in cache, the page miss won't happen then". Although cache miss already happened, this fault experience provides a guild for the future stretegy. With the assumption of access pattern stability, this knowledge learnt will be effective in the near future and prevent the same mistake taking place again. Furthermore, Once the access pattern changes, cache missing is possible to increase accordingly. This missing would incur continuous adjustion of the algorithm which implement the self-tuning process.
+
+As illustrated in the follow figure, we store the clean and dirty page in separate queues. Each queue is a LRU queue and having CR+DR=cache size. The CR and DR pages are the resident pages in cache. In order to keep preious decision, the page IDs evicted are stored for a while in CNR and DNR. If the nonresident page are referred again, the algorithm will increase the length of corresponding Resident queue. For example, if CNR is hit the CR queue will be increased to hold more clean pages. With expectation that if I hold more clean pages in the cache, this missing wouldn't happen. Length of DR is decreased as the formula CR+DR=cache size stands for ever. Next time if a empty frame slot is required by a new arrival page. The tail page of DR will be evicted.
+
+  Clean  =====CR=====------CNR-------
+  Dirty  =======DR========------DNR-------
+  Single ==SR==------SNR-------
+
+
+In flash memory, write and read have different cost, let RATIO = WRITECOST/READCOST. In order to reflect the different weight of the clean and Dirty page, a hit on DNR will cause a length adjust of RATIO, while the hit on CNR will cause only 1. CNR and DNR have the same limited length. As too long nonresident queue would respond slowly to the trace pattern change while too short will lead to slow learning. Here we set to the half of cache size, however, similar length have little effect on the performance. 
+
+The time complexity of Tn is O(1) in the worst case, nevertheless, other self-tuning algorithms is O(n) in the worst case. So Tn is very suitable to online processing.
