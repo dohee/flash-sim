@@ -60,3 +60,5 @@ Second step: the victim selection process have the formula (readcost*read freque
 
 
 Improvement with a single queue (next step work)
+
+== Tn ==
