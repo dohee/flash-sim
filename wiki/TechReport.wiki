@@ -66,8 +66,10 @@ Tn apllies similiar idea of ARC. The main point is verification and self-tuning.
 
 As illustrated in the follow figure, we store the clean and dirty page in separate queues. Each queue is a LRU queue and having CR+DR=cache size. The CR and DR pages are the resident pages in cache. In order to keep preious decision, the page IDs evicted are stored for a while in CNR and DNR. If the nonresident page are referred again, the algorithm will increase the length of corresponding Resident queue. For example, if CNR is hit the CR queue will be increased to hold more clean pages. With expectation that if I hold more clean pages in the cache, this missing wouldn't happen. Length of DR is decreased as the formula CR+DR=cache size stands for ever. Next time if a empty frame slot is required by a new arrival page. The tail page of DR will be evicted.
 
-  Clean  =====CR=====------CNR-------\\
-  Dirty  =======DR========------DNR-------\\
+  Clean  =====CR=====------CNR-------
+
+  Dirty  =======DR========------DNR-------
+
   Single ==SR==------SNR-------
 
 
