@@ -9,7 +9,8 @@ namespace ParseStrace
 {
 	class Program
 	{
-		static Regex regexLine = new Regex(@"(\w+)\((.+)\)\s+= (-?\d+)");
+		static Regex regexLine = new Regex(@"(\w+)\((.+)\)\s+= ((0x[\dabcdefABCDEF]+)|(-?\d+))");
+		static Regex regexPid = new Regex(@"^(\d+)\s");
 		static Regex regexOpen = new Regex(@"^\""(.+)\"",");
 		static Regex regexFirstArg = new Regex(@"^(\d+),");
 
@@ -32,20 +33,26 @@ namespace ParseStrace
 
 				string command = m.Groups[1].Value.TrimStart('_');
 				string arguments = m.Groups[2].Value;
+				
+				Match mpid = regexPid.Match(line);
+				int pid = 0;
+				int.TryParse(mpid.Groups[1].Value, out pid);
+
 
 				switch (command)
 				{
-					case "open": OnOpen(arguments, retvalue); break;
-					case "creat": OnOpen(arguments, retvalue); break;
-					case "close": OnClose(arguments); break;
-					case "read": OnReadWrite(false, arguments, retvalue); break;
-					case "write": OnReadWrite(true, arguments, retvalue); ; break;
-					case "lseek": OnLSeek(arguments, retvalue); break;
-					case "llseek": OnLLSeek(arguments, retvalue); break;
+					case "open": OnOpen(pid, arguments, retvalue); break;
+					case "creat": OnOpen(pid, arguments, retvalue); break;
+					case "close": OnClose(pid, arguments); break;
+					case "read": OnReadWrite(false, pid, arguments, retvalue); break;
+					case "write": OnReadWrite(true, pid, arguments, retvalue); break;
+					case "lseek": OnLSeek(pid, arguments, retvalue); break;
+					case "llseek": OnLLSeek(pid, arguments, retvalue); break;
 					default: break;
 				}
 			}
 
+			Output(Console.Out);
 		}
 
 
@@ -76,6 +83,20 @@ namespace ParseStrace
 			}
 		}
 
+		struct FileDesc
+		{
+			public readonly int PID;
+			public readonly int FD;
+
+			public FileDesc(int pid, int fd)
+			{
+				PID = pid;
+				FD = fd;
+			}
+
+			//TODO eq
+		}
+
 		class FileState
 		{
 			public readonly string Filename;
@@ -89,25 +110,27 @@ namespace ParseStrace
 
 
 		static List<IOItem> records = new List<IOItem>();
-		static Dictionary<int, FileState> curFiles = new Dictionary<int, FileState>();
+		static Dictionary<FileDesc, FileState> curFiles = new Dictionary<FileDesc, FileState>();
 
-		static void OnOpen(string args, long ret)
+		static void OnOpen(int pid, string args, long ret)
 		{
-			int fd = (int)ret;
+			FileDesc fd = new FileDesc(pid, (int)ret);
 			string filename = regexOpen.Match(args).Groups[1].Value;
 			Debug.Assert(!curFiles.ContainsKey(fd));
 			curFiles[fd] = new FileState(filename);
 		}
-
-		static void OnClose(string args)
+		static void OnClose(int pid, string args)
 		{
-			int fd = int.Parse(args);			
+			FileDesc fd = new FileDesc(pid, int.Parse(args));
 			curFiles.Remove(fd);
 		}
-
-		static void OnReadWrite(bool isWrite, string args, long ret)
+		static void OnReadWrite(bool isWrite, int pid, string args, long ret)
 		{
-			int fd = int.Parse(regexFirstArg.Match(args).Groups[1].Value);
+			int fdnum = int.Parse(regexFirstArg.Match(args).Groups[1].Value);
+			if (fdnum < 3)
+				return;
+
+			FileDesc fd = new FileDesc(pid, fdnum);
 			FileState fs;
 
 			if (!curFiles.TryGetValue(fd, out fs))
@@ -119,21 +142,44 @@ namespace ParseStrace
 			records.Add(new IOItem(fs.Filename, isWrite, fs.Position, ret));
 			fs.Position += ret;
 		}
-
-		static void OnLSeek(string args, long ret)
+		static void OnLSeek(int pid, string args, long ret)
 		{
-			int fd = int.Parse(regexFirstArg.Match(args).Groups[1].Value);
+			int fdnum = int.Parse(regexFirstArg.Match(args).Groups[1].Value);
+			FileDesc fd = new FileDesc(pid, fdnum);
 			Debug.Assert(curFiles.ContainsKey(fd));
 
 			FileState fs = curFiles[fd];
 			fs.Position = ret;
 		}
-
-		static void OnLLSeek(string args, long ret)
+		static void OnLLSeek(int pid, string args, long ret)
 		{
 			Debug.Assert(false);
 		}
 
 
+		static void Output(TextWriter writer)
+		{
+			//TODO fd
+			Dictionary<string, int> fileIndex = new Dictionary<string, int>();
+			const int kPagesize = 4096;
+
+			foreach (IOItem item in records)
+			{
+				int index;
+				if (!fileIndex.TryGetValue(item.Filename, out index))
+				{
+					index = fileIndex.Count;
+					fileIndex[item.Filename] = index;
+				}
+
+				Debug.Assert(index < kPagesize);
+				int pos = (int)(item.Position / kPagesize);
+				int pos2 = (int)((item.Position + item.Length) / kPagesize);
+				int len = pos2 - pos + 1;
+				pos += index * (int)(0x80000000L / kPagesize);
+
+				writer.WriteLine("{0}\t{1}\t{2}", pos, len, item.IsWrite ? 1 : 0);
+			}
+		}
 	}
 }
