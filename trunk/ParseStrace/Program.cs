@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -24,7 +25,9 @@ namespace ParseStrace
 				if (!m.Success)
 					continue;
 
-				long retvalue = long.Parse(m.Groups[3].Value);
+				long retvalue;
+				if (!long.TryParse(m.Groups[3].Value, out retvalue))
+					retvalue = long.Parse(m.Groups[3].Value.Substring(2), NumberStyles.HexNumber);
 
 				if (retvalue < 0)
 					continue;
@@ -36,10 +39,8 @@ namespace ParseStrace
 				int pid = 0;
 				int.TryParse(mpid.Groups[1].Value, out pid);
 
-				ProceedLine(Console.Out, pid, command, arguments, retvalue);
+				ProceedLine(pid, command, arguments, retvalue);
 			}
-
-			//Output(Console.Out);
 		}
 
 
@@ -53,13 +54,14 @@ namespace ParseStrace
 
 
 		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
+		static IIOItemStorage storage = new IOItemToTextWriter(Console.Out);
 
-		static void ProceedLine(TextWriter writer, int pid, string cmd, string args, long ret)
+		static void ProceedLine(int pid, string cmd, string args, long ret)
 		{
 			ProcFDTable table;
 			if (!fdTables.TryGetValue(pid, out table))
 			{
-				table = new ProcFDTable(writer);
+				table = new ProcFDTable(storage);
 				fdTables[pid] = table;
 			}
 
