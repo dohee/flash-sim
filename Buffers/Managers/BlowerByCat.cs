@@ -65,10 +65,10 @@ namespace Buffers.Managers
 
 				queryQ.Dequeue(rwnode);
 	
-				if (queueIndex == 2U && isRead)
-					/*blowReadQuota -= 1*/;
+				/*if (queueIndex == 2U && isRead)
+					blowReadQuota -= 1;
 				else if (queueIndex == 3U && isWrite)
-					/*blowReadQuota += 3*/;
+					blowReadQuota += 3;*/
 			}
 
 			if (!f.Resident)
