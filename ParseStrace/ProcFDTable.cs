@@ -12,19 +12,18 @@ namespace ParseStrace
 		private static Regex regexOpen = new Regex(@"^\""(.+)\"",");
 		private static Regex regexFirstArg = new Regex(@"^(\d+),");
 
-		private TextWriter writer;
-		private List<IOItem> records = new List<IOItem>();
+		private IIOItemStorage storage;
 		private Dictionary<int, FileState> curFiles = new Dictionary<int, FileState>();
 
 
-		public ProcFDTable(TextWriter writer)
+		public ProcFDTable(IIOItemStorage storage)
 		{
-			this.writer = writer;
+			this.storage = storage;
 		}
 
 		public ProcFDTable Fork()
 		{
-			ProcFDTable other = new ProcFDTable(writer);
+			ProcFDTable other = new ProcFDTable(storage);
 
 			foreach (var item in curFiles)
 				other.curFiles.Add(item.Key, item.Value);
@@ -63,9 +62,8 @@ namespace ParseStrace
 			}*/
 
 			IOItem item = new IOItem(fs.Filename, isWrite, fs.Position, ret);
-			records.Add(item);
 			fs.Position += ret;
-			Output(item);
+			storage.Add(item);
 		}
 
 		public void OnLSeek(string args, long ret)
@@ -75,14 +73,6 @@ namespace ParseStrace
 
 			FileState fs = curFiles[fd];
 			fs.Position = ret;
-		}
-
-
-		private void Output(IOItem item)
-		{
-			writer.WriteLine("{0}\t{1}\t{2}\t{3}",
-				item.Position, item.Length,
-				item.IsWrite ? 1 : 0, item.Filename);
 		}
 
 

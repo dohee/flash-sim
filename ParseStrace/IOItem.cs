@@ -18,6 +18,12 @@ namespace ParseStrace
 			Position = pos;
 			Length = length;
 		}
+
+		public override string ToString()
+		{
+			return string.Format("IOItem[{0} {1} at {2} on {3}]",
+				IsWrite ? "write" : "read", Length, Position, Filename);
+		}
 	}
 
 }
