@@ -36,21 +36,10 @@ namespace ParseStrace
 				int pid = 0;
 				int.TryParse(mpid.Groups[1].Value, out pid);
 
-
-				switch (command)
-				{
-					case "open": OnOpen(pid, arguments, retvalue); break;
-					case "creat": OnOpen(pid, arguments, retvalue); break;
-					case "close": OnClose(pid, arguments); break;
-					case "read": OnReadWrite(false, pid, arguments, retvalue); break;
-					case "write": OnReadWrite(true, pid, arguments, retvalue); break;
-					case "lseek": OnLSeek(pid, arguments, retvalue); break;
-					case "llseek": OnLLSeek(pid, arguments, retvalue); break;
-					default: break;
-				}
+				ProceedLine(Console.Out, pid, command, arguments, retvalue);
 			}
 
-			Output(Console.Out);
+			//Output(Console.Out);
 		}
 
 
@@ -63,7 +52,33 @@ namespace ParseStrace
 		}
 
 
+		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
 
+		static void ProceedLine(TextWriter writer, int pid, string cmd, string args, long ret)
+		{
+			ProcFDTable table;
+			if (!fdTables.TryGetValue(pid, out table))
+			{
+				table = new ProcFDTable(writer);
+				fdTables[pid] = table;
+			}
+
+			switch (cmd)
+			{
+				case "fork":
+				case "vfork": fdTables[(int)ret] = table.Fork(); break;
+
+				case "open":
+				case "creat": table.OnOpen(args, ret); break;
+
+				case "close": table.OnClose(args); break;
+				case "read": table.OnReadWrite(false, args, ret); break;
+				case "write": table.OnReadWrite(true, args, ret); break;
+				case "lseek": table.OnLSeek(args, ret); break;
+
+				default: break;
+			}
+		}
 
 	}
 }
