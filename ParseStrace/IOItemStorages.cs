@@ -6,31 +6,24 @@ using System.Text;
 
 namespace ParseStrace
 {
-	interface IIOItemStorage : IEnumerable<IOItem>
-	{
-		void Add(IOItem item);		
-	}
-
-	abstract class IOItemStorageBase : IIOItemStorage
+	abstract class IOItemStorage
 	{
 		public abstract void Add(IOItem item);
-		public abstract IEnumerator<IOItem> GetEnumerator();
+		public abstract void Output();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return this.GetEnumerator();
-		}
-	}
+		protected readonly TextWriter writer;
 
-
-	class IOItemToTextWriter : IOItemStorageBase
-	{
-		private TextWriter writer;
-
-		public IOItemToTextWriter(TextWriter writer)
+		public IOItemStorage(TextWriter writer)
 		{
 			this.writer = writer;
 		}
+	}
+
+
+	sealed class IOItemDirectlyToWriter : IOItemStorage
+	{
+		public IOItemDirectlyToWriter(TextWriter writer)
+			: base(writer) { }
 
 		public override void Add(IOItem item)
 		{
@@ -39,12 +32,50 @@ namespace ParseStrace
 				item.IsWrite ? 1 : 0, item.Filename);
 		}
 
-		public override IEnumerator<IOItem> GetEnumerator()
-		{
-			throw new NotSupportedException();
-		}
+		public override void Output() { }
 	}
 
+	
+	sealed class IOItemWithFilenameCut : IOItemStorage
+	{
+		private const int kPageSize = 4096;
+		private readonly IList<IOItem> list = new List<IOItem>();
+		private readonly IDictionary<string, int> filePages = new Dictionary<string, int>();
 
+		public IOItemWithFilenameCut(TextWriter writer)
+			: base(writer) { }
+
+		public override void Add(IOItem item)
+		{
+			long pos = item.Position / kPageSize;
+			long len = (item.Position + item.Length) / kPageSize - pos + 1;
+			list.Add(new IOItem(item.Filename, item.IsWrite, pos, len));
+
+			int maxpage = 0, npages = (int)(pos + len);
+			filePages.TryGetValue(item.Filename, out maxpage);
+
+			if (npages > maxpage)
+				filePages[item.Filename] = npages;
+		}
+
+		public override void Output()
+		{
+			var fileStarts = new Dictionary<string, int>();
+			int start = 0;
+
+			foreach (var item in filePages)
+			{
+				fileStarts[item.Key] = start;
+				start += item.Value;
+			}
+
+			foreach (IOItem item in list)
+			{
+				writer.WriteLine("{0}\t{1}\t{2}",
+					item.Position + fileStarts[item.Filename],
+					item.Length, item.IsWrite ? 1 : 0);
+			}
+		}
+	}
 	
 }

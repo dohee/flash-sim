@@ -13,6 +13,10 @@ namespace ParseStrace
 		static Regex regexLine = new Regex(@"(\w+)\((.+)\)\s+= ((0x[\dabcdefABCDEF]+)|(-?\d+))");
 		static Regex regexPid = new Regex(@"^(\d+)\s");
 
+		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
+		//static IOItemStorage storage = new IOItemDirectlyToWriter(Console.Out);
+		static IOItemStorage storage = new IOItemWithFilenameCut(Console.Out);
+
 
 		static void Main(string[] args)
 		{
@@ -41,6 +45,8 @@ namespace ParseStrace
 
 				ProceedLine(pid, command, arguments, retvalue);
 			}
+
+			storage.Output();
 		}
 
 
@@ -52,9 +58,6 @@ namespace ParseStrace
 				return Console.In;
 		}
 
-
-		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
-		static IIOItemStorage storage = new IOItemToTextWriter(Console.Out);
 
 		static void ProceedLine(int pid, string cmd, string args, long ret)
 		{
