@@ -32,7 +32,7 @@ namespace Buffers
 			group.Add(new CMFTByCat(npages));
 			//group.Add(new OldBlowerByCat(npages));
 			//group.Add(new BlowerByCat(npages));
-			group.Add(new BlowerByLyf(npages));
+			//group.Add(new BlowerByLyf(npages));
 			//group.Add(new BlowerByLyf2(npages));
 
 			return group;
@@ -87,6 +87,9 @@ namespace Buffers
 
 			while ((line = input.ReadLine()) != null)
 			{
+				if (line.StartsWith("#"))
+					continue;
+
 				string[] parts = line.Split(new char[] { ' ', '\t' },
 					StringSplitOptions.RemoveEmptyEntries);
 				if (parts.Length < 3)
