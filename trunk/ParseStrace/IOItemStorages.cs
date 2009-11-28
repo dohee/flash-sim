@@ -36,10 +36,10 @@ namespace ParseStrace
 	}
 
 	
-	sealed class IOItemWithFilenameCut : IOItemStorage
+	class IOItemWithFilenameCut : IOItemStorage
 	{
 		private const int kPageSize = 4096;
-		private readonly IList<IOItem> list = new List<IOItem>();
+		protected readonly IList<IOItem> list = new List<IOItem>();
 		private readonly IDictionary<string, int> filePages = new Dictionary<string, int>();
 
 		public IOItemWithFilenameCut(TextWriter writer)
@@ -48,7 +48,10 @@ namespace ParseStrace
 		public override void Add(IOItem item)
 		{
 			long pos = item.Position / kPageSize;
-			long len = (item.Position + item.Length) / kPageSize - pos + 1;
+			long len = (item.Position + item.Length + (kPageSize - 1)) / kPageSize - pos;
+			if (len == 0)
+				len = 1;
+
 			list.Add(new IOItem(item.Filename, item.IsWrite, pos, len));
 
 			int maxpage = 0, npages = (int)(pos + len);
@@ -60,6 +63,18 @@ namespace ParseStrace
 
 		public override void Output()
 		{
+			var fileStarts = CalcFileStart();
+
+			foreach (IOItem item in list)
+			{
+				writer.WriteLine("{0}\t{1}\t{2}",
+					item.Position + fileStarts[item.Filename],
+					item.Length, item.IsWrite ? 1 : 0);
+			}
+		}
+
+		protected IDictionary<string, int> CalcFileStart()
+		{
 			var fileStarts = new Dictionary<string, int>();
 			int start = 0;
 
@@ -69,8 +84,35 @@ namespace ParseStrace
 				start += item.Value;
 			}
 
-			foreach (IOItem item in list)
+			return fileStarts;
+		}
+	}
+
+
+	sealed class IOItemStorageVerbose : IOItemWithFilenameCut
+	{
+		private readonly IList<IOItem> origin = new List<IOItem>();
+
+		public IOItemStorageVerbose(TextWriter writer)
+			: base(writer) { }
+
+		public override void Add(IOItem item)
+		{
+			origin.Add(item);
+			base.Add(item);
+		}
+
+		public override void Output()
+		{
+			var fileStarts = CalcFileStart();
+			IOItemDirectlyToWriter directly = new IOItemDirectlyToWriter(writer);
+
+			for (int i = 0; i < origin.Count; i++)
 			{
+				writer.Write("# ");
+				directly.Add(origin[i]);
+
+				IOItem item = list[i];
 				writer.WriteLine("{0}\t{1}\t{2}",
 					item.Position + fileStarts[item.Filename],
 					item.Length, item.IsWrite ? 1 : 0);
