@@ -70,9 +70,13 @@ namespace ParseStrace
 		public void OnReadWrite(bool isWrite, string args, long ret)
 		{
 			int fd = int.Parse(regexFirstArg.Match(args).Groups[1].Value);
-
-			Debug.Assert(curFiles.ContainsKey(fd));
-			FileState fs = curFiles[fd];
+			
+			FileState fs;
+			if (!curFiles.TryGetValue(fd, out fs))
+			{
+				fs = new FileState("Unknown-fd:" + fd.ToString());
+				curFiles[fd] = fs;
+			}
 
 			IOItem item = new IOItem(fs.Filename, isWrite, fs.Position, ret);
 			fs.Position += ret;
