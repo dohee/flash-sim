@@ -111,11 +111,14 @@ namespace ParseStrace
 			{
 				writer.Write("# ");
 				directly.Add(origin[i]);
-
 				IOItem item = list[i];
-				writer.WriteLine("{0}\t{1}\t{2}",
-					item.Position + fileStarts[item.Filename],
-					item.Length, item.IsWrite ? 1 : 0);
+
+				if (!item.Filename.StartsWith("Unknown-fd:"))
+				{
+					writer.WriteLine("{0}\t{1}\t{2}",
+						item.Position + fileStarts[item.Filename],
+						item.Length, item.IsWrite ? 1 : 0);
+				}
 			}
 		}
 	}
