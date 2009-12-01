@@ -7,13 +7,20 @@ namespace ParseStrace
 	struct IOItem
 	{
 		public readonly string Filename;
+		public readonly short FD;
+		public readonly bool IsTerminal;
 		public readonly bool IsWrite;
 		public readonly long Position;
 		public readonly long Length;
 
-		public IOItem(string filename, bool isWrite, long pos, long length)
+		public IOItem(string filename, short fd, bool isWrite, long pos, long length)
+			: this(filename, fd, isWrite, pos, length, false) { }
+
+		public IOItem(string filename, short fd, bool isWrite, long pos, long length, bool isTerminal)
 		{
 			Filename = filename;
+			FD = fd;
+			IsTerminal = isTerminal;
 			IsWrite = isWrite;
 			Position = pos;
 			Length = length;
@@ -21,8 +28,10 @@ namespace ParseStrace
 
 		public override string ToString()
 		{
-			return string.Format("IOItem[{0} {1} at {2} on {3}]",
-				IsWrite ? "write" : "read", Length, Position, Filename);
+			return string.Format(
+				"IOItem[{0} Len={1} at Pos={2} on {3} via FD={4}]",
+				IsWrite ? "write" : "read", Length,
+				Position, Filename, FD);
 		}
 	}
 

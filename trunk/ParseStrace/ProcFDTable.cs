@@ -21,6 +21,10 @@ namespace ParseStrace
 		public ProcFDTable(IOItemStorage storage)
 		{
 			this.storage = storage;
+			curFiles.Add(0, new FileState("/dev/stdin", true));
+			curFiles.Add(1, new FileState("/dev/stdout", true));
+			curFiles.Add(2, new FileState("/dev/stderr", true));
+
 		}
 
 		public ProcFDTable Fork()
@@ -28,18 +32,11 @@ namespace ParseStrace
 			ProcFDTable other = new ProcFDTable(storage);
 
 			foreach (var item in curFiles)
-				other.curFiles.Add(item.Key, item.Value);
+				other.curFiles[item.Key] = item.Value;
 
 			return other;
 		}
 
-
-		public void OnOpen(string args, long ret)
-		{
-			int fd = (int)ret;
-			string filename = regexOpen.Match(args).Groups[1].Value;
-			curFiles[fd] = new FileState(NormalizeFilename(filename));
-		}
 
 		private string NormalizeFilename(string filename)
 		{
@@ -67,20 +64,12 @@ namespace ParseStrace
 			curFiles.Remove(fd);
 		}
 
-		public void OnReadWrite(bool isWrite, string args, long ret)
+		public void OnDup(string args, long ret)
 		{
-			int fd = int.Parse(regexFirstArg.Match(args).Groups[1].Value);
-			
-			FileState fs;
-			if (!curFiles.TryGetValue(fd, out fs))
-			{
-				fs = new FileState("Unknown-fd:" + fd.ToString());
-				curFiles[fd] = fs;
-			}
-
-			IOItem item = new IOItem(fs.Filename, isWrite, fs.Position, ret);
-			fs.Position += ret;
-			storage.Add(item);
+			string[] arg = args.Split(',');
+			int oldfd = int.Parse(arg[0]);
+			int newfd = (int)ret;
+			curFiles[newfd] = curFiles[oldfd];
 		}
 
 		public void OnLSeek(string args, long ret)
@@ -92,15 +81,45 @@ namespace ParseStrace
 			fs.Position = ret;
 		}
 
+		public void OnOpen(string args, long ret)
+		{
+			int fd = (int)ret;
+			string filename = regexOpen.Match(args).Groups[1].Value;
+			curFiles[fd] = new FileState(NormalizeFilename(filename));
+		}
+
+		public void OnReadWrite(bool isWrite, string args, long ret)
+		{
+			int fd = int.Parse(regexFirstArg.Match(args).Groups[1].Value);
+			
+			FileState fs;
+			if (!curFiles.TryGetValue(fd, out fs))
+			{
+				fs = new FileState("/Unknown-FD/" + fd.ToString());
+				curFiles[fd] = fs;
+			}
+
+			IOItem item = new IOItem(fs.Filename, (short)fd, isWrite,
+				fs.Position, ret, fs.IsTerminal);
+
+			fs.Position += ret;
+			storage.Add(item);
+		}
+
 
 		private class FileState
 		{
 			public readonly string Filename;
+			public readonly bool IsTerminal;
 			public long Position = 0;
 
 			public FileState(string filename)
+				: this(filename, false) { }
+
+			public FileState(string filename, bool isTerminal)
 			{
-				Filename = filename;
+				this.Filename = filename;
+				this.IsTerminal = isTerminal;
 			}
 		}
 	}
