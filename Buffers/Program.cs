@@ -87,10 +87,10 @@ namespace Buffers
 
 			while ((line = input.ReadLine()) != null)
 			{
-				if (line.StartsWith("#"))
-					continue;
+				string[] parts = line.Split('#');
+				line = parts[0];
 
-				string[] parts = line.Split(new char[] { ' ', '\t' },
+				parts = line.Split(new char[] { ' ', '\t' },
 					StringSplitOptions.RemoveEmptyEntries);
 				if (parts.Length < 3)
 					continue;
