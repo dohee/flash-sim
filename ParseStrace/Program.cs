@@ -12,6 +12,7 @@ namespace ParseStrace
 	{
 		static Regex regexLine = new Regex(@"(\w+)\((.*)\)\s+= ((0x[\dabcdefABCDEF]+)|(-?\d+))");
 		static Regex regexPid = new Regex(@"^(\d+)\s");
+		static Regex regexResumed = new Regex(@"<\.\.\. (\w+) resumed> (.+)$");
 
 		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
 		static IOItemStorage storage;
@@ -31,25 +32,28 @@ namespace ParseStrace
 				if (++count % 10000 == 0)
 					Console.Error.WriteLine(count);
 
-				Match m = regexLine.Match(line);
-				if (!m.Success)
-					continue;
-
-				long retvalue;
-				if (!long.TryParse(m.Groups[3].Value, out retvalue))
-					retvalue = long.Parse(m.Groups[3].Value.Substring(2), NumberStyles.HexNumber);
-
-				if (retvalue < 0)
-					continue;
-
-				string command = m.Groups[1].Value.TrimStart('_');
-				string arguments = m.Groups[2].Value;
-				
 				Match mpid = regexPid.Match(line);
 				int pid = 0;
 				int.TryParse(mpid.Groups[1].Value, out pid);
 
-				ProceedLine(pid, command, arguments, retvalue);
+				Match mresumed;
+
+				if (line.EndsWith("<unfinished ...>"))
+				{
+					string former = line.Substring(0, line.Length - 16);
+					fdTables[pid].OnUnfinished(former);
+				}
+				else if ((mresumed = regexResumed.Match(line)).Success)
+				{
+					string former = fdTables[pid].OnResumed();
+					string latter = mresumed.Groups[2].Value;
+					string whole = former + latter;
+					ProceedLine(pid, whole);
+				}
+				else
+				{
+					ProceedLine(pid, line);
+				}
 			}
 
 			storage.Output();
@@ -71,8 +75,22 @@ namespace ParseStrace
 		}
 
 
-		static void ProceedLine(int pid, string cmd, string args, long ret)
+		static void ProceedLine(int pid, string line)
 		{
+			Match m = regexLine.Match(line);
+			if (!m.Success)
+				return;
+
+			long ret;
+			if (!long.TryParse(m.Groups[3].Value, out ret))
+				ret = long.Parse(m.Groups[3].Value.Substring(2), NumberStyles.HexNumber);
+
+			if (ret < 0)
+				return;
+
+			string cmd = m.Groups[1].Value.TrimStart('_');
+			string args = m.Groups[2].Value;
+
 			ProcFDTable table;
 			if (!fdTables.TryGetValue(pid, out table))
 			{
@@ -92,6 +110,7 @@ namespace ParseStrace
 				case "open":
 				case "creat": table.OnOpen(args, ret); break;
 
+				case "accept": table.OnAccept(args, ret); break;
 				case "close": table.OnClose(args); break;
 				case "fcntl": table.OnFcntl(args, ret); break;
 				case "lseek": table.OnLSeek(args, ret); break;
