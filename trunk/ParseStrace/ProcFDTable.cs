@@ -16,6 +16,7 @@ namespace ParseStrace
 		private static readonly Regex regexParentDir = new Regex(@"/(([^./])|(\.[^./])|(\.\.[^/]))[^/]*/../");
 
 		private int pid;
+		private string halfLine = null;
 		private IOItemStorage storage;
 		private Dictionary<int, FileState> curFiles = new Dictionary<int, FileState>();
 
@@ -60,6 +61,13 @@ namespace ParseStrace
 			return filename;
 		}
 
+
+		public void OnAccept(string args, long ret)
+		{
+			Match m = regexFirstNumeric.Match(args);
+			string accepting = m.Groups[1].Value;
+			curFiles[(int)ret] = new FileState("/SocketTo/" + accepting, FDType.Socket);
+		}
 
 		public void OnClose(string args)
 		{
@@ -108,8 +116,13 @@ namespace ParseStrace
 			int reading = int.Parse(m.Groups[1].Value);
 			int writing = int.Parse(m.Groups[2].Value);
 
-			curFiles[reading] = new FileState("/Pipe-" + reading, FDType.Pipe);
-			curFiles[writing] = new FileState("/Pipe-" + writing, FDType.Pipe);
+			curFiles[reading] = new FileState("/Pipe/" + reading, FDType.Pipe);
+			curFiles[writing] = new FileState("/Pipe/" + writing, FDType.Pipe);
+		}
+
+		public void OnUnfinished(string halfline)
+		{
+			halfLine = halfline;
 		}
 
 		public void OnReadWrite(bool isWrite, string args, long ret)
@@ -119,7 +132,7 @@ namespace ParseStrace
 			FileState fs;
 			if (!curFiles.TryGetValue(fd, out fs))
 			{
-				fs = new FileState("/Unknown-FD/" + fd.ToString());
+				fs = new FileState("/Unknown-FD/" + fd.ToString(), FDType.Unknown);
 				curFiles[fd] = fs;
 			}
 
@@ -128,6 +141,13 @@ namespace ParseStrace
 
 			fs.Position += ret;
 			storage.Add(item);
+		}
+
+		public string OnResumed()
+		{
+			string str = halfLine;
+			halfLine = null;
+			return str;
 		}
 
 
@@ -152,6 +172,7 @@ namespace ParseStrace
 					Filename, FDType, Position);
 			}
 		}
+
 
 	}
 }

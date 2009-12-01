@@ -6,9 +6,11 @@ namespace ParseStrace
 {
 	enum FDType : byte
 	{
+		Unknown,
 		File,
 		Terminal,
 		Pipe,
+		Socket,
 	}
 
 	class IOItem
@@ -51,9 +53,11 @@ namespace ParseStrace
 			{
 				switch (FDType)
 				{
+					case FDType.Unknown: return "Unkn";
 					case FDType.File: return "File";
 					case FDType.Terminal: return "Term";
 					case FDType.Pipe: return "Pipe";
+					case FDType.Socket: return "Sock";
 					default: return null;
 				}
 			}
