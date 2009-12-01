@@ -24,9 +24,13 @@ namespace ParseStrace
 			Console.WriteLine("# Parsed Strace: {0}", filename);
 			Console.WriteLine("# Date: {0}", DateTime.Now);
 			storage = new IOItemStorageVerbose(Console.Out);
+			int count = 0;
 
 			while ((line = reader.ReadLine()) != null)
 			{
+				if (++count % 10000 == 0)
+					Console.Error.WriteLine(count);
+
 				Match m = regexLine.Match(line);
 				if (!m.Success)
 					continue;
@@ -72,7 +76,7 @@ namespace ParseStrace
 			ProcFDTable table;
 			if (!fdTables.TryGetValue(pid, out table))
 			{
-				table = new ProcFDTable(storage);
+				table = new ProcFDTable(pid, storage);
 				fdTables[pid] = table;
 			}
 
@@ -80,7 +84,7 @@ namespace ParseStrace
 			{
 				case "fork":
 				case "vfork":
-				case "clone": fdTables[(int)ret] = table.Fork(); break;
+				case "clone": fdTables[(int)ret] = table.Fork((int)ret); break;
 
 				case "dup":
 				case "dup2": table.OnDup(args, ret); break;
@@ -89,7 +93,9 @@ namespace ParseStrace
 				case "creat": table.OnOpen(args, ret); break;
 
 				case "close": table.OnClose(args); break;
+				case "fcntl": table.OnFcntl(args, ret); break;
 				case "lseek": table.OnLSeek(args, ret); break;
+				case "pipe": table.OnPipe(args); break;
 				case "read": table.OnReadWrite(false, args, ret); break;
 				case "write": table.OnReadWrite(true, args, ret); break;
 

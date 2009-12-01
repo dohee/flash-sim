@@ -10,26 +10,29 @@ namespace ParseStrace
 	class ProcFDTable
 	{
 		private static readonly Regex regexOpen = new Regex(@"^\""(.+)\"",");
-		private static readonly Regex regexFirstArg = new Regex(@"^(\d+),");
+		private static readonly Regex regexFirstNumeric = new Regex(@"^(\d+),");
+		private static readonly Regex regexPipe = new Regex(@"\[(\d+),\s+(\d+)\]");
 		private static readonly Regex regexSelfDir = new Regex(@"/\./");
 		private static readonly Regex regexParentDir = new Regex(@"/(([^./])|(\.[^./])|(\.\.[^/]))[^/]*/../");
 
+		private int pid;
 		private IOItemStorage storage;
 		private Dictionary<int, FileState> curFiles = new Dictionary<int, FileState>();
 
 
-		public ProcFDTable(IOItemStorage storage)
+		public ProcFDTable(int pid, IOItemStorage storage)
 		{
+			this.pid = pid;
 			this.storage = storage;
-			curFiles.Add(0, new FileState("/dev/stdin", true));
-			curFiles.Add(1, new FileState("/dev/stdout", true));
-			curFiles.Add(2, new FileState("/dev/stderr", true));
+			curFiles.Add(0, new FileState("/dev/stdin", FDType.Terminal));
+			curFiles.Add(1, new FileState("/dev/stdout", FDType.Terminal));
+			curFiles.Add(2, new FileState("/dev/stderr", FDType.Terminal));
 
 		}
 
-		public ProcFDTable Fork()
+		public ProcFDTable Fork(int newpid)
 		{
-			ProcFDTable other = new ProcFDTable(storage);
+			ProcFDTable other = new ProcFDTable(newpid, storage);
 
 			foreach (var item in curFiles)
 				other.curFiles[item.Key] = item.Value;
@@ -72,9 +75,20 @@ namespace ParseStrace
 			curFiles[newfd] = curFiles[oldfd];
 		}
 
+		public void OnFcntl(string args, long ret)
+		{
+			if (args.Contains("F_DUPFD"))
+			{
+				string[] arg = args.Split(',');
+				int oldfd = int.Parse(arg[0]);
+				int newfd = (int)ret;
+				curFiles[newfd] = curFiles[oldfd];
+			}
+		}
+
 		public void OnLSeek(string args, long ret)
 		{
-			int fd = int.Parse(regexFirstArg.Match(args).Groups[1].Value);
+			int fd = int.Parse(regexFirstNumeric.Match(args).Groups[1].Value);
 			Debug.Assert(curFiles.ContainsKey(fd));
 
 			FileState fs = curFiles[fd];
@@ -88,9 +102,19 @@ namespace ParseStrace
 			curFiles[fd] = new FileState(NormalizeFilename(filename));
 		}
 
+		public void OnPipe(string args)
+		{
+			Match m = regexPipe.Match(args);
+			int reading = int.Parse(m.Groups[1].Value);
+			int writing = int.Parse(m.Groups[2].Value);
+
+			curFiles[reading] = new FileState("/Pipe-" + reading, FDType.Pipe);
+			curFiles[writing] = new FileState("/Pipe-" + writing, FDType.Pipe);
+		}
+
 		public void OnReadWrite(bool isWrite, string args, long ret)
 		{
-			int fd = int.Parse(regexFirstArg.Match(args).Groups[1].Value);
+			int fd = int.Parse(regexFirstNumeric.Match(args).Groups[1].Value);
 			
 			FileState fs;
 			if (!curFiles.TryGetValue(fd, out fs))
@@ -99,8 +123,8 @@ namespace ParseStrace
 				curFiles[fd] = fs;
 			}
 
-			IOItem item = new IOItem(fs.Filename, (short)fd, isWrite,
-				fs.Position, ret, fs.IsTerminal);
+			IOItem item = new IOItem(pid, fs.Filename, (short)fd,
+				isWrite, fs.Position, ret, fs.FDType);
 
 			fs.Position += ret;
 			storage.Add(item);
@@ -110,17 +134,24 @@ namespace ParseStrace
 		private class FileState
 		{
 			public readonly string Filename;
-			public readonly bool IsTerminal;
+			public readonly FDType FDType;
 			public long Position = 0;
 
 			public FileState(string filename)
-				: this(filename, false) { }
+				: this(filename, FDType.File) { }
 
-			public FileState(string filename, bool isTerminal)
+			public FileState(string filename, FDType type)
 			{
 				this.Filename = filename;
-				this.IsTerminal = isTerminal;
+				this.FDType = type;
+			}
+
+			public override string ToString()
+			{
+				return string.Format("[{0} of Type={1} at Pos={2}]",
+					Filename, FDType, Position);
 			}
 		}
+
 	}
 }

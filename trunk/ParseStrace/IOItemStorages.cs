@@ -34,13 +34,17 @@ namespace ParseStrace
 
 		public static void Output(TextWriter writer, IOItem item)
 		{
-			writer.WriteLine("{0}\t{1}\t{2}  FD={3}{4}: {5}",
-				item.Position,
-				item.Length,
+			string typestring;
+
+			if (item.FDType== FDType.File)
+				typestring = "";
+			else
+				typestring = "<" + item.TypeString + ">";
+
+			writer.WriteLine("{0,-7}{1,-5} {2}  Pid={6} FD={3}{4}: {5}",
+				item.Position, item.Length,
 				item.IsWrite ? 'W' : 'R',
-				item.FD,
-				item.IsTerminal ? "<Term>" : "",
-				item.Filename);
+				item.FDNum, typestring, item.Filename, item.Pid);
 		}
 	}
 
@@ -73,18 +77,18 @@ namespace ParseStrace
 
 			foreach (var item in origin)
 			{
-				if (!item.IsTerminal)
+				if (item.FDType == FDType.File)
 				{
 					long pos, len;
 					CalcPagePosition(item, out pos, out len);
 
-					writer.Write("{0}\t{1}\t{2}     #\t",
+					writer.Write("{0}\t{1}\t{2}\t# ",
 						pos + fileStarts[item.Filename],
 						len, item.IsWrite ? 1 : 0);
 				}
 				else
 				{
-					writer.Write("\t\t      #\t");
+					writer.Write("\t\t\t# ");
 				}
 
 				IOItemDirectlyToWriter.Output(writer, item);
