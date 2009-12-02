@@ -41,10 +41,10 @@ namespace ParseStrace
 			else
 				typestring = "<" + item.TypeString + ">";
 
-			writer.WriteLine("{0,-7}{1,-5} {2}  Pid={6} FD={3}{4}: {5}",
+			writer.WriteLine("{6} {5,-6} at {4,-9} of Pid={1} FD={2}{3}: {0}",
+				item.Filename, item.Pid, item.FDNum, typestring,
 				item.Position, item.Length,
-				item.IsWrite ? 'W' : 'R',
-				item.FDNum, typestring, item.Filename, item.Pid);
+				item.IsWrite ?"Write":"Read ");
 		}
 	}
 
