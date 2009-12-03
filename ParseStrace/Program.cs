@@ -21,15 +21,15 @@ namespace ParseStrace
 		{
 			string filename = args[0];
 			FileStream fileStream = new FileStream(filename, FileMode.Open);
+			StreamReader reader = new StreamReader(fileStream);
 
 			Console.WriteLine("# Parsed Strace: {0}", filename);
 			Console.WriteLine("# Date: {0}", DateTime.Now);
 			storage = new IOItemStorageVerbose(Console.Out);
 
-			StreamReader reader = new StreamReader(fileStream);
 			ProceedFile(reader, 1);
-			storage.PhaseBetween();
 			fileStream.Seek(0, SeekOrigin.Begin);
+			storage.PhaseBetween();
 			ProceedFile(reader, 2);
 		}
 
