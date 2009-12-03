@@ -10,7 +10,7 @@ namespace ParseStrace
 {
 	class Program
 	{
-		static Regex regexLine = new Regex(@"(\w+)\((.*)\)\s+= ([^ ]+)");
+		static Regex regexLine = new Regex(@"(\w+)\((.*)\)\s+= ([^ ]+)", RegexOptions.Compiled);
 		static Regex regexResumed = new Regex(@"<\.\.\. (\w+) resumed> (.+)$");
 
 		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
