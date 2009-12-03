@@ -125,10 +125,10 @@ namespace ParseStrace
 			halfLine = halfline;
 		}
 
-		public void OnReadWrite(bool isWrite, string args, long ret)
+		public void OnReadWrite(bool isWrite, string args, long ret, int phase)
 		{
 			int fd = int.Parse(regexFirstNumeric.Match(args).Groups[1].Value);
-			
+
 			FileState fs;
 			if (!curFiles.TryGetValue(fd, out fs))
 			{
@@ -140,7 +140,11 @@ namespace ParseStrace
 				isWrite, fs.Position, ret, fs.FDType);
 
 			fs.Position += ret;
-			storage.Add(item);
+
+			if (phase == 1)
+				storage.PhaseOne(item);
+			else
+				storage.PhaseTwo(item);
 		}
 
 		public string OnResumed()

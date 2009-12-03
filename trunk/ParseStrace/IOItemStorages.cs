@@ -8,8 +8,9 @@ namespace ParseStrace
 {
 	abstract class IOItemStorage
 	{
-		public abstract void Add(IOItem item);
-		public abstract void Output();
+		public abstract void PhaseOne(IOItem item);
+		public abstract void PhaseBetween();
+		public abstract void PhaseTwo(IOItem item);
 
 		protected readonly TextWriter writer;
 
@@ -25,9 +26,10 @@ namespace ParseStrace
 		public IOItemDirectlyToWriter(TextWriter writer)
 			: base(writer) { }
 
-		public override void Output() { }
+		public override void PhaseOne(IOItem item) { }
+		public override void PhaseBetween() { }
 
-		public override void Add(IOItem item)
+		public override void PhaseTwo(IOItem item)
 		{
 			Output(writer, item);
 		}
@@ -52,15 +54,11 @@ namespace ParseStrace
 	sealed class IOItemStorageVerbose : IOItemStorage
 	{
 		private const int kPageSize = 4096;
-		private readonly IList<IOItem> origin = new List<IOItem>();
+		private readonly IDictionary<string, int> filePages = new Dictionary<string, int>();
+		private IDictionary<string, int> fileStarts = null;
 
 		public IOItemStorageVerbose(TextWriter writer)
 			: base(writer) { }
-
-		public override void Add(IOItem item)
-		{
-			origin.Add(item);
-		}
 
 		public void CalcPagePosition(IOItem item, out long pos, out long len)
 		{
@@ -71,55 +69,47 @@ namespace ParseStrace
 				len = 1;
 		}
 
-		public override void Output()
+		public override void PhaseOne(IOItem item)
 		{
-			var fileStarts = CalcFileStart();
+			long pos, len;
+			CalcPagePosition(item, out pos, out len);
 
-			foreach (var item in origin)
-			{
-				if (item.FDType == FDType.File)
-				{
-					long pos, len;
-					CalcPagePosition(item, out pos, out len);
+			int maxpage = 0, npages = (int)(pos + len);
+			filePages.TryGetValue(item.Filename, out maxpage);
 
-					writer.Write("{0}\t{1}\t{2}\t# ",
-						pos + fileStarts[item.Filename],
-						len, item.IsWrite ? 1 : 0);
-				}
-				else
-				{
-					writer.Write("\t\t\t# ");
-				}
-
-				IOItemDirectlyToWriter.Output(writer, item);
-			}
+			if (npages > maxpage)
+				filePages[item.Filename] = npages;
 		}
 
-		private IDictionary<string, int> CalcFileStart()
+		public override void PhaseBetween()
 		{
-			var filePages = new Dictionary<string, int>();
-			var fileStarts = new Dictionary<string, int>();
+			fileStarts = new Dictionary<string, int>();
 			int start = 0;
-
-			foreach (var item in origin)
-			{
-				long pos, len;
-				CalcPagePosition(item, out pos, out len);
-
-				int maxpage = 0, npages = (int)(pos + len);
-				filePages.TryGetValue(item.Filename, out maxpage);
-
-				if (npages > maxpage)
-					filePages[item.Filename] = npages;
-			}
 
 			foreach (var item in filePages)
 			{
 				fileStarts[item.Key] = start;
 				start += item.Value;
 			}
+		}
 
-			return fileStarts;
+		public override void PhaseTwo(IOItem item)
+		{
+			if (item.FDType == FDType.File)
+			{
+				long pos, len;
+				CalcPagePosition(item, out pos, out len);
+
+				writer.Write("{0}\t{1}\t{2}\t# ",
+					pos + fileStarts[item.Filename],
+					len, item.IsWrite ? 1 : 0);
+			}
+			else
+			{
+				writer.Write("\t\t\t# ");
+			}
+
+			IOItemDirectlyToWriter.Output(writer, item);
 		}
 	}
 	
