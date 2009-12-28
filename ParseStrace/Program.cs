@@ -36,12 +36,17 @@ namespace ParseStrace
 		static void ProceedFile(TextReader reader, int phase)
 		{
 			string line;
-			int count = 0;
+			int lowcount = 0, highcount = 0;
+			const int kMaxLow = 10000;
 
 			while ((line = reader.ReadLine()) != null)
 			{
-				if (++count % 10000 == 0)
-					Console.Error.WriteLine(count);
+				if (++lowcount == kMaxLow)
+				{
+					lowcount = 0;
+					highcount++;
+					Console.Error.WriteLine((long)highcount * kMaxLow);
+				}
 
 				int firstSpace = line.IndexOf(' ');
 				int pid = int.Parse(line.Substring(0, firstSpace));
