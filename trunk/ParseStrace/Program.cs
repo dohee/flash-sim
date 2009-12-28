@@ -20,7 +20,7 @@ namespace ParseStrace
 		static void Main(string[] args)
 		{
 			string filename = args[0];
-			FileStream fileStream = new FileStream(filename, FileMode.Open);
+			FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read);
 			StreamReader reader = new StreamReader(fileStream);
 
 			Console.WriteLine("# Parsed Strace: {0}", filename);
