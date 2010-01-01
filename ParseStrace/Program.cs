@@ -10,7 +10,6 @@ namespace ParseStrace
 {
 	class Program
 	{
-		static Regex regexLine = new Regex(@"(\w+)\((.*)\)\s+= ([^ ]+)", RegexOptions.Compiled);
 		static Regex regexResumed = new Regex(@"<\.\.\. (\w+) resumed> (.+)$");
 
 		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
@@ -23,8 +22,10 @@ namespace ParseStrace
 			FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read);
 			StreamReader reader = new StreamReader(fileStream);
 
-			Console.WriteLine("# Parsed Strace: {0}", filename);
-			Console.WriteLine("# Date: {0}", DateTime.Now);
+			Console.WriteLine("# Original Strace: {0}", filename);
+			Console.WriteLine("# Parsed by: {0} @ {1}", Environment.UserName, Environment.MachineName);
+			Console.WriteLine("# Parsed at: {0}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+			Console.WriteLine("# Parsed with: {0}", Environment.OSVersion);
 			storage = new IOItemStorageVerbose(Console.Out);
 
 			ProceedFile(reader, 1);
@@ -75,22 +76,29 @@ namespace ParseStrace
 
 		static void ProceedLine(int pid, string line, int phase)
 		{
-			Match m = regexLine.Match(line);
-			if (!m.Success)
+			int eqPos = line.LastIndexOf(" = ");
+			if (eqPos == -1)
 				return;
 
-			string retstring = m.Groups[3].Value;
+			string retstring = line.Substring(eqPos + 3).Split(' ')[0];
+
 			if (retstring == "?")
 				return;
-
+			
 			long ret;
 			if (!long.TryParse(retstring, out ret))
 				ret = long.Parse(retstring.Substring(2), NumberStyles.HexNumber);
 			if (ret < 0)
 				return;
 
-			string cmd = m.Groups[1].Value.TrimStart('_');
-			string args = m.Groups[2].Value;
+
+			int leftBracketPos = line.IndexOf('(');
+			int rightBracketPos = line.LastIndexOf(')', eqPos);
+			int beforeCmdSpace = line.LastIndexOf(' ', leftBracketPos);
+
+			string cmd = line.Substring(beforeCmdSpace + 1, leftBracketPos - beforeCmdSpace - 1);
+			string args = line.Substring(leftBracketPos + 1, rightBracketPos - leftBracketPos - 1);
+
 
 			ProcFDTable table;
 			if (!fdTables.TryGetValue(pid, out table))
