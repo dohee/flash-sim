@@ -81,11 +81,10 @@ namespace ParseStrace
 				return;
 
 			string retstring = line.Substring(eqPos + 3).Split(' ')[0];
+			long ret;
 
 			if (retstring == "?")
-				return;
-			
-			long ret;
+				return;			
 			if (!long.TryParse(retstring, out ret))
 				ret = long.Parse(retstring.Substring(2), NumberStyles.HexNumber);
 			if (ret < 0)
