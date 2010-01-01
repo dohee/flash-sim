@@ -18,8 +18,8 @@ namespace Buffers.Lists
 			IntraNode = intraNode;
 		}
 
-		public MultiListNode<T> Previous { get { return MultiList.GetNodePrevious(this); } }
-		public MultiListNode<T> Next { get { return MultiList.GetNodeNext(this); } }
+		public MultiListNode<T> Previous { get { return MultiList.GetPreviousNode(this); } }
+		public MultiListNode<T> Next { get { return MultiList.GetNextNode(this); } }
 		public T Value { get { return IntraNode.Value; } }
 	}
 
@@ -69,11 +69,13 @@ namespace Buffers.Lists
 			}
 		}
 
+
 		/// <summary>
 		/// 设置一个连接。
 		/// </summary>
 		/// <param name="index">位于连接头部的链表。</param>
 		/// <param name="next">位于连接尾部的链表。为 -1 表明删除此连接。</param>
+		/// <remarks>不要使这些链表形成环。否则其他算法有可能陷入死循环。</remarks>
 		public void SetConcat(int head, int next)
 		{
 			Debug.Assert(head >= 0 && head < lists.Length);
@@ -83,6 +85,9 @@ namespace Buffers.Lists
 
 			if (next == -1)
 				return;
+
+			if (prevs[next] != -1)
+				BreakConcat(prevs[next]);
 
 			nexts[head] = next;
 			prevs[next] = head;
@@ -103,17 +108,23 @@ namespace Buffers.Lists
 
 
 		/// <summary>
-		/// 获取第 index 个链表中实际包含的节点数。 
+		/// 获取链表的个数。
 		/// </summary>
-		public int GetListCount(int index)
+		public int ListCount { get { return lists.Length; } }
+
+		/// <summary>
+		/// 获取第 listIndex 个链表中实际包含的节点数。 
+		/// </summary>
+		public int GetNodeCount(int listIndex)
 		{
-			return lists[index].Count;
+			return lists[listIndex].Count;
 		}
+
 
 		/// <summary>
 		/// 获取 node 的上一个节点。
 		/// </summary>
-		public MultiListNode<T> GetNodePrevious(MultiListNode<T> node)
+		public MultiListNode<T> GetPreviousNode(MultiListNode<T> node)
 		{
 			Debug.Assert(object.ReferenceEquals(this, node.MultiList));
 
@@ -134,7 +145,7 @@ namespace Buffers.Lists
 		/// <summary>
 		/// 获取 node 的下一个节点。
 		/// </summary>
-		public MultiListNode<T> GetNodeNext(MultiListNode<T> node)
+		public MultiListNode<T> GetNextNode(MultiListNode<T> node)
 		{
 			Debug.Assert(object.ReferenceEquals(this, node.MultiList));
 
@@ -154,57 +165,79 @@ namespace Buffers.Lists
 
 
 		/// <summary>
-		/// 在第 index 个链表的开头处添加新的节点或值。 
+		/// 获取第 listIndex 个链表的开头处的节点。
 		/// </summary>
-		public void AddFirst(int index, T value)
+		public MultiListNode<T> GetFirstNode(int listIndex)
 		{
-			lists[index].AddFirst(value);
+			LinkedListNode<T> intra = lists[listIndex].First;
+			return (intra == null ? null : new MultiListNode<T>(this, listIndex, intra));
 		}
 		/// <summary>
-		/// 在第 index 个链表的结尾处添加新的节点或值。 
+		/// 获取第 listIndex 个链表的结尾处的节点。
 		/// </summary>
-		public void AddLast(int index, T value)
+		public MultiListNode<T> GetLastNode(int listIndex)
 		{
-			lists[index].AddLast(value);
+			LinkedListNode<T> intra = lists[listIndex].Last;
+			return (intra == null ? null : new MultiListNode<T>(this, listIndex, intra));
 		}
 
 		/// <summary>
-		/// 移除并返回位于第 index 个链表开始处的对象。
+		/// 在第 listIndex 个链表的开头处添加新的节点或值。 
 		/// </summary>
-		public T RemoveFirst(int index)
+		public MultiListNode<T> AddFirst(int listIndex, T value)
 		{
-			T item = lists[index].First.Value;
-			lists[index].RemoveFirst();
+			LinkedListNode<T> intra = lists[listIndex].AddFirst(value);
+			return new MultiListNode<T>(this, listIndex, intra);
+		}
+		/// <summary>
+		/// 在第 listIndex 个链表的结尾处添加新的节点或值。 
+		/// </summary>
+		public MultiListNode<T> AddLast(int listIndex, T value)
+		{
+			LinkedListNode<T> intra = lists[listIndex].AddLast(value);
+			return new MultiListNode<T>(this, listIndex, intra);
+		}
+
+		/// <summary>
+		/// 移除并返回位于第 listIndex 个链表开始处的对象。
+		/// </summary>
+		public T RemoveFirst(int listIndex)
+		{
+			T item = lists[listIndex].First.Value;
+			lists[listIndex].RemoveFirst();
 			return item;
 		}
 		/// <summary>
-		/// 移除并返回位于第 index 个链表结尾处的对象。
+		/// 移除并返回位于第 listIndex 个链表结尾处的对象。
 		/// </summary>
-		public T RemoveLast(int index)
+		public T RemoveLast(int listIndex)
 		{
-			T item = lists[index].Last.Value;
-			lists[index].RemoveLast();
+			if (lists[listIndex].Count == 0)
+				throw new InvalidOperationException("第 " + listIndex + " 个链表为空。");
+
+			T item = lists[listIndex].Last.Value;
+			lists[listIndex].RemoveLast();
 			return item;
 		}
 		/// <summary>
-		/// 移除并返回位于第 index 个链表结尾处（或最靠近该链表结尾）的对象。
+		/// 移除并返回位于第 listIndex 个链表结尾处（或最靠近该链表结尾）的对象。
 		/// </summary>
-		public T RemoveLast(int index, bool cascade)
+		public T RemoveLast(int listIndex, bool cascade)
 		{
 			if (!cascade)
-				RemoveLast(index);
+				RemoveLast(listIndex);
 
-			LinkedListNode<T> toRemove = lists[index].Last;
+			LinkedListNode<T> toRemove = lists[listIndex].Last;
 
 			while (toRemove == null)
 			{
-				index = prevs[index];
+				listIndex = prevs[listIndex];
 
-				if (index == -1)
+				if (listIndex == -1)
 					throw new InvalidOperationException(
-						"第 " + index + " 个链表和从该链表往前的链表都为空。");
+						"第 " + listIndex + " 个链表和从该链表往前的链表都为空。");
 
-				toRemove = lists[index].Last;
+				toRemove = lists[listIndex].Last;
 			}
 
 			T item = toRemove.Value;
