@@ -78,7 +78,7 @@
     <Compile Include="Queues\LRUQueue.cs" />
     <Compile Include="Memory\Frame.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Queues\MultiQueue.cs" />
+    <Compile Include="Lists\MultiList.cs" />
     <Compile Include="Queues\QueueGroup.cs" />
     <Compile Include="Queues\QueueBase.cs" />
     <Compile Include="Queues\QueueNode.cs" />
