@@ -24,7 +24,7 @@ namespace Buffers.Memory
 
 		public override string ToString()
 		{
-			return string.Format("IRRFrame{{Id={0},Dirty={1},SlotId={2}}}",
+			return string.Format("Frame{{Id={0},Dirty={1},SlotId={2}}}",
 				id, dirty, slotid);
 		}
 	}
