@@ -26,19 +26,13 @@ namespace Buffers.Lists
 
 	public class MultiList<T>
 	{
-		/// <summary>
-		/// ListIndex -> List
-		/// </summary>
+		/// <summary>ListIndex -> List</summary>
 		protected LinkedList<T>[] lists = null;
 
-		/// <summary>
-		/// ListIndex -> NextListIndex
-		/// </summary>
+		/// <summary>ListIndex -> NextListIndex</summary>
 		protected int[] nexts = null;
 
-		/// <summary>
-		/// ListIndex -> PrevListIndex
-		/// </summary>
+		/// <summary>ListIndex -> PrevListIndex</summary>
 		protected int[] prevs = null;
 
 
@@ -70,8 +64,7 @@ namespace Buffers.Lists
 		}
 
 
-		/// <summary>
-		/// 设置一个连接。
+		/// <summary>设置一个连接。
 		/// </summary>
 		/// <param name="index">位于连接头部的链表。</param>
 		/// <param name="next">位于连接尾部的链表。为 -1 表明删除此连接。</param>
@@ -93,8 +86,7 @@ namespace Buffers.Lists
 			prevs[next] = head;
 		}
 
-		/// <summary>
-		/// 打破第 index 个链表尾部的连接。
+		/// <summary>打破第 index 个链表尾部的连接。
 		/// </summary>
 		private void BreakConcat(int head)
 		{
@@ -107,13 +99,10 @@ namespace Buffers.Lists
 		}
 
 
-		/// <summary>
-		/// 获取链表的个数。
+		/// <summary>获取链表的个数。
 		/// </summary>
 		public int ListCount { get { return lists.Length; } }
-
-		/// <summary>
-		/// 获取第 listIndex 个链表中实际包含的节点数。 
+		/// <summary>获取第 listIndex 个链表中实际包含的节点数。
 		/// </summary>
 		public int GetNodeCount(int listIndex)
 		{
@@ -121,8 +110,7 @@ namespace Buffers.Lists
 		}
 
 
-		/// <summary>
-		/// 获取 node 的上一个节点。
+		/// <summary>获取 node 的上一个节点。
 		/// </summary>
 		public MultiListNode<T> GetPreviousNode(MultiListNode<T> node)
 		{
@@ -142,8 +130,7 @@ namespace Buffers.Lists
 			return new MultiListNode<T>(this, index, prevNode);
 		}
 
-		/// <summary>
-		/// 获取 node 的下一个节点。
+		/// <summary>获取 node 的下一个节点。
 		/// </summary>
 		public MultiListNode<T> GetNextNode(MultiListNode<T> node)
 		{
@@ -164,16 +151,14 @@ namespace Buffers.Lists
 		}
 
 
-		/// <summary>
-		/// 获取第 listIndex 个链表的开头处的节点。
+		/// <summary>获取第 listIndex 个链表的开头处的节点。
 		/// </summary>
 		public MultiListNode<T> GetFirstNode(int listIndex)
 		{
 			LinkedListNode<T> intra = lists[listIndex].First;
 			return (intra == null ? null : new MultiListNode<T>(this, listIndex, intra));
 		}
-		/// <summary>
-		/// 获取第 listIndex 个链表的结尾处的节点。
+		/// <summary>获取第 listIndex 个链表的结尾处的节点。
 		/// </summary>
 		public MultiListNode<T> GetLastNode(int listIndex)
 		{
@@ -181,16 +166,14 @@ namespace Buffers.Lists
 			return (intra == null ? null : new MultiListNode<T>(this, listIndex, intra));
 		}
 
-		/// <summary>
-		/// 在第 listIndex 个链表的开头处添加新的节点或值。 
+		/// <summary>在第 listIndex 个链表的开头处添加新的节点或值。
 		/// </summary>
 		public MultiListNode<T> AddFirst(int listIndex, T value)
 		{
 			LinkedListNode<T> intra = lists[listIndex].AddFirst(value);
 			return new MultiListNode<T>(this, listIndex, intra);
 		}
-		/// <summary>
-		/// 在第 listIndex 个链表的结尾处添加新的节点或值。 
+		/// <summary>在第 listIndex 个链表的结尾处添加新的节点或值。 
 		/// </summary>
 		public MultiListNode<T> AddLast(int listIndex, T value)
 		{
@@ -198,8 +181,7 @@ namespace Buffers.Lists
 			return new MultiListNode<T>(this, listIndex, intra);
 		}
 
-		/// <summary>
-		/// 移除并返回位于第 listIndex 个链表开始处的对象。
+		/// <summary>移除并返回位于第 listIndex 个链表开始处的对象。
 		/// </summary>
 		public T RemoveFirst(int listIndex)
 		{
@@ -207,8 +189,7 @@ namespace Buffers.Lists
 			lists[listIndex].RemoveFirst();
 			return item;
 		}
-		/// <summary>
-		/// 移除并返回位于第 listIndex 个链表结尾处的对象。
+		/// <summary>移除并返回位于第 listIndex 个链表结尾处的对象。
 		/// </summary>
 		public T RemoveLast(int listIndex)
 		{
@@ -219,8 +200,7 @@ namespace Buffers.Lists
 			lists[listIndex].RemoveLast();
 			return item;
 		}
-		/// <summary>
-		/// 移除并返回位于第 listIndex 个链表结尾处（或最靠近该链表结尾）的对象。
+		/// <summary>移除并返回位于第 listIndex 个链表结尾处（或最靠近该链表结尾）的对象。
 		/// </summary>
 		public T RemoveLast(int listIndex, bool cascade)
 		{
@@ -244,8 +224,7 @@ namespace Buffers.Lists
 			toRemove.List.Remove(toRemove);
 			return item;
 		}
-		/// <summary>
-		/// 从 MultiLinkedList 中移除指定的节点。 
+		/// <summary>从 MultiLinkedList 中移除指定的节点。 
 		/// </summary>
 		public void Remove(MultiListNode<T> node)
 		{
@@ -253,16 +232,13 @@ namespace Buffers.Lists
 			lists[node.ListIndex].Remove(node.IntraNode);
 		}
 
-		/// <summary>
-		/// 将第 from 个链表的最后一个节点（或最靠近该链表的节点）
-		/// 移动到它所连接的下游链表。
+		/// <summary>将第 from 个链表的最后一个节点（或最靠近该链表的节点）移动到它所连接的下游链表。
 		/// </summary>
-		public T Blow(int from)
+		public MultiListNode<T> Blow(int from)
 		{
 			Debug.Assert(nexts[from] != -1);
 			T item = RemoveLast(from, true);
-			AddFirst(nexts[from], item);
-			return item;
+			return AddFirst(nexts[from], item);
 		}
 	}
 }

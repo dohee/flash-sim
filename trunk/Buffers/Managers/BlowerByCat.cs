@@ -50,13 +50,14 @@ namespace Buffers.Managers
 
 		protected override IFrame CreateFrame(uint pageid, int slotid)
 		{
-			return new FrameWithRWQuery(pageid, slotid);
+			return new FrameWithRWQueryForBlowerByCat(pageid, slotid);
 		}
 
 		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
 		{
 			bool isRead = !isWrite;
-			FrameWithRWQuery f = node.ListNode.Value as FrameWithRWQuery;
+			FrameWithRWQueryForBlowerByCat f =
+				node.ListNode.Value as FrameWithRWQueryForBlowerByCat;
 
 			if (f.HasNodeOf(isWrite))
 			{
@@ -84,7 +85,8 @@ namespace Buffers.Managers
 
 		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
 		{
-			FrameWithRWQuery f = allocatedFrame as FrameWithRWQuery;
+			FrameWithRWQueryForBlowerByCat f =
+				allocatedFrame as FrameWithRWQueryForBlowerByCat;
 			f.SetNodeOf(isWrite, queryQ.Enqueue((isWrite ? 1 : 0), f.Id));
 			return fifoQ.Enqueue(f);
 		}
@@ -124,7 +126,8 @@ namespace Buffers.Managers
 
 			// 实施吹风
 			QueueNode<uint> rwnode = queryQ.BlowOneItem(queueIndex);
-			FrameWithRWQuery f = map[rwnode.ListNode.Value].ListNode.Value as FrameWithRWQuery;
+			FrameWithRWQueryForBlowerByCat f =
+				map[rwnode.ListNode.Value].ListNode.Value as FrameWithRWQueryForBlowerByCat;
 			f.SetNodeOf(isWrite, rwnode);
 
 			// 找出该项在另一条队列的位置
@@ -159,7 +162,8 @@ namespace Buffers.Managers
 			while (queryQ.GetFrontSize(2) > pool.NPages / 2)
 			{
 				uint id = queryQ.Dequeue(2);
-				FrameWithRWQuery dying = map[id].ListNode.Value as FrameWithRWQuery;
+				FrameWithRWQueryForBlowerByCat dying =
+					map[id].ListNode.Value as FrameWithRWQueryForBlowerByCat;
 				dying.ClearNodeOfRead();
 
 				if (!dying.HasNodeOfWrite)
@@ -168,7 +172,8 @@ namespace Buffers.Managers
 			while (queryQ.GetFrontSize(3) > pool.NPages / 2)
 			{
 				uint id = queryQ.Dequeue(3);
-				FrameWithRWQuery dying = map[id].ListNode.Value as FrameWithRWQuery;
+				FrameWithRWQueryForBlowerByCat dying =
+					map[id].ListNode.Value as FrameWithRWQueryForBlowerByCat;
 				dying.ClearNodeOfWrite();
 
 				if (!dying.HasNodeOfRead)
@@ -215,12 +220,13 @@ namespace Buffers.Managers
 
 		protected override IFrame CreateFrame(uint pageid, int slotid)
 		{
-			return new FrameWithRWQuery(pageid, slotid);
+			return new FrameWithRWQueryForBlowerByCat(pageid, slotid);
 		}
 
 		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
 		{
-			FrameWithRWQuery f = node.ListNode.Value as FrameWithRWQuery;
+			FrameWithRWQueryForBlowerByCat f =
+				node.ListNode.Value as FrameWithRWQueryForBlowerByCat;
 
 			if (f.HasNodeOf(isWrite))
 				f.SetNodeOf(isWrite, queryQ.Access(f.GetNodeOf(isWrite)));
@@ -232,7 +238,8 @@ namespace Buffers.Managers
 
 		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
 		{
-			FrameWithRWQuery f = allocatedFrame as FrameWithRWQuery;
+			FrameWithRWQueryForBlowerByCat f =
+				allocatedFrame as FrameWithRWQueryForBlowerByCat;
 			f.SetNodeOf(isWrite, queryQ.Enqueue((isWrite ? 1 : 0), f.Id));
 			return fifoQ.Enqueue(f);
 		}
@@ -257,7 +264,8 @@ namespace Buffers.Managers
 				return BlowResult.QueueIsEmpty;
 
 			QueueNode<uint> rwnode = queryQ.BlowOneItem(queueIndex);
-			FrameWithRWQuery f = map[rwnode.ListNode.Value].ListNode.Value as FrameWithRWQuery;
+			FrameWithRWQueryForBlowerByCat f =
+				map[rwnode.ListNode.Value].ListNode.Value as FrameWithRWQueryForBlowerByCat;
 			f.SetNodeOf(isWrite, rwnode);
 
 			if (f.HasNodeOf(!isWrite))
@@ -274,9 +282,9 @@ namespace Buffers.Managers
 			map.Remove(f.Id);
 
 			if (f.HasNodeOfRead)
-				queryQ.Dequeue(f.NodeOfRead);
+				queryQ.Dequeue(f.NodeOfRead.Value);
 			if (f.HasNodeOfWrite)
-				queryQ.Dequeue(f.NodeOfWrite);
+				queryQ.Dequeue(f.NodeOfWrite.Value);
 
 			return BlowResult.Succeeded;
 		}
@@ -296,13 +304,11 @@ namespace Buffers.Managers
 		QueueIsEmpty,
 	}
 
-	internal class FrameWithRWQuery : Frame
+	internal sealed class FrameWithRWQueryForBlowerByCat
+		: Memory.FrameWithRWInfo<QueueNode<uint>?>
 	{
-		private QueueNode<uint>? nodeR, nodeW;
-
-
-		public FrameWithRWQuery(uint id) : base(id) { }
-		public FrameWithRWQuery(uint id, int slotid) : base(id, slotid) { }
+		public FrameWithRWQueryForBlowerByCat(uint id) : base(id) { }
+		public FrameWithRWQueryForBlowerByCat(uint id, int slotid) : base(id, slotid) { }
 
 		public bool HasNodeOfRead { get { return nodeR.HasValue; } }
 		public bool HasNodeOfWrite { get { return nodeW.HasValue; } }
@@ -310,24 +316,13 @@ namespace Buffers.Managers
 		public void ClearNodeOfRead() { nodeR = null; }
 		public void ClearNodeOfWrite() { nodeW = null; }
 
-		public QueueNode<uint> NodeOfRead
-		{
-			get { return nodeR.Value; }
-			set { nodeR = value; }
-		}
-		public QueueNode<uint> NodeOfWrite
-		{
-			get { return nodeW.Value; }
-			set { nodeW = value; }
-		}
-
 		public bool HasNodeOf(bool isWrite)
 		{
 			return !isWrite ? HasNodeOfRead : HasNodeOfWrite;
 		}
 		public QueueNode<uint> GetNodeOf(bool isWrite)
 		{
-			return !isWrite ? NodeOfRead : NodeOfWrite;
+			return !isWrite ? NodeOfRead.Value : NodeOfWrite.Value;
 		}
 		public void SetNodeOf(bool isWrite, QueueNode<uint> value)
 		{
