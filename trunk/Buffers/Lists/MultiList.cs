@@ -8,7 +8,7 @@ namespace Buffers.Lists
 	public class MultiListNode<T>
 	{
 		public MultiList<T> MultiList { get; private set; }
-		internal int ListIndex { get; private set; }
+		public int ListIndex { get; private set; }
 		internal LinkedListNode<T> IntraNode { get; private set; }
 
 		internal MultiListNode(MultiList<T> host, int listIndex, LinkedListNode<T> intraNode)
@@ -20,7 +20,7 @@ namespace Buffers.Lists
 
 		public MultiListNode<T> Previous { get { return MultiList.GetPreviousNode(this); } }
 		public MultiListNode<T> Next { get { return MultiList.GetNextNode(this); } }
-		public T Value { get { return IntraNode.Value; } }
+		public T Value { get { return IntraNode.Value; } set { IntraNode.Value = value; } }
 	}
 
 
@@ -226,10 +226,12 @@ namespace Buffers.Lists
 		}
 		/// <summary>从 MultiLinkedList 中移除指定的节点。 
 		/// </summary>
-		public void Remove(MultiListNode<T> node)
+		public T Remove(MultiListNode<T> node)
 		{
 			Debug.Assert(object.ReferenceEquals(this, node.MultiList));
+			T item = node.Value;
 			lists[node.ListIndex].Remove(node.IntraNode);
+			return item;
 		}
 
 		/// <summary>将第 from 个链表的最后一个节点（或最靠近该链表的节点）移动到它所连接的下游链表。
