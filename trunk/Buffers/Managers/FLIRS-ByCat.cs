@@ -9,17 +9,20 @@ namespace Buffers.Managers
 {
 	public sealed class FLIRS : BufferManagerBase
 	{
-		private readonly float ratio;
+		private readonly float ratioOfWriteRead;
+		private readonly uint nHIRPages;
 		private readonly Pool pool;
 		private readonly MultiList<RWQuery> rwlist;
+		private readonly LinkedList<uint> hirPages = new LinkedList<uint>();
 		private readonly IDictionary<uint, RWFrame> map = new Dictionary<uint, RWFrame>();
 
-		public FLIRS(IBlockDevice dev, uint npages, float ratio)
+		public FLIRS(IBlockDevice dev, uint npages, float WRRatio, float HIRRatio)
 			: base(dev)
 		{
-			this.ratio = ratio;
+			ratioOfWriteRead = WRRatio;
+			nHIRPages = (uint)(HIRRatio * npages);
 			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
-			rwlist = new MultiList<RWQuery>(3);
+			rwlist = new MultiList<RWQuery>(2);
 			rwlist.SetConcat(0, 1);
 		}
 
@@ -33,14 +36,12 @@ namespace Buffers.Managers
 		private void OnPoolFull()
 		{
 
-
-			Tidy();
-
 		}
 
 		protected sealed override void DoRead(uint pageid, byte[] result)
 		{
 			RWFrame frame = null;
+			bool isLowIRAfter = false;
 
 			if (!map.TryGetValue(pageid, out frame))
 			{
@@ -48,12 +49,18 @@ namespace Buffers.Managers
 				map[pageid] = frame;
 			}
 
-			bool isLowIRAfter = (frame.NodeOfRead != null);
-
 			if (frame.NodeOfRead != null)
+			{
 				rwlist.Remove(frame.NodeOfRead);
-			if (frame.NodeOfReadInHIRQueue != null)
-				rwlist.Remove(frame.NodeOfReadInHIRQueue);
+				frame.NodeOfRead = null;
+				isLowIRAfter = true;
+			}
+
+			if (frame.NodeOfHIRPage != null)
+			{
+				hirPages.Remove(frame.NodeOfHIRPage);
+				frame.NodeOfHIRPage = null;
+			}
 
 			if (!frame.Resident)
 			{
@@ -63,48 +70,85 @@ namespace Buffers.Managers
 			}
 
 
-			RWQuery query = new RWQuery(pageid, false);
 			frame.ReadLowIR = isLowIRAfter;
-			frame.NodeOfRead = rwlist.AddFirst(0, query);
+			frame.NodeOfRead = rwlist.AddFirst(0, new RWQuery(pageid, false));
+			AssignHIRPageNode(frame);
 
-			if (!isLowIRAfter)
-				frame.NodeOfReadInHIRQueue = rwlist.AddFirst(2, query);
-
-			Tidy();
+			MaintainHIRs();
 		}
 
-		private void Tidy()
+		private void AssignHIRPageNode(RWFrame frame)
 		{
-			while (true)
+			Debug.Assert(frame.NodeOfHIRPage == null);
+			bool assign = false;
+
+			if (!frame.Dirty)
 			{
-				MultiListNode<RWQuery> node = rwlist.GetLastNode(1);
-				if (node == null)
-					break;
-
-				RWFrame frame = map[node.Value.PageId];
-				bool isLowIR = node.Value.IsWrite ? frame.WriteLowIR : frame.ReadLowIR;
-
-				if (isLowIR)
-					break;
-
-				rwlist.Remove(node);
+				if (!frame.ReadLowIR)
+					assign = true;
+			}
+			else
+			{
+				if (!frame.ReadLowIR && !frame.WriteLowIR)
+					assign = true;
 			}
 
-			while (RLIRLength != 0 && (float)WLIRLength / RLIRLength < ratio)
+			if (assign)
+				frame.NodeOfHIRPage = hirPages.AddFirst(frame.Id);
+		}
+
+		private void MaintainHIRs()
+		{
+			while (hirPages.Count < nHIRPages)
 			{
-				MultiListNode<RWQuery> node = rwlist.Blow(0);
+				if (RLIRLength * ratioOfWriteRead > WLIRLength)
+					ShrinkRLIRArea();
+				else
+					ShrinkWLIRArea();
+			}
 
-				if (node.Value.IsWrite)
-					continue;
+		}
 
+		private void ShrinkRLIRArea()
+		{
+			MultiListNode<RWQuery> node = rwlist.Blow(0);
+			if (!node.Value.IsWrite)
+			{
 				RWFrame frame = map[node.Value.PageId];
-				if (!frame.ReadLowIR)
-					continue;
-
-				frame.ReadLowIR = false;
-				rwlist.AddFirst(2, node.Value);
+				if (frame.ReadLowIR)
+				{
+					frame.ReadLowIR = false;
+					AssignHIRPageNode(frame);
+				}
 			}
 		}
+
+		private void ShrinkWLIRArea()
+		{
+			RWQuery query = rwlist.RemoveLast(1);
+			RWFrame frame = map[query.PageId];
+
+			if (query.IsWrite)
+			{
+				frame.NodeOfWrite = null;
+				frame.WriteLowIR = false;
+			}
+			else
+			{
+				frame.NodeOfRead = null;
+				frame.ReadLowIR = false;
+			}
+
+			if (frame.NodeOfHIRPage == null)
+				AssignHIRPageNode(frame);
+
+			if (frame.NodeOfHIRPage == null && frame.NodeOfRead == null && frame.NodeOfWrite == null)
+			{
+				WriteIfDirty(frame);
+				map.Remove(frame.Id);
+			}
+		}
+
 
 		protected sealed override void DoWrite(uint pageid, byte[] data)
 		{
@@ -136,15 +180,12 @@ namespace Buffers.Managers
 				WriteLowIR = false;
 				NodeOfRead = null;
 				NodeOfWrite = null;
-				NodeOfReadInHIRQueue = null;
-				NodeOfWriteInHIRQueue = null;
+				NodeOfHIRPage = null;
 			}
 
 			public bool ReadLowIR { get; set; }
 			public bool WriteLowIR { get; set; }
-
-			public MultiListNode<RWQuery> NodeOfReadInHIRQueue { get; set; }
-			public MultiListNode<RWQuery> NodeOfWriteInHIRQueue { get; set; }
+			public LinkedListNode<uint> NodeOfHIRPage { get; set; }
 		}
 
 	}
