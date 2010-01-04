@@ -310,11 +310,11 @@ namespace Buffers.Managers
 		public FrameWithRWQueryForBlowerByCat(uint id) : base(id) { }
 		public FrameWithRWQueryForBlowerByCat(uint id, int slotid) : base(id, slotid) { }
 
-		public bool HasNodeOfRead { get { return nodeR.HasValue; } }
-		public bool HasNodeOfWrite { get { return nodeW.HasValue; } }
+		public bool HasNodeOfRead { get { return NodeOfRead.HasValue; } }
+		public bool HasNodeOfWrite { get { return NodeOfWrite.HasValue; } }
 
-		public void ClearNodeOfRead() { nodeR = null; }
-		public void ClearNodeOfWrite() { nodeW = null; }
+        public void ClearNodeOfRead() { NodeOfRead = null; }
+        public void ClearNodeOfWrite() { NodeOfWrite = null; }
 
 		public bool HasNodeOf(bool isWrite)
 		{
