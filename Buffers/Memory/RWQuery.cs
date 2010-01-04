@@ -39,21 +39,4 @@ namespace Buffers.Memory
 		}
 		#endregion
 	}
-
-	public struct RWQueryWithIRFlag
-	{
-		public readonly uint PageId;
-		public readonly bool IsWrite;
-		public bool IsLowIR;
-
-		public RWQueryWithIRFlag(uint id, bool isWrite)
-			: this(id, isWrite, false) { }
-
-		public RWQueryWithIRFlag(uint id, bool isWrite, bool isLowIR)
-		{
-			PageId = id;
-			IsWrite = isWrite;
-			IsLowIR = isLowIR;
-		}
-	}
 }
