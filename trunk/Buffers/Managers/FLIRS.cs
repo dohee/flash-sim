@@ -9,13 +9,15 @@ namespace Buffers.Managers
 {
 	public sealed class FLIRS : BufferManagerBase
 	{
-		private Pool pool;
-		private MultiList<RWQuery> rwlist;
-		private IDictionary<uint, RWFrame> map = new Dictionary<uint, RWFrame>();
+		private readonly float ratio;
+		private readonly Pool pool;
+		private readonly MultiList<RWQuery> rwlist;
+		private readonly IDictionary<uint, RWFrame> map = new Dictionary<uint, RWFrame>();
 
-		public FLIRS(IBlockDevice dev, uint npages)
+		public FLIRS(IBlockDevice dev, uint npages, float ratio)
 			: base(dev)
 		{
+			this.ratio = ratio;
 			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
 			rwlist = new MultiList<RWQuery>(3);
 			rwlist.SetConcat(0, 1);
@@ -73,7 +75,35 @@ namespace Buffers.Managers
 
 		private void Tidy()
 		{
-			throw new NotImplementedException();
+			while (true)
+			{
+				MultiListNode<RWQuery> node = rwlist.GetLastNode(1);
+				if (node == null)
+					break;
+
+				RWFrame frame = map[node.Value.PageId];
+				bool isLowIR = node.Value.IsWrite ? frame.WriteLowIR : frame.ReadLowIR;
+
+				if (isLowIR)
+					break;
+
+				rwlist.Remove(node);
+			}
+
+			while (RLIRLength != 0 && (float)WLIRLength / RLIRLength < ratio)
+			{
+				MultiListNode<RWQuery> node = rwlist.Blow(0);
+
+				if (node.Value.IsWrite)
+					continue;
+
+				RWFrame frame = map[node.Value.PageId];
+				if (!frame.ReadLowIR)
+					continue;
+
+				frame.ReadLowIR = false;
+				rwlist.AddFirst(2, node.Value);
+			}
 		}
 
 		protected sealed override void DoWrite(uint pageid, byte[] data)
