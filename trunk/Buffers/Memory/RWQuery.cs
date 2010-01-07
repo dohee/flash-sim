@@ -13,6 +13,12 @@ namespace Buffers.Memory
 			IsWrite = isWrite;
 		}
 
+        public override string ToString()
+        {
+            return string.Format("Frame{{Id={0},Dirty={1}}}",
+                PageId, IsWrite);
+        }
+
 		#region Equals 函数族
 		public bool Equals(RWQuery other)
 		{

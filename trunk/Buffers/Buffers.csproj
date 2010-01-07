@@ -54,6 +54,7 @@
     <Compile Include="Managers\BlowerByLyf.cs" />
     <Compile Include="Managers\BlowerByLyf2.cs" />
     <Compile Include="Managers\FLIRS-ByCat.cs" />
+    <Compile Include="Managers\FLIRSbyLyf.cs" />
     <Compile Include="Memory\BlowFrame.cs" />
     <Compile Include="Memory\FrameWithRWInfo.cs" />
     <Compile Include="Memory\IFrame.cs" />
