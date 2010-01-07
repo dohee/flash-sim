@@ -15,7 +15,7 @@ namespace Buffers.Memory
 
         public override string ToString()
         {
-            return string.Format("Frame{{Id={0},Dirty={1}}}",
+            return string.Format("Frame{{Id={0},IsWrite={1}}}",
                 PageId, IsWrite);
         }
 
