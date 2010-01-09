@@ -134,7 +134,9 @@ namespace Buffers.Managers
             RWFrame frame;
             while (true)
             {
-                if (writeList.Count() * Config.ReadCost > readList.Count() * Config.WriteCost)
+                //if (writeList.Count() * Config.ReadCost > readList.Count() * Config.WriteCost)
+                if (writeList.Count() * 66 > readList.Count() * 200)
+               
                 {
                     frame = writeList.Prune(map);
                 }

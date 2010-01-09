@@ -51,7 +51,8 @@ namespace Buffers.Memory
 			if (aveWriteIRR != 0)
 				p2= (double)Config.WriteCost / aveWriteIRR;
 
-			return Math.Max(p1, p2);
+			//return Math.Max(p1, p2);
+            return p1 + p2;
 		}
 
 		public override string ToString()
