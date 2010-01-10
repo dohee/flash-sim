@@ -12,7 +12,6 @@ namespace Buffers.Managers
 	{
 		private readonly float ratioOfWriteRead;
 		private readonly uint nHIRPages;
-		private readonly Pool pool;
 		private readonly MultiList<RWQuery> rwlist;
 		private readonly LinkedList<uint> hirPages = new LinkedList<uint>();
 		private readonly IDictionary<uint, RWFrame> map = new Dictionary<uint, RWFrame>();
@@ -22,7 +21,6 @@ namespace Buffers.Managers
 		{
 			ratioOfWriteRead = WRRatio;
 			nHIRPages = (uint)(HIRRatio * npages);
-			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
 			rwlist = new MultiList<RWQuery>(2);
 			rwlist.SetConcat(0, 1);
 		}
@@ -34,12 +32,12 @@ namespace Buffers.Managers
 
 
 
-		private void OnPoolFull()
+		protected override void OnPoolFull()
 		{
 
 		}
 
-		protected sealed override void DoAccess(uint pageid, byte[] dataOrResult, AccessType type)
+		protected sealed override void DoAccess(uint pageid, byte[] resultOrData, AccessType type)
 		{
 			RWFrame frame = null;
 			bool isLowIRAfter = false;
@@ -63,22 +61,8 @@ namespace Buffers.Managers
 				frame.NodeOfHIRPage = null;
 			}
 
-			if (!frame.Resident)
-			{
-				frame.DataSlotId = pool.AllocSlot();
-				if (type == AccessType.Read)
-					dev.Read(pageid, pool[frame.DataSlotId]);
-			}
 
-			if (type == AccessType.Read)
-			{
-				pool[frame.DataSlotId].CopyTo(dataOrResult, 0);
-			}
-			else
-			{
-				dataOrResult.CopyTo(pool[frame.DataSlotId], 0);
-				frame.Dirty = true;
-			}
+			PerformAccess(frame, resultOrData, type);
 
 			frame.SetLowIROf(type, isLowIRAfter);
 			frame.SetNodeOf(type, rwlist.AddFirst(0, new RWQuery(pageid, type)));
@@ -144,6 +128,8 @@ namespace Buffers.Managers
 			if (frame.NodeOfHIRPage == null && frame.NodeOfRead == null && frame.NodeOfWrite == null)
 			{
 				WriteIfDirty(frame);
+				if (frame.Resident)
+					pool.FreeSlot(frame.DataSlotId);
 				map.Remove(frame.Id);
 			}
 		}
@@ -151,15 +137,6 @@ namespace Buffers.Managers
 
 		protected override void DoFlush()
 		{
-		}
-
-		private void WriteIfDirty(IFrame frame)
-		{
-			if (frame.Dirty)
-			{
-				dev.Write(frame.Id, pool[frame.DataSlotId]);
-				frame.Dirty = false;
-			}
 		}
 
 

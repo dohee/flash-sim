@@ -13,7 +13,6 @@ namespace Buffers.Managers
 	{
 		//the first version eliminate single queue.
 		//LRUQueue single;        //Store the pages that was only referenced once. limited by a threshold. From 2Q
-		protected Pool pool;
 
 		//
 		//An auxiliary data structure, only page id is used. store read and write operation separately.
@@ -103,7 +102,6 @@ namespace Buffers.Managers
 		public BlowerByLyf(IBlockDevice dev, uint npages)
 			: base(dev)
 		{
-			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
 			windowSize = npages * 1 / 2;
 			//readLimit = (int)npages / 3;
 			//writeLimit = (int)npages * 2 / 3;
@@ -346,7 +344,7 @@ namespace Buffers.Managers
 			return false;//ifnull
 		}
 
-		void OnPoolFull()
+		protected override void OnPoolFull()
 		{
 			int lastReadResident = LastIndexOfResident(readQueue);
 			int lastWriteResident = LastIndexOfResident(writeQueue);
@@ -438,15 +436,6 @@ namespace Buffers.Managers
 					sum++;
 
 			return sum;
-		}
-
-		protected void WriteIfDirty(IFrame frame)
-		{
-			if (frame.Dirty)
-			{
-				dev.Write(frame.Id, pool[frame.DataSlotId]);
-				frame.Dirty = false;
-			}
 		}
 
 		/////////////////////////////////////

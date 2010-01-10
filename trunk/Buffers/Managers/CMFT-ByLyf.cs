@@ -13,7 +13,6 @@ namespace Buffers.Managers
 	{
 		//the first version eliminate single queue.
 		//LRUQueue single;        //Store the pages that was only referenced once. limited by a threshold. From 2Q
-		protected Pool pool;
 
 		//IRR queue is for getting IRR. Storing all the readed/writen queue that may be also in single, non-resident page will be stored for a while.
 		//Only an auxiliary data structure, page id and dirty is needed. Read and write are stored in one IRRQueue
@@ -26,13 +25,11 @@ namespace Buffers.Managers
 		public CMFTByLyf(uint npages)
 			: this(null, npages)
 		{
-			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
 		}
 
 		public CMFTByLyf(IBlockDevice dev, uint npages)
 			: base(dev)
 		{
-			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
 		}
 
 		public override string Name { get { return "Obsolete CMFT"; } }
@@ -137,7 +134,7 @@ namespace Buffers.Managers
 		/// <summary>
 		/// 
 		/// </summary>
-		void OnPoolFull()
+		protected override void OnPoolFull()
 		{
 			Dictionary<uint, IRRFrame> residentMap = new Dictionary<uint, IRRFrame>();      //存储在内存的页面，供选择替换页面
 			uint j = 0;
@@ -187,15 +184,6 @@ namespace Buffers.Managers
 				{
 					WriteIfDirty(entry.Value);
 				}
-			}
-		}
-
-		protected void WriteIfDirty(IFrame frame)
-		{
-			if (frame.Dirty)
-			{
-				dev.Write(frame.Id, pool[frame.DataSlotId]);
-				frame.Dirty = false;
 			}
 		}
 	}

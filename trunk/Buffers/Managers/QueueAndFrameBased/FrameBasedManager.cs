@@ -5,18 +5,14 @@ using Buffers.Queues;
 
 namespace Buffers.Managers
 {
+	[Obsolete("基于 Frame 和 Queue 的基类不足以提供足够的可拓展性")]
 	public abstract class FrameBasedManager : BufferManagerBase
 	{
-		protected Pool pool;
-		public IDictionary<uint, QueueNode<IFrame>> map = new Dictionary<uint, QueueNode<IFrame>>();
+		protected IDictionary<uint, QueueNode<IFrame>> map = new Dictionary<uint, QueueNode<IFrame>>();
 
 		public FrameBasedManager(IBlockDevice dev, uint npages)
-			: base(dev)
-		{
-			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
-		}
+			: base(dev, npages) { }
 
-		protected abstract void OnPoolFull();
 		protected abstract QueueNode<IFrame> OnHit(QueueNode<IFrame> node, AccessType type);
 		protected abstract QueueNode<IFrame> OnMiss(IFrame allocatedFrame, AccessType type);
 
@@ -64,15 +60,6 @@ namespace Buffers.Managers
 			{
 				WriteIfDirty(entry.Value.ListNode.Value);
 				entry.Value.ListNode.Value.Dirty = false;
-			}
-		}
-
-		protected void WriteIfDirty(IFrame frame)
-		{
-			if (frame.Dirty)
-			{
-				dev.Write(frame.Id, pool[frame.DataSlotId]);
-				frame.Dirty = false;
 			}
 		}
 	}
