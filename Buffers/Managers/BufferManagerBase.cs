@@ -1,4 +1,5 @@
 ﻿using System;
+using Buffers;
 using Buffers.Devices;
 
 namespace Buffers.Managers
@@ -6,12 +7,20 @@ namespace Buffers.Managers
 	public abstract class BufferManagerBase : Buffers.IBufferManager, IDisposable
 	{
 		protected IBlockDevice dev;
-		private int read = 0, write = 0, flush=0;
+		private int read = 0, write = 0, flush = 0;
 		private bool disposed = false;
 
-		protected abstract void DoRead(uint pageid, byte[] result);
-		protected abstract void DoWrite(uint pageid, byte[] data);
+		protected virtual void DoAccess(uint pageid, byte[] resultOrData, AccessType type)
+		{
+			if (type == AccessType.Read)
+				DoRead(pageid, resultOrData);
+			else
+				DoWrite(pageid, resultOrData);
+		}
 		protected abstract void DoFlush();
+
+		protected virtual void DoRead(uint pageid, byte[] result) { }
+		protected virtual void DoWrite(uint pageid, byte[] data) { }
 
 		public BufferManagerBase(IBlockDevice device)
 		{
@@ -45,12 +54,12 @@ namespace Buffers.Managers
 
 		public void Read(uint pageid, byte[] result)
 		{
-			DoRead(pageid, result);
+			DoAccess(pageid, result, AccessType.Read);
 			read++;
 		}
 		public void Write(uint pageid, byte[] data)
 		{
-			DoWrite(pageid, data);
+			DoAccess(pageid, data, AccessType.Write);
 			write++;
 		}
 		public void Flush()
