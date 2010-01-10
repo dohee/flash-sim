@@ -135,13 +135,11 @@ namespace Buffers.Managers
 
 		private class RWFrame : FrameWithRWInfo<MultiListNode<RWQuery>>
 		{
-			public RWFrame(uint id) : base(id) { Init(); }
-			public RWFrame(uint id, int slotid) : base(id, slotid) { Init(); }
+            public RWFrame(uint id) : base(id) { InitRWFrame(); }
+            public RWFrame(uint id, int slotid) : base(id, slotid) { InitRWFrame(); }
 
-			private void Init()
+			private void InitRWFrame()
 			{
-				NodeOfRead = null;
-				NodeOfWrite = null;
 				NodeOfHIRPage = null;
 				ReadLowIR = false;
 				WriteLowIR = false;
