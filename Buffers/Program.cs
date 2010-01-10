@@ -15,7 +15,7 @@ namespace Buffers
 	{
 		private static ManagerGroup InitGroup()
 		{
-			const uint npages = 150;
+			const uint npages = 200;
 			uint ratio = (uint)Math.Round((double)Config.WriteCost / (double)Config.ReadCost);
 			ManagerGroup group = new ManagerGroup();
 
