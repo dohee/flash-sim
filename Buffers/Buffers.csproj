@@ -72,7 +72,7 @@
     <Compile Include="Memory\RWQuery.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Managers\QueueAndFrameBased\FrameBasedManager.cs" />
-    <Compile Include="Managers\QueueAndFrameBased\LRU.cs" />
+    <Compile Include="Managers\LRU.cs" />
     <Compile Include="Queues\Old\BlowQueue.cs" />
     <Compile Include="Queues\Old\IRRLRUQueue.cs" />
     <Compile Include="Queues\Old\MultiConcatLRUQueue.cs" />

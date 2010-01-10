@@ -10,7 +10,6 @@ namespace Buffers.Managers
 	public sealed class FLIRSbyLyf : BufferManagerBase
 	{
 		//private readonly float ratio;
-		private readonly Pool pool;
 		//private readonly MultiList<RWQuery> rwlist;
         private readonly FLIRSQueue readList;
         private readonly FLIRSQueue writeList;
@@ -20,11 +19,10 @@ namespace Buffers.Managers
         private readonly uint cacheSize;
 
 		public FLIRSbyLyf(uint npages)
-			: base(null)
+			: base(null, npages)
 		{
 			//this.ratio = ratio;
             cacheSize = npages;
-			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
             readList = new FLIRSQueue(false,map);
             writeList = new FLIRSQueue(true,map);
             hirQueue = new HIRQueue();
@@ -32,7 +30,7 @@ namespace Buffers.Managers
 		}
 
 
-		private void OnPoolFull()
+		protected override void OnPoolFull()
 		{
             RWFrame frame = map[hirQueue.getLast()];
             hirQueue.Dequeue(frame);
@@ -158,15 +156,6 @@ namespace Buffers.Managers
                 WriteIfDirty(entry.Value);
                 entry.Value.Dirty = false;
             }
-		}
-
-		private void WriteIfDirty(IFrame frame)
-		{
-			if (frame.Dirty)
-			{
-				dev.Write(frame.Id, pool[frame.DataSlotId]);
-				frame.Dirty = false;
-			}
 		}
 
 

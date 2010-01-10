@@ -10,16 +10,14 @@ namespace Buffers.Managers
 			: base(dev) { }
 
 		protected override void DoFlush() { }
+		protected override void OnPoolFull() { }
 
-		protected override void DoRead(uint pageid, byte[] result)
+		protected override void DoAccess(uint pageid, byte[] resultOrData, AccessType type)
 		{
-			dev.Read(pageid, result);
+			if (type == AccessType.Read)
+				dev.Read(pageid, resultOrData);
+			else
+				dev.Write(pageid, resultOrData);
 		}
-
-		protected override void DoWrite(uint pageid, byte[] data)
-		{
-			dev.Write(pageid, data);
-		}
-
 	}
 }

@@ -25,7 +25,9 @@ namespace Buffers.Managers
 	}
 
 
+#pragma warning disable 0618
 	public sealed class Tn : FrameBasedManager
+#pragma warning restore 0618
 	{
 		private readonly MultiConcatLRUQueue<IFrame> q;
 
