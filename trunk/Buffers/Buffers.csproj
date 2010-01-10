@@ -50,7 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Managers\Blower-ByCat.cs" />
+    <Compile Include="Managers\QueueAndFrameBased\Blower-ByCat.cs" />
     <Compile Include="Managers\BlowerByLyf.cs" />
     <Compile Include="Managers\BlowerByLyf2.cs" />
     <Compile Include="Managers\FLIRSbyLyf2.cs" />
@@ -62,17 +62,17 @@
     <Compile Include="Config.cs" />
     <Compile Include="Devices\TrivalBlockDevice.cs" />
     <Compile Include="Managers\BufferManagerBase.cs" />
-    <Compile Include="Managers\CMFT.cs" />
-    <Compile Include="Managers\CMFT-ByCat.cs" />
+    <Compile Include="Managers\CMFT-ByLyf.cs" />
+    <Compile Include="Managers\QueueAndFrameBased\CMFT-ByCat.cs" />
     <Compile Include="Managers\ManagerGroup.cs" />
-    <Compile Include="Managers\Tn.cs" />
+    <Compile Include="Managers\QueueAndFrameBased\Tn.cs" />
     <Compile Include="Managers\TrivalManager.cs" />
     <Compile Include="Memory\IRRFrame.cs" />
     <Compile Include="Memory\Pool.cs" />
     <Compile Include="Memory\RWQuery.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Managers\FrameBasedManager.cs" />
-    <Compile Include="Managers\LRU.cs" />
+    <Compile Include="Managers\QueueAndFrameBased\FrameBasedManager.cs" />
+    <Compile Include="Managers\QueueAndFrameBased\LRU.cs" />
     <Compile Include="Queues\Old\BlowQueue.cs" />
     <Compile Include="Queues\Old\IRRLRUQueue.cs" />
     <Compile Include="Queues\Old\MultiConcatLRUQueue.cs" />

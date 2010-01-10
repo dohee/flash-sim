@@ -9,7 +9,7 @@ using Buffers.Memory;
 namespace Buffers.Managers
 {
 	[Obsolete("The algorithm by LYF is obsolete")]
-	class CMFT : BufferManagerBase
+	class CMFTByLyf : BufferManagerBase
 	{
 		//the first version eliminate single queue.
 		//LRUQueue single;        //Store the pages that was only referenced once. limited by a threshold. From 2Q
@@ -23,13 +23,13 @@ namespace Buffers.Managers
 		//Real data are all stored in map.
 		public Dictionary<uint, IRRFrame> map = new Dictionary<uint, IRRFrame>();
 
-		public CMFT(uint npages)
+		public CMFTByLyf(uint npages)
 			: this(null, npages)
 		{
 			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);
 		}
 
-		public CMFT(IBlockDevice dev, uint npages)
+		public CMFTByLyf(IBlockDevice dev, uint npages)
 			: base(dev)
 		{
 			pool = new Pool(npages, this.dev.PageSize, OnPoolFull);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Buffers;
 using Buffers.Memory;
 using Buffers.Queues;
 using Buffers.Lists;
@@ -40,6 +41,16 @@ namespace Buffers.Managers
 
 		protected sealed override void DoRead(uint pageid, byte[] result)
 		{
+			DoAccess(pageid, result, AccessType.Read);
+		}
+
+		protected sealed override void DoWrite(uint pageid, byte[] data)
+		{
+			DoAccess(pageid, data, AccessType.Write);
+		}
+
+		private void DoAccess(uint pageid, byte[] dataOrResult, AccessType type)
+		{
 			RWFrame frame = null;
 			bool isLowIRAfter = false;
 
@@ -49,10 +60,10 @@ namespace Buffers.Managers
 				map[pageid] = frame;
 			}
 
-			if (frame.NodeOfRead != null)
+			if (frame.GetNodeOf(type) != null)
 			{
-				rwlist.Remove(frame.NodeOfRead);
-				frame.NodeOfRead = null;
+				rwlist.Remove(frame.GetNodeOf(type));
+				frame.SetNodeOf(type, null);
 				isLowIRAfter = true;
 			}
 
@@ -65,35 +76,28 @@ namespace Buffers.Managers
 			if (!frame.Resident)
 			{
 				frame.DataSlotId = pool.AllocSlot();
-				dev.Read(pageid, pool[frame.DataSlotId]);
-				pool[frame.DataSlotId].CopyTo(result, 0);
+				if (type == AccessType.Read)
+					dev.Read(pageid, pool[frame.DataSlotId]);
 			}
 
+			if (type == AccessType.Read)
+				pool[frame.DataSlotId].CopyTo(dataOrResult, 0);
+			else
+				dataOrResult.CopyTo(pool[frame.DataSlotId], 0);
 
-			frame.ReadLowIR = isLowIRAfter;
-			frame.NodeOfRead = rwlist.AddFirst(0, new RWQuery(pageid, false));
-			AssignHIRPageNode(frame);
+			frame.SetLowIROf(type, isLowIRAfter);
+			frame.SetNodeOf(type, rwlist.AddFirst(0, new RWQuery(pageid, type)));
+			TryAssignHIRPageNode(frame);
 
 			MaintainHIRs();
 		}
 
-		private void AssignHIRPageNode(RWFrame frame)
+		private void TryAssignHIRPageNode(RWFrame frame)
 		{
 			Debug.Assert(frame.NodeOfHIRPage == null);
-			bool assign = false;
 
-			if (!frame.Dirty)
-			{
-				if (!frame.ReadLowIR)
-					assign = true;
-			}
-			else
-			{
-				if (!frame.ReadLowIR && !frame.WriteLowIR)
-					assign = true;
-			}
-
-			if (assign)
+			if ((!frame.Dirty && !frame.ReadLowIR) ||
+				(frame.Dirty && !frame.ReadLowIR && !frame.WriteLowIR))
 				frame.NodeOfHIRPage = hirPages.AddFirst(frame.Id);
 		}
 
@@ -112,13 +116,13 @@ namespace Buffers.Managers
 		private void ShrinkRLIRArea()
 		{
 			MultiListNode<RWQuery> node = rwlist.Blow(0);
-			if (!node.Value.IsWrite)
+			if (node.Value.Type == AccessType.Read)
 			{
 				RWFrame frame = map[node.Value.PageId];
 				if (frame.ReadLowIR)
 				{
 					frame.ReadLowIR = false;
-					AssignHIRPageNode(frame);
+					TryAssignHIRPageNode(frame);
 				}
 			}
 		}
@@ -128,19 +132,19 @@ namespace Buffers.Managers
 			RWQuery query = rwlist.RemoveLast(1);
 			RWFrame frame = map[query.PageId];
 
-			if (query.IsWrite)
-			{
-				frame.NodeOfWrite = null;
-				frame.WriteLowIR = false;
-			}
-			else
+			if (query.Type== AccessType.Read)
 			{
 				frame.NodeOfRead = null;
 				frame.ReadLowIR = false;
 			}
+			else
+			{
+				frame.NodeOfWrite = null;
+				frame.WriteLowIR = false;
+			}
 
 			if (frame.NodeOfHIRPage == null)
-				AssignHIRPageNode(frame);
+				TryAssignHIRPageNode(frame);
 
 			if (frame.NodeOfHIRPage == null && frame.NodeOfRead == null && frame.NodeOfWrite == null)
 			{
@@ -149,10 +153,6 @@ namespace Buffers.Managers
 			}
 		}
 
-
-		protected sealed override void DoWrite(uint pageid, byte[] data)
-		{
-		}
 
 		protected override void DoFlush()
 		{
@@ -176,16 +176,28 @@ namespace Buffers.Managers
 
 			private void Init()
 			{
-				ReadLowIR = false;
-				WriteLowIR = false;
 				NodeOfRead = null;
 				NodeOfWrite = null;
 				NodeOfHIRPage = null;
+				ReadLowIR = false;
+				WriteLowIR = false;
 			}
 
+			public LinkedListNode<uint> NodeOfHIRPage { get; set; }
 			public bool ReadLowIR { get; set; }
 			public bool WriteLowIR { get; set; }
-			public LinkedListNode<uint> NodeOfHIRPage { get; set; }
+
+			public bool GetLowIROf(AccessType type)
+			{
+				return type == AccessType.Read ? ReadLowIR : WriteLowIR;
+			}
+			public void SetLowIROf(AccessType type, bool value)
+			{
+				if (type == AccessType.Read)
+					ReadLowIR = value;
+				else
+					WriteLowIR = value;
+			}
 		}
 
 	}
