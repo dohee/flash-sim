@@ -1,32 +1,33 @@
 ﻿using System;
+using Buffers;
 
 namespace Buffers.Memory
 {
 	public struct RWQuery : IEquatable<RWQuery>
 	{
-		public readonly uint PageId;
-		public readonly bool IsWrite;
+		public uint PageId { get; private set; }
+		public AccessType Type { get; private set; }
 
-		public RWQuery(uint id, bool isWrite)
-		{
-			PageId = id;
-			IsWrite = isWrite;
-		}
+		[Obsolete("请使用可读性更好的 Type 属性")]
+		public bool IsWrite { get { return Type == AccessType.Write; } }
+
+		public RWQuery(uint id, AccessType type) : this() { PageId = id; Type = type; }
+		public RWQuery(uint id, bool isWrite) : this(id, isWrite ? AccessType.Write : AccessType.Read) { }
 
         public override string ToString()
         {
-            return string.Format("Frame{{Id={0},IsWrite={1}}}",
-                PageId, IsWrite);
+            return string.Format("Frame{{Id={0},Type={1}}}",
+                PageId, Type);
         }
 
 		#region Equals 函数族
 		public bool Equals(RWQuery other)
 		{
-			return PageId == other.PageId && IsWrite == other.IsWrite;
+			return PageId == other.PageId && Type == other.Type;
 		}
 		public override int GetHashCode()
 		{
-			return PageId.GetHashCode() ^ IsWrite.GetHashCode();
+			return PageId.GetHashCode() ^ Type.GetHashCode();
 		}
 		public override bool Equals(object obj)
 		{

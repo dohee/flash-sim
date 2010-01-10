@@ -28,21 +28,21 @@ namespace Buffers.Managers
         {
             var residentList = new List<IRRFrame>();
 
-            for (int i = 0; i < irrQ.Count; i++)
-            {
-                var pair = irrQ[i];
-                IRRFrame f = map[pair.PageId].ListNode.Value as IRRFrame;
+			for (int i = 0; i < irrQ.Count; i++)
+			{
+				var pair = irrQ[i];
+				IRRFrame f = map[pair.PageId].ListNode.Value as IRRFrame;
 
-                if (!f.Resident)
-                    continue;
+				if (!f.Resident)
+					continue;
 
-                residentList.Add(f);
+				residentList.Add(f);
 
-                if (pair.IsWrite)
-                    f.WriteRecency = (uint)(irrQ.Count - i);
-                else
-                    f.ReadRecency = (uint)(irrQ.Count - i);
-            }
+				if (pair.Type == AccessType.Write)
+					f.WriteRecency = (uint)(irrQ.Count - i);
+				else
+					f.ReadRecency = (uint)(irrQ.Count - i);
+			}
 
             double minPower = Double.MaxValue;
             IRRFrame minFrame = null;
@@ -113,7 +113,7 @@ namespace Buffers.Managers
             {
                 var pair = q[0];
                 pageid = pair.PageId;
-                dirty = pair.IsWrite;
+				dirty = pair.Type == AccessType.Read ? false : true;
                 q.RemoveAt(0);
             }
             public uint AccessIRR(uint pageid, bool dirty)

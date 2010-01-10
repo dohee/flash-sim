@@ -6,6 +6,7 @@ using Buffers.Memory;
 
 namespace Buffers.Managers
 {
+	[Obsolete("请使用 LYF 做的 Blower"]
 	public sealed class BlowerByCat : FrameBasedManager
 	{
 		/// <summary>
@@ -192,7 +193,7 @@ namespace Buffers.Managers
 	}
 
 
-	[Obsolete()]
+	[Obsolete("请使用 LYF 做的 Blower"]
 	public sealed class OldBlowerByCat : FrameBasedManager
 	{
 		private FIFOQueue<IFrame> fifoQ = new FIFOQueue<IFrame>();
