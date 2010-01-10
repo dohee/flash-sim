@@ -43,6 +43,13 @@ namespace Buffers.Managers
 
 			PerformAccess(frame, resultOrData, type);
 			node = list.AddFirst(frame);
+            map[pageid] = node;
 		}
+
+        protected override void DoFlush()
+        {
+            foreach (var item in list)
+                WriteIfDirty(item);
+        }
 	}
 }
