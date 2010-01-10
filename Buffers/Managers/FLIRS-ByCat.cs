@@ -111,16 +111,8 @@ namespace Buffers.Managers
 			RWQuery query = rwlist.RemoveLast(1);
 			RWFrame frame = map[query.PageId];
 
-			if (query.Type== AccessType.Read)
-			{
-				frame.NodeOfRead = null;
-				frame.ReadLowIR = false;
-			}
-			else
-			{
-				frame.NodeOfWrite = null;
-				frame.WriteLowIR = false;
-			}
+			frame.SetNodeOf(query.Type, null);
+            frame.SetLowIROf(query.Type, false);
 
 			if (frame.NodeOfHIRPage == null)
 				TryAssignHIRPageNode(frame);
