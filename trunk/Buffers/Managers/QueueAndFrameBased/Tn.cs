@@ -92,9 +92,10 @@ namespace Buffers.Managers
 		}
 
 
-		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
+		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, AccessType type)
 		{
-			bool isRead = !isWrite;
+			bool isRead = (type == AccessType.Read);
+			bool isWrite = (type == AccessType.Write);
 			bool resident = node.ListNode.Value.Resident;
 			uint inwhichqueue = q.GetRoute(node);
 			bool inClean = (inwhichqueue == 0);
@@ -168,14 +169,14 @@ namespace Buffers.Managers
 			}
 		}
 
-		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
+		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, AccessType type)
 		{
 			if (SRLimit == 0)
 			{
-				if (isWrite)
-					return q.Enqueue(1, allocatedFrame);
-				else
+				if (type == AccessType.Read)
 					return q.Enqueue(0, allocatedFrame);
+				else
+					return q.Enqueue(1, allocatedFrame);
 			}
 			else
 			{

@@ -24,12 +24,12 @@ namespace Buffers.Managers
 			pool.FreeSlot(frame.DataSlotId);
 		}
 
-		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
+		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, AccessType type)
 		{
 			return queue.Access(node);
 		}
 
-		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
+		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, AccessType type)
 		{
 			return queue.Enqueue(allocatedFrame);
 		}

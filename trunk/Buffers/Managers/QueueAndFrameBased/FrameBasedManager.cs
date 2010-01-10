@@ -17,55 +17,45 @@ namespace Buffers.Managers
 		}
 
 		protected abstract void OnPoolFull();
-		protected abstract QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite);
-		protected abstract QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite);
+		protected abstract QueueNode<IFrame> OnHit(QueueNode<IFrame> node, AccessType type);
+		protected abstract QueueNode<IFrame> OnMiss(IFrame allocatedFrame, AccessType type);
 
 		protected virtual IFrame CreateFrame(uint pageid, int slotid)
 		{
 			return new Frame(pageid, slotid);
 		}
 
-
-		protected sealed override void DoRead(uint pageid, byte[] result)
+		protected sealed override void DoAccess(uint pageid, byte[] resultOrData, AccessType type)
 		{
 			QueueNode<IFrame> node;
 			IFrame frame;
 
 			if (map.TryGetValue(pageid, out node))
 			{
-				node = OnHit(node, false);
+				node = OnHit(node, type);
 				frame = node.ListNode.Value;
 			}
 			else
 			{
 				frame = CreateFrame(pageid, pool.AllocSlot());
-				dev.Read(pageid, pool[frame.DataSlotId]);
-				node = OnMiss(frame, false);
+
+				if (type == AccessType.Read)
+					dev.Read(pageid, pool[frame.DataSlotId]);
+
+				node = OnMiss(frame, type);
 			}
 
 			map[pageid] = node;
-			pool[frame.DataSlotId].CopyTo(result, 0);
-		}
 
-		protected sealed override void DoWrite(uint pageid, byte[] data)
-		{
-			QueueNode<IFrame> node;
-			IFrame frame;
-
-			if (map.TryGetValue(pageid, out node))
+			if (type == AccessType.Read)
 			{
-				node = OnHit(node, true);
-				frame = node.ListNode.Value;
+				pool[frame.DataSlotId].CopyTo(resultOrData, 0);
 			}
 			else
 			{
-				frame = CreateFrame(pageid, pool.AllocSlot());
-				node = OnMiss(frame, true);
+				resultOrData.CopyTo(pool[frame.DataSlotId], 0);
+				frame.Dirty = true;
 			}
-
-			map[pageid] = node;
-			data.CopyTo(pool[frame.DataSlotId], 0);
-			frame.Dirty = true;
 		}
 
 		protected override void DoFlush()
