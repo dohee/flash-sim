@@ -58,7 +58,7 @@ namespace Buffers.Memory
 		public override string ToString()
 		{
 			return string.Format("IRRFrame{{Id={0},Dirty={1},RR={2},WR={3},RIRR={4},WIRR={5}}}",
-				id, dirty, readRecency, writeRecency, readIRR, writeIRR);
+				Id, Dirty, readRecency, writeRecency, readIRR, writeIRR);
 		}
 
 	}

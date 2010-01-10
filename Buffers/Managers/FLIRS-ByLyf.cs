@@ -178,7 +178,7 @@ namespace Buffers.Managers
             public override string ToString()
             {
                 return string.Format("Frame{{Id={0},Dirty={1},SlotId={2},ReadLowIR={3},WriteLowIR={4}}}",
-                    id, dirty, slotid,ReadLowIR, WriteLowIR);
+                    Id, Dirty, DataSlotId,ReadLowIR, WriteLowIR);
             }
             /*public override string ToString()
             {
