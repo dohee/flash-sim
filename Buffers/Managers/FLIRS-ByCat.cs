@@ -39,17 +39,7 @@ namespace Buffers.Managers
 
 		}
 
-		protected sealed override void DoRead(uint pageid, byte[] result)
-		{
-			DoAccess(pageid, result, AccessType.Read);
-		}
-
-		protected sealed override void DoWrite(uint pageid, byte[] data)
-		{
-			DoAccess(pageid, data, AccessType.Write);
-		}
-
-		private void DoAccess(uint pageid, byte[] dataOrResult, AccessType type)
+		protected sealed override void DoAccess(uint pageid, byte[] dataOrResult, AccessType type)
 		{
 			RWFrame frame = null;
 			bool isLowIRAfter = false;
@@ -81,9 +71,14 @@ namespace Buffers.Managers
 			}
 
 			if (type == AccessType.Read)
+			{
 				pool[frame.DataSlotId].CopyTo(dataOrResult, 0);
+			}
 			else
+			{
 				dataOrResult.CopyTo(pool[frame.DataSlotId], 0);
+				frame.Dirty = true;
+			}
 
 			frame.SetLowIROf(type, isLowIRAfter);
 			frame.SetNodeOf(type, rwlist.AddFirst(0, new RWQuery(pageid, type)));

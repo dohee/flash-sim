@@ -62,8 +62,9 @@ namespace Buffers.Managers
             minFrame.DataSlotId = -1;
         }
 
-        protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, bool isWrite)
+		protected override QueueNode<IFrame> OnHit(QueueNode<IFrame> node, AccessType type)
         {
+			bool isWrite = (type == AccessType.Write);
             IRRFrame irrf = node.ListNode.Value as IRRFrame;
             if (!irrf.Resident)
             {
@@ -85,9 +86,9 @@ namespace Buffers.Managers
             return node;
         }
 
-        protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, bool isWrite)
+		protected override QueueNode<IFrame> OnMiss(IFrame allocatedFrame, AccessType type)
         {
-            irrQ.Enqueue(allocatedFrame.Id, isWrite);
+			irrQ.Enqueue(allocatedFrame.Id, (type == AccessType.Write));
             return fifoQ.Enqueue(allocatedFrame);
         }
 

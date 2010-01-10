@@ -6,6 +6,8 @@ using Buffers.Memory;
 
 namespace Buffers.Managers
 {
+#if false
+
 	[Obsolete("请使用 LYF 做的 Blower")]
 	public sealed class BlowerByCat : FrameBasedManager
 	{
@@ -336,4 +338,6 @@ namespace Buffers.Managers
 			else ClearNodeOfWrite();
 		}
 	}
+
+#endif
 }
