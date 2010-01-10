@@ -9,8 +9,11 @@ using System.Diagnostics;
 //Blower. Determine victim by two separate queues. each queue stores read and write operation separately. 
 namespace Buffers.Managers
 {
+#if false
+
 	//这一版尝试不移动page的位置。也就是说resident队列里也可能有nonresident的页面。
-	class BlowerByLyf2 : BufferManagerBase
+    [Obsolete("失败了，效果不好")]
+    class BlowerByLyf2 : BufferManagerBase
 	{
 		//the first version eliminate single queue.
 		//LRUQueue single;        //Store the pages that was only referenced once. limited by a threshold. From 2Q
@@ -139,7 +142,7 @@ namespace Buffers.Managers
 				}
 			}
 
-/*#if DEBUG //判断是不是前面还有nonresident的。
+#if DEBUG //判断是不是前面还有nonresident的。
 			for (int i = index; i >= 0; i--)
 			{
 				if (!map[list[i]].Resident)
@@ -147,7 +150,7 @@ namespace Buffers.Managers
 					Debug.Assert(false);
 				}
 			}
-#endif*/
+#endif
 			//Debug.Assert(index <= pool.NPages);
 			return index;
 			//return -1;
@@ -451,4 +454,6 @@ namespace Buffers.Managers
 			return sum;
 		}
 	}
+
+#endif
 }

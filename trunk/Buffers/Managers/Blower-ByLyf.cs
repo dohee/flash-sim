@@ -9,6 +9,7 @@ using System.Diagnostics;
 //Blower. Determine victim by two separate queues. each queue stores read and write operation separately. 
 namespace Buffers.Managers
 {
+    [Obsolete("失败了，效果不好")]
 	class BlowerByLyf : BufferManagerBase
 	{
 		//the first version eliminate single queue.
