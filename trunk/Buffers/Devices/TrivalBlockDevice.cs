@@ -1,24 +1,12 @@
 ﻿using System;
+using Buffers.Devices;
 
 namespace Buffers.Devices
 {
-	public sealed class TrivalBlockDevice : Buffers.IBlockDevice
+	public sealed class TrivalBlockDevice : BlockDeviceBase
 	{
-		private int read = 0, write = 0;
-		private static byte[] emptyData = new byte[0];
-
-		public uint PageSize { get { return 0; } }
-		public int ReadCount { get { return read; } }
-		public int WriteCount { get { return write; } }
-
-		public void Read(uint pageid, byte[] result)
-		{
-			read++;
-		}
-
-		public void Write(uint pageid, byte[] data)
-		{
-			write++;
-		}
+		public override uint PageSize { get { return 0; } }
+		protected override void DoRead(uint pageid, byte[] result) { }
+		protected override void DoWrite(uint pageid, byte[] data) { }
 	}
 }

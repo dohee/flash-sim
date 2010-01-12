@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Devices\BlockDeviceBase.cs" />
     <Compile Include="Managers\QueueAndFrameBased\Blower-ByCat.cs" />
     <Compile Include="Managers\Blower-ByLyf.cs" />
     <Compile Include="Managers\Blower-ByLyf2.cs" />

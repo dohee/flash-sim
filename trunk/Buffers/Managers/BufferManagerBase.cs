@@ -5,25 +5,14 @@ using Buffers.Memory;
 
 namespace Buffers.Managers
 {
-	public abstract class BufferManagerBase : Buffers.IBufferManager, IDisposable
+	public abstract class BufferManagerBase : BlockDeviceBase, IBufferManager, IDisposable
 	{
 		protected IBlockDevice dev;
 		protected readonly Pool pool;
-		private int read = 0, write = 0, flush = 0;
 		private bool disposed = false;
 
-		protected virtual void DoAccess(uint pageid, byte[] resultOrData, AccessType type)
-		{
-			if (type == AccessType.Read)
-				DoRead(pageid, resultOrData);
-			else
-				DoWrite(pageid, resultOrData);
-		}
 		protected virtual void DoFlush() { }
 		protected virtual void OnPoolFull() { }
-
-		protected virtual void DoRead(uint pageid, byte[] result) { }
-		protected virtual void DoWrite(uint pageid, byte[] data) { }
 
 		protected void PerformAccess(IFrame frame, byte[] resultOrData, AccessType type)
 		{
@@ -82,25 +71,13 @@ namespace Buffers.Managers
 		public virtual string Name { get { return this.GetType().Name; } }
 		public virtual string Description { get { return null; } }
 		public IBlockDevice AssociatedDevice { get { return dev; } }
-		public uint PageSize { get { return dev.PageSize; } }
-		public int ReadCount { get { return read; } }
-		public int WriteCount { get { return write; } }
-		public int FlushCount { get { return flush; } }
+		public override uint PageSize { get { return dev.PageSize; } }
+		public int FlushCount { get; private set; }
 
-		public void Read(uint pageid, byte[] result)
-		{
-			DoAccess(pageid, result, AccessType.Read);
-			read++;
-		}
-		public void Write(uint pageid, byte[] data)
-		{
-			DoAccess(pageid, data, AccessType.Write);
-			write++;
-		}
 		public void Flush()
 		{
 			DoFlush();
-			flush++;
+			FlushCount++;
 		}
 	}
 }
