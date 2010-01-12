@@ -9,7 +9,6 @@ namespace Buffers.Managers
 	{
 		protected IBlockDevice dev;
 		protected readonly Pool pool;
-		private bool disposed = false;
 
 		protected virtual void DoFlush() { }
 		protected virtual void OnPoolFull() { }
@@ -48,7 +47,10 @@ namespace Buffers.Managers
 			this.dev = (device == null ? new TrivalBlockDevice() : device);
 			this.pool = (npages == 0 ? null : new Pool(npages, dev.PageSize, OnPoolFull));
 		}
+
 		#region Dispose 函数族
+		private bool _disposed_BufferManagerBase = false;
+
 		~BufferManagerBase()
 		{
 			Dispose(false);
@@ -58,13 +60,14 @@ namespace Buffers.Managers
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
-		private void Dispose(bool disposing)
+		protected virtual void Dispose(bool isDisposing)
 		{
-			if (disposed)
+			if (_disposed_BufferManagerBase)
 				return;
 
-			DoFlush();
-			disposed = true;
+			DoFlush(); // 清理非托管资源
+
+			_disposed_BufferManagerBase = true;
 		}
 		#endregion
 
