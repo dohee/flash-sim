@@ -7,7 +7,7 @@ namespace Buffers.Managers
 		public TrivalManager()
 			: this(null) { }
 		public TrivalManager(IBlockDevice dev)
-			: base(dev) { }
+			: base(dev, 0) { }
 
 		protected override void DoFlush() { }
 		protected override void OnPoolFull() { }

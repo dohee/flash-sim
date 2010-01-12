@@ -101,7 +101,7 @@ namespace Buffers.Managers
 		}
 
 		public BlowerByLyf(IBlockDevice dev, uint npages)
-			: base(dev)
+			: base(dev,npages)
 		{
 			windowSize = npages * 1 / 2;
 			//readLimit = (int)npages / 3;

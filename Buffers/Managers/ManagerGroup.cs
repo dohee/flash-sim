@@ -10,7 +10,7 @@ namespace Buffers.Managers
 		private List<IBufferManager> mgrs = new List<IBufferManager>();
 
 		public ManagerGroup()
-			: base(null) { }
+			: base(null, 0) { }
 
 		public int Count { get { return mgrs.Count; } }
 		public IBufferManager this[int index] { get { return mgrs[index]; } }
@@ -32,22 +32,20 @@ namespace Buffers.Managers
 		}
 
 
-		protected override void DoRead(uint pageid, byte[] result)
+		protected override void DoAccess(uint pageid, byte[] resultOrData, AccessType type)
 		{
-			foreach (var mgr in mgrs)
-				mgr.Read(pageid, result);
-		}
-		protected override void DoWrite(uint pageid, byte[] data)
-		{
-			foreach (var mgr in mgrs)
-				mgr.Write(pageid, data);
+			if (type == AccessType.Read)
+				foreach (var mgr in mgrs)
+					mgr.Read(pageid, resultOrData);
+			else
+				foreach (var mgr in mgrs)
+					mgr.Write(pageid, resultOrData);
 		}
 		protected override void DoFlush()
 		{
 			foreach (var mgr in mgrs)
 				mgr.Flush();
 		}
-
 
 	}
 }
