@@ -12,12 +12,13 @@ namespace Buffers.Managers
 		protected override void DoFlush() { }
 		protected override void OnPoolFull() { }
 
-		protected override void DoAccess(uint pageid, byte[] resultOrData, AccessType type)
+		protected override void DoRead(uint pageid, byte[] result)
 		{
-			if (type == AccessType.Read)
-				dev.Read(pageid, resultOrData);
-			else
-				dev.Write(pageid, resultOrData);
+			dev.Read(pageid, result);
+		}
+		protected override void DoWrite(uint pageid, byte[] data)
+		{
+			dev.Write(pageid, data);
 		}
 	}
 }
