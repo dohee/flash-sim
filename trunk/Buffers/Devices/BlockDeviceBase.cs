@@ -16,7 +16,7 @@ namespace Buffers.Devices
 		protected virtual void DoAccess(uint pageid, byte[] resultOrData, AccessType type) { }
 
 
-		public abstract uint PageSize { get; }
+		public virtual uint PageSize { get; protected set; }
 		public int ReadCount { get; private set; }
 		public int WriteCount { get; private set; }
 
