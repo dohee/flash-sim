@@ -46,7 +46,8 @@ namespace ParseStrace
 				{
 					lowcount = 0;
 					highcount++;
-					Console.Error.WriteLine((long)highcount * kMaxLow);
+					Console.Error.Write("\rPhase {0}: Processed {1} lines.", phase, (long)highcount * kMaxLow);
+					Console.Error.Flush();
 				}
 
 				int firstSpace = line.IndexOf(' ');
@@ -71,6 +72,9 @@ namespace ParseStrace
 					ProceedLine(pid, line, phase);
 				}
 			}
+
+			Console.Error.WriteLine("\rPhase {0}: Processed {1} lines.",
+				phase, (long)highcount * kMaxLow + lowcount);
 		}
 
 
