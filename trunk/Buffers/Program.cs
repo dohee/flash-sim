@@ -17,7 +17,7 @@ namespace Buffers
 		{
 			const uint npages = 200;
 			float fratio = (float)Config.WriteCost / Config.ReadCost;
-			uint ratio = (uint)Math.Round((double)Config.WriteCost / (double)Config.ReadCost);
+			uint ratio = (uint)Math.Round(fratio);
 			ManagerGroup group = new ManagerGroup();
 
 			group.Add(new LRU(npages));
@@ -41,9 +41,23 @@ namespace Buffers
 			return group;
 		}
 
+		private static ManagerGroup InitTestGroup()
+		{
+			const uint npages = 200;
+			float fratio = (float)Config.WriteCost / Config.ReadCost;
+			uint ratio = (uint)Math.Round(fratio);
+			ManagerGroup group = new ManagerGroup();
+
+			group.Add(new TrivalManager(new MemorySimulatedDevice(1)));
+			group.Add(new Tn(new MemorySimulatedDevice(1), npages, ratio));
+
+			return group;
+		}
+
 		public static void Main(string[] args)
 		{
-			ManagerGroup group = InitGroup();
+			//ManagerGroup group = InitGroup();
+			ManagerGroup group = InitTestGroup();
 			TextReader reader = null;
 
 			try
@@ -57,9 +71,9 @@ namespace Buffers
 				OperateOnTrace(group, reader);
 				TimeSpan ts = DateTime.Now - old;
 
-				PushColor(ConsoleColor.Magenta);
+				ColorStack.PushColor(ConsoleColor.Magenta);
 				Console.WriteLine(ts);
-				PopColor();
+				ColorStack.PopColor();
 
 				GenerateOutput(group, Console.Out);
 			}
@@ -76,22 +90,13 @@ namespace Buffers
 		}
 
 
-		private static Stack<ConsoleColor> clrstack = new Stack<ConsoleColor>();
-		private static void PushColor(ConsoleColor newcolor)
-		{
-			clrstack.Push(Console.ForegroundColor);
-			Console.ForegroundColor = newcolor;
-		}
-		private static void PopColor()
-		{
-			Console.ForegroundColor = clrstack.Pop();
-		}
+
 		private static void WriteCountOnError(int count)
 		{
-			PushColor(ConsoleColor.Green);
+			ColorStack.PushColor(ConsoleColor.Green);
 			Console.Error.Write("\rProcessed {0} Lines.", count);
 			Console.Error.Flush();
-			PopColor();
+			ColorStack.PopColor();
 		}
 
 		private static void OperateOnTrace(ManagerGroup group, TextReader input)
@@ -142,9 +147,9 @@ namespace Buffers
 
 		private static void GenerateOutput(ManagerGroup group, TextWriter output)
 		{
-			PushColor(ConsoleColor.Yellow);
+			ColorStack.PushColor(ConsoleColor.Yellow);
 			output.Write("Group  ");
-			PopColor();
+			ColorStack.PopColor();
 			output.WriteLine("Read {0}  Write {1}  Flush {2}  Cost {3}",
 				group.ReadCount, group.WriteCount, group.FlushCount,
 				Utils.CalcTotalCost(group));
@@ -168,20 +173,20 @@ namespace Buffers
 			{
 				IBlockDevice dev = group[i].AssociatedDevice;
 
-				PushColor(ConsoleColor.Yellow);
+				ColorStack.PushColor(ConsoleColor.Yellow);
 				output.Write(formatDev, i);
-				PopColor();
+				ColorStack.PopColor();
 				output.Write(formatCost, dev.ReadCount, dev.WriteCount, Utils.CalcTotalCost(dev));
 
-				PushColor(ConsoleColor.Cyan);
+				ColorStack.PushColor(ConsoleColor.Cyan);
 				output.Write(group[i].Name + " ");
-				PopColor();
+				ColorStack.PopColor();
 
 				if (group[i].Description != null)
 				{
-					PushColor(ConsoleColor.DarkGray);
+					ColorStack.PushColor(ConsoleColor.DarkGray);
 					output.Write(group[i].Description);
-					PopColor();
+					ColorStack.PopColor();
 				}
 
 				output.WriteLine();
