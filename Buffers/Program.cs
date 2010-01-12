@@ -48,13 +48,14 @@ namespace Buffers
 				{
 					nnew = DateTime.Now;
 					if (tmr != null) tmr.Dispose();
+
 					WriteCountOnStderr(null);
 					Console.Error.WriteLine();
+					ColorStack.PushColor(ConsoleColor.Magenta);
+					Console.WriteLine(nnew - old);
+					ColorStack.PopColor();
 				}
 
-				ColorStack.PushColor(ConsoleColor.Magenta);
-				Console.WriteLine(nnew - old);
-				ColorStack.PopColor();
 
 				if (Config.RunVerify)
 				{
