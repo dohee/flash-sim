@@ -45,7 +45,10 @@ namespace Buffers.Devices
 		protected override void DoRead(uint pageid, byte[] result)
 		{
 			stream.Seek((long)pageid * PageSize, SeekOrigin.Begin);
-			stream.Read(result, 0, (int)PageSize);
+			int i = stream.Read(result, 0, (int)PageSize);
+
+			for (; i < result.Length; i++)
+				result[i] = default(byte);
 		}
 		protected override void DoWrite(uint pageid, byte[] data)
 		{
