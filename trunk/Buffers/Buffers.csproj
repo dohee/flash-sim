@@ -53,6 +53,7 @@
     <Compile Include="ColorStack.cs" />
     <Compile Include="Devices\BlockDeviceBase.cs" />
     <Compile Include="Devices\MemorySimulatedDevice.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="Managers\QueueAndFrameBased\Blower-ByCat.cs" />
     <Compile Include="Managers\Blower-ByLyf.cs" />
     <Compile Include="Managers\Blower-ByLyf2.cs" />
@@ -89,6 +90,8 @@
     <Compile Include="Queues\Old\QueueGroup.cs" />
     <Compile Include="Queues\Old\QueueBase.cs" />
     <Compile Include="Queues\Old\QueueNode.cs" />
+    <Compile Include="RandomDataGenerator.cs" />
+    <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

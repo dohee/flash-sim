@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Buffers;
 using Buffers.Devices;
 using Buffers.Managers;
@@ -13,100 +14,109 @@ namespace Buffers
 {
 	class Program
 	{
-		private static ManagerGroup InitGroup()
-		{
-			const uint npages = 200;
-			float fratio = (float)Config.WriteCost / Config.ReadCost;
-			uint ratio = (uint)Math.Round(fratio);
-			ManagerGroup group = new ManagerGroup();
-
-			group.Add(new LRU(npages));
-			//group.Add(Wrapper.CreateCFLRU(npages, npages / 2));
-			//group.Add(Wrapper.CreateCFLRUD(npages));
-			//group.Add(Wrapper.CreateLRUWSR(npages));
-			//group.Add(new Tn(npages, ratio, new TnConfig(false, false, 0, 0, false)));
-			//group.Add(new Tn(npages, ratio, new TnConfig(false, true, 0, 0, false)));
-			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, 0, 0, false)));
-			//group.Add(new Tn(npages, ratio, new TnConfig(true, true, 0, 0, false)));
-			group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, npages / 2, false)));
-            group.Add(new FLIRSbyLyf2(npages));
-			group.Add(new FLIRSByCat(npages, fratio, 0.1f));
-			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
-			//group.Add(new CMFTByCat(npages));
-			//group.Add(new OldBlowerByCat(npages));
-			//group.Add(new BlowerByCat(npages));
-			//group.Add(new BlowerByLyf(npages));
-			//group.Add(new BlowerByLyf2(npages));
-
-			return group;
-		}
-
-		private static ManagerGroup InitTestGroup()
-		{
-			const uint npages = 200;
-			float fratio = (float)Config.WriteCost / Config.ReadCost;
-			uint ratio = (uint)Math.Round(fratio);
-			ManagerGroup group = new ManagerGroup();
-
-			group.Add(new TrivalManager(new MemorySimulatedDevice(1)));
-			group.Add(new Tn(new MemorySimulatedDevice(1), npages, ratio));
-
-			return group;
-		}
+		static int processedLineCount = 0;
 
 		public static void Main(string[] args)
 		{
-			//ManagerGroup group = InitGroup();
-			ManagerGroup group = InitTestGroup();
 			TextReader reader = null;
+			ManagerGroup group = null;
 
 			try
 			{
 				if (args.Length >= 1)
-					reader = new StreamReader(args[0]);
+					reader = new StreamReader(args[0], Encoding.Default, true, 16 * 1024 * 1024);
 				else
 					reader = Console.In;
 
+				group = (Config.RunVerify ?
+					Config.InitTestGroup() : Config.InitGroup());
+
+#if DEBUG
+				Timer tmr = null;
+#else
+				Timer tmr = new Timer(WriteCountOnStderr, null, 0, 500);
+#endif
+
 				DateTime old = DateTime.Now;
-				OperateOnTrace(group, reader);
-				TimeSpan ts = DateTime.Now - old;
+				DateTime nnew;
+
+				try
+				{
+					OperateOnTrace(group, reader);
+				}
+				finally
+				{
+					nnew = DateTime.Now;
+					if (tmr != null) tmr.Dispose();
+					WriteCountOnStderr(null);
+					Console.Error.WriteLine();
+				}
 
 				ColorStack.PushColor(ConsoleColor.Magenta);
-				Console.WriteLine(ts);
+				Console.WriteLine(nnew - old);
 				ColorStack.PopColor();
 
-				GenerateOutput(group, Console.Out);
+				if (Config.RunVerify)
+				{
+					VerifyData(group);
+					Console.WriteLine("Data verification succeeded.");
+				}
 			}
 			catch (FileNotFoundException)
 			{
-				Console.Error.WriteLine("{0}: File {1} not found",
-					Environment.GetCommandLineArgs()[0], args[0]);				
+				EmitErrMsg("File {0} not found", args[0]);
+			}
+			catch (DataNotConsistentException ex)
+			{
+				EmitErrMsg(ex.Message);
+			}
+			catch (Exception ex)
+			{
+				EmitErrMsg(ex.ToString());
 			}
 			finally
 			{
+				if (group != null)
+					GenerateOutput(group, Console.Out);
 				if (reader != null)
 					reader.Dispose();
 			}
 		}
 
-
-
-		private static void WriteCountOnError(int count)
+		private static void EmitErrMsg(string message)
 		{
-			ColorStack.PushColor(ConsoleColor.Green);
-			Console.Error.Write("\rProcessed {0} Lines.", count);
-			Console.Error.Flush();
+			ColorStack.PushColor(ConsoleColor.Red);
+			Console.Error.WriteLine("{0}: {1}", Environment.GetCommandLineArgs()[0], message);
+			ColorStack.PopColor();
+		}
+		private static void EmitErrMsg(string format, params object[] obj)
+		{
+			ColorStack.PushColor(ConsoleColor.White);
+			Console.Error.Write(Environment.GetCommandLineArgs()[0]);
+			Console.Error.WriteLine(": " + format, obj);
 			ColorStack.PopColor();
 		}
 
+
 		private static void OperateOnTrace(ManagerGroup group, TextReader input)
 		{
+			byte[] data = new byte[group.PageSize];
+			RandomDataGenerator generator = new RandomDataGenerator();
 			string line;
-			byte[] data = new byte[0];
-			int count = 0;
 
 			while ((line = input.ReadLine()) != null)
 			{
+				int lineCount = Interlocked.Increment(ref processedLineCount);
+#if DEBUG
+				if (lineCount > 10000)
+					break;
+				if (lineCount % 2000 == 0)
+					WriteCountOnStderr(null);
+
+				//if (lineCount == 2204)
+				//	lineCount++;
+#endif
+
 				string[] parts = line.Split('#');
 				line = parts[0];
 
@@ -115,35 +125,37 @@ namespace Buffers
 				if (parts.Length < 3)
 					continue;
 
-				if (++count % 2000 == 0)
-					WriteCountOnError(count);
-
-#if ANALISE
-				if (count == 149)
-					Console.WriteLine("Pause here");
-#endif
-
 				uint pageid = uint.Parse(parts[0]);
 				uint length = uint.Parse(parts[1]);
 				uint rw = uint.Parse(parts[2]);
 
 				if (rw == 0)
+				{
 					while (length-- != 0)
 						group.Read(pageid++, data);
+				}
 				else
+				{
 					while (length-- != 0)
+					{
+						generator.Generate(data);
 						group.Write(pageid++, data);
-
-
-#if ANALISE
-				AnalyseAndOutput(group, count);
-#endif
+					}
+				}
 			}
 
-			WriteCountOnError(count);
-			Console.Error.WriteLine();
 			group.Flush();
 		}
+
+		private static void WriteCountOnStderr(object obj)
+		{
+			ColorStack.PushColor(ConsoleColor.Green);
+			Console.Error.Write("\rProcessed {0} Lines.", processedLineCount);
+			Console.Error.Flush();
+			ColorStack.PopColor();
+		}
+
+
 
 		private static void GenerateOutput(ManagerGroup group, TextWriter output)
 		{
@@ -192,6 +204,24 @@ namespace Buffers
 				output.WriteLine();
 			}
 		}
+
+
+		private static void VerifyData(ManagerGroup group)
+		{
+			byte[] correct = (group[0].AssociatedDevice as MemorySimulatedDevice).ToArray();
+
+			for (int i = 1; i < group.Count; i++)
+			{
+				byte[] current = (group[i].AssociatedDevice as MemorySimulatedDevice).ToArray();
+				int diffpos = Utils.FindDiff(correct, current);
+
+				if (diffpos != -1)
+					throw new DataNotConsistentException(string.Format(
+						"Verified data not consistent at Page {0} between Device 0 and Device {1}",
+						diffpos, i));
+			}
+		}
+
 
 
 		private static void AnalyseAndOutput(ManagerGroup group, int count)

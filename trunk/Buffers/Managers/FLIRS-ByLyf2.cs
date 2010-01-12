@@ -17,8 +17,11 @@ namespace Buffers.Managers
         private readonly uint maxHIRQueueLength;
         private readonly uint cacheSize;
 
-        public FLIRSbyLyf2(uint npages)
-            : base(null, npages)
+		public FLIRSbyLyf2(uint npages)
+			: this(null, npages) { }
+
+        public FLIRSbyLyf2(IBlockDevice dev, uint npages)
+            : base(dev, npages)
         {
             //this.ratio = ratio;
             cacheSize = npages;
@@ -27,6 +30,7 @@ namespace Buffers.Managers
             hirQueue = new HIRQueue();
             maxHIRQueueLength = Math.Max(npages / 100, 1);
         }
+		
 
 
         protected override void OnPoolFull()
