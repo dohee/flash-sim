@@ -56,11 +56,8 @@ namespace Buffers.Managers
 
 		protected override void DoFlush()
 		{
-			foreach (var entry in map)
-			{
-				WriteIfDirty(entry.Value.ListNode.Value);
-				entry.Value.ListNode.Value.Dirty = false;
-			}
+			foreach (var node in map.Values)
+				WriteIfDirty(node.ListNode.Value);
 		}
 	}
 }

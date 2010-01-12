@@ -16,6 +16,7 @@ namespace Buffers
 		private static ManagerGroup InitGroup()
 		{
 			const uint npages = 200;
+			float fratio = (float)Config.WriteCost / Config.ReadCost;
 			uint ratio = (uint)Math.Round((double)Config.WriteCost / (double)Config.ReadCost);
 			ManagerGroup group = new ManagerGroup();
 
@@ -28,7 +29,8 @@ namespace Buffers
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, 0, 0, false)));
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, true, 0, 0, false)));
 			group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, npages / 2, false)));
-            group.Add(new FLIRSbyLyf2(npages)); 
+            group.Add(new FLIRSbyLyf2(npages));
+			group.Add(new FLIRSByCat(npages, fratio, 0.1f));
 			//group.Add(new Tn(npages, ratio, new TnConfig(true, false, npages / 4, 0, true)));
 			//group.Add(new CMFTByCat(npages));
 			//group.Add(new OldBlowerByCat(npages));
@@ -58,14 +60,19 @@ namespace Buffers
 				PushColor(ConsoleColor.Magenta);
 				Console.WriteLine(ts);
 				PopColor();
+
+				GenerateOutput(group, Console.Out);
+			}
+			catch (FileNotFoundException)
+			{
+				Console.Error.WriteLine("{0}: File {1} not found",
+					Environment.GetCommandLineArgs()[0], args[0]);				
 			}
 			finally
 			{
 				if (reader != null)
 					reader.Dispose();
 			}
-
-			GenerateOutput(group, Console.Out);
 		}
 
 
@@ -78,6 +85,13 @@ namespace Buffers
 		private static void PopColor()
 		{
 			Console.ForegroundColor = clrstack.Pop();
+		}
+		private static void WriteCountOnError(int count)
+		{
+			PushColor(ConsoleColor.Green);
+			Console.Error.Write("\rProcessed {0} Lines.", count);
+			Console.Error.Flush();
+			PopColor();
 		}
 
 		private static void OperateOnTrace(ManagerGroup group, TextReader input)
@@ -97,15 +111,8 @@ namespace Buffers
 					continue;
 
 				if (++count % 2000 == 0)
-				{
-					PushColor(ConsoleColor.Green);
-					Console.Error.WriteLine(count);
-					PopColor();
-				}
-#if DEBUG
-				if (count == 14)
-					count = 14;
-#endif
+					WriteCountOnError(count);
+
 #if ANALISE
 				if (count == 149)
 					Console.WriteLine("Pause here");
@@ -115,11 +122,6 @@ namespace Buffers
 				uint length = uint.Parse(parts[1]);
 				uint rw = uint.Parse(parts[2]);
 
-
-                //if(pageid==7)
-                  //System.Console.WriteLine("" + (pageid) + "  " + rw);
-
-
 				if (rw == 0)
 					while (length-- != 0)
 						group.Read(pageid++, data);
@@ -128,11 +130,14 @@ namespace Buffers
 						group.Write(pageid++, data);
 
 
-				//AnalyseAndOutput(group, count);
+#if ANALISE
+				AnalyseAndOutput(group, count);
+#endif
 			}
 
+			WriteCountOnError(count);
+			Console.Error.WriteLine();
 			group.Flush();
-
 		}
 
 		private static void GenerateOutput(ManagerGroup group, TextWriter output)
@@ -183,15 +188,16 @@ namespace Buffers
 			}
 		}
 
-/*		private static void AnalyseAndOutput(ManagerGroup group, int count)
+
+		private static void AnalyseAndOutput(ManagerGroup group, int count)
 		{
 #if ANALISE
 			if (FindBug(group, count))
 				Console.WriteLine(count);
 #endif
-		}*/
+		}
 
-/*#if ANALISE
+#if ANALISE
 		private static bool FindBug(ManagerGroup group, int count)
 		{
 			var lyfMap = ((CMFT)group[1]).map;
@@ -225,7 +231,7 @@ namespace Buffers
 
 			return false;
 		}
-#endif*/
+#endif
 
 	}
 }

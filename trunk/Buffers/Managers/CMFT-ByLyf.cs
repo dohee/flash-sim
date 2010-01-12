@@ -28,7 +28,7 @@ namespace Buffers.Managers
 		}
 
 		public CMFTByLyf(IBlockDevice dev, uint npages)
-			: base(dev)
+			: base(dev, npages)
 		{
 		}
 

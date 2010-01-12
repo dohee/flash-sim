@@ -53,15 +53,11 @@ namespace Buffers.Managers
 			}
 		}
 
-		public BufferManagerBase(IBlockDevice device)
+
+		public BufferManagerBase(IBlockDevice device, uint npages)
 		{
 			this.dev = (device == null ? new TrivalBlockDevice() : device);
-			this.pool = null;
-		}
-		public BufferManagerBase(IBlockDevice device, uint npages)
-			: this(device)
-		{
-			this.pool = new Pool(npages, dev.PageSize, OnPoolFull);
+			this.pool = (npages == 0 ? null : new Pool(npages, dev.PageSize, OnPoolFull));
 		}
 		#region Dispose 函数族
 		~BufferManagerBase()
