@@ -29,7 +29,7 @@ namespace Buffers.Managers
 			rwlist = new MultiList<RWQuery>(2);
 			rwlist.SetConcat(0, 1);
 
-			for (int i = 0; i < nHIRPagesLimit; i++)
+			/*for (int i = 0; i < nHIRPagesLimit; i++)
 			{
 				uint pageid = (uint)(-i);
 				RWFrame frame = new RWFrame(pageid, pool.AllocSlot());
@@ -37,16 +37,16 @@ namespace Buffers.Managers
 				frame.NodeOfRead = rwlist.AddFirst(0, new RWQuery(pageid, AccessType.Read));
 				frame.ReadLowIR = false;
 				map[pageid] = frame;
-			}
+			}*/
 
-			for (int i = 0; i < npages - nHIRPagesLimit; i++)
+			/*for (int i = 0; i < npages - nHIRPagesLimit; i++)
 			{
 				uint pageid = (uint)(-nHIRPagesLimit - i);
 				RWFrame frame = new RWFrame(pageid, pool.AllocSlot());
 				frame.NodeOfRead = rwlist.AddFirst(0, new RWQuery(pageid, AccessType.Read));
 				frame.ReadLowIR = true;
 				map[pageid] = frame;
-			}
+			}*/
 		}
 
 		public override string Description
@@ -97,6 +97,8 @@ namespace Buffers.Managers
 			{
 				frame = new RWFrame(pageid);
 				map[pageid] = frame;
+
+                if (map.Count <= pool.NPages - nHIRPagesLimit) isLowIRAfter = true;
 			}
 
 			if (frame.GetNodeOf(type) != null)
@@ -119,7 +121,7 @@ namespace Buffers.Managers
 			frame.SetNodeOf(type, rwlist.AddFirst(0, new RWQuery(pageid, type)));
 			TryAssignHIRPageNode(frame);
 
-			MaintainHIRs();
+            if (map.Count > pool.NPages - nHIRPagesLimit)  MaintainHIRs();
 		}
 
 		private void TryAssignHIRPageNode(RWFrame frame)
