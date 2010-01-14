@@ -9,7 +9,7 @@ namespace Buffers
 		public static readonly int ReadCost = 66;
 		public static readonly int WriteCost = 200;
 		public static readonly bool RunVerify = true;
-		public static readonly uint NPages = 2000;
+		public static readonly uint NPages = 150;
 
 		private static float Ratio = (float)Config.WriteCost / Config.ReadCost;
 		private static uint RoundedRatio = (uint)Math.Round(Ratio);
@@ -31,7 +31,7 @@ namespace Buffers
 			group.Add(new FLIRSbyLyf2(NPages));
 			group.Add(new FLIRSByCat(NPages, Ratio, 0.1f));
 			//group.Add(new Tn(NPages, RoundedRatio, new TnConfig(true, false, NPages / 4, 0, true)));
-			//group.Add(new CMFTByCat(NPages));
+			group.Add(new CMFTByCat(NPages));
 			//group.Add(new OldBlowerByCat(NPages));
 			//group.Add(new BlowerByCat(NPages));
 			//group.Add(new BlowerByLyf(NPages));
