@@ -66,6 +66,7 @@ namespace Buffers.Managers
                 dev.Read(pageid, pool[frame.DataSlotId]);
                 pool[frame.DataSlotId].CopyTo(result, 0);
             }
+            pool[frame.DataSlotId].CopyTo(result, 0);
             //////////////////////////////////////////////////////
             bool inHirQueue = (frame.NodeOfHIRQueue!=null);
 

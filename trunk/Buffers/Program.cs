@@ -114,8 +114,8 @@ namespace Buffers
 				if (lineCount % 2000 == 0)
 					WriteCountOnStderr(null);
 
-				//if (lineCount == 2204)
-				//	lineCount++;
+				if (lineCount == 60)
+					lineCount=60;
 #endif
 
 				string[] parts = line.Split('#');
