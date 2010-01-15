@@ -29,7 +29,7 @@ namespace Buffers
 					reader = Console.In;
 
 				group = (Config.RunVerify ?
-					Config.InitTestGroup() : Config.InitGroup());
+					Config.InitVerifyGroup() : Config.InitGroup());
 
 #if DEBUG
 				Timer tmr = null;

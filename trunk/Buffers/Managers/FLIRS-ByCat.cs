@@ -28,25 +28,6 @@ namespace Buffers.Managers
 			nHIRPagesLimit = (uint)(HIRRatio * npages);
 			rwlist = new MultiList<RWQuery>(2);
 			rwlist.SetConcat(0, 1);
-
-			/*for (int i = 0; i < nHIRPagesLimit; i++)
-			{
-				uint pageid = (uint)(-i);
-				RWFrame frame = new RWFrame(pageid, pool.AllocSlot());
-				frame.NodeOfHIRPage = hirPages.AddFirst(pageid);
-				frame.NodeOfRead = rwlist.AddFirst(0, new RWQuery(pageid, AccessType.Read));
-				frame.ReadLowIR = false;
-				map[pageid] = frame;
-			}*/
-
-			/*for (int i = 0; i < npages - nHIRPagesLimit; i++)
-			{
-				uint pageid = (uint)(-nHIRPagesLimit - i);
-				RWFrame frame = new RWFrame(pageid, pool.AllocSlot());
-				frame.NodeOfRead = rwlist.AddFirst(0, new RWQuery(pageid, AccessType.Read));
-				frame.ReadLowIR = true;
-				map[pageid] = frame;
-			}*/
 		}
 
 		public override string Description
@@ -97,8 +78,6 @@ namespace Buffers.Managers
 			{
 				frame = new RWFrame(pageid);
 				map[pageid] = frame;
-
-                if (map.Count <= pool.NPages - nHIRPagesLimit) isLowIRAfter = true;
 			}
 
 			if (frame.GetNodeOf(type) != null)
@@ -121,7 +100,7 @@ namespace Buffers.Managers
 			frame.SetNodeOf(type, rwlist.AddFirst(0, new RWQuery(pageid, type)));
 			TryAssignHIRPageNode(frame);
 
-            if (map.Count > pool.NPages - nHIRPagesLimit)  MaintainHIRs();
+			MaintainHIRs();
 		}
 
 		private void TryAssignHIRPageNode(RWFrame frame)
@@ -135,23 +114,23 @@ namespace Buffers.Managers
 
 		private void MaintainHIRs()
 		{
-			while (hirPages.Count < nHIRPagesLimit)
+			while (pool.Full && hirPages.Count < nHIRPagesLimit)
 			{
 				if (RLIRLength * ratioOfWriteRead > WLIRLength)
 					ShrinkRLIRArea();
 				else
 					ShrinkWLIRArea();
 			}
-
 		}
 
 		private void ShrinkRLIRArea()
 		{
 			MultiListNode<RWQuery> node = rwlist.Blow(0);
+			AccessType type = node.Value.Type;
 			RWFrame frame = map[node.Value.PageId];
-			frame.SetNodeOf(node.Value.Type, node);
+			frame.SetNodeOf(type, node);
 
-			if (node.Value.Type == AccessType.Read && frame.ReadLowIR)
+			if (type == AccessType.Read && frame.ReadLowIR)
 			{
 				frame.ReadLowIR = false;
 				TryAssignHIRPageNode(frame);
@@ -164,7 +143,7 @@ namespace Buffers.Managers
 			RWFrame frame = map[query.PageId];
 
 			frame.SetNodeOf(query.Type, null);
-            frame.SetLowIROf(query.Type, false);
+			frame.SetLowIROf(query.Type, false);
 
 			if (frame.NodeOfHIRPage == null)
 				TryAssignHIRPageNode(frame);
@@ -189,8 +168,8 @@ namespace Buffers.Managers
 
 		private class RWFrame : FrameWithRWInfo<MultiListNode<RWQuery>>
 		{
-            public RWFrame(uint id) : base(id) { InitRWFrame(); }
-            public RWFrame(uint id, int slotid) : base(id, slotid) { InitRWFrame(); }
+			public RWFrame(uint id) : base(id) { InitRWFrame(); }
+			public RWFrame(uint id, int slotid) : base(id, slotid) { InitRWFrame(); }
 
 			private void InitRWFrame()
 			{
