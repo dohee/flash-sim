@@ -33,6 +33,7 @@ namespace Buffers.Memory
 
 		public uint NPages { get { return (uint)data.Length; } }
 		public uint PageSize { get { return (uint)data[0].Length; } }
+		public bool Full { get { return freeLinkHead == -1; } }
 
 		public int AllocSlot()
 		{
