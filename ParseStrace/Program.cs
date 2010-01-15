@@ -13,25 +13,40 @@ namespace ParseStrace
 		static Regex regexResumed = new Regex(@"<\.\.\. (\w+) resumed> (.+)$");
 
 		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
-		static IOItemStorage storage;
+		static IOItemStorage storage = null;
 
 
 		static void Main(string[] args)
 		{
 			string filename = args[0];
-			FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read);
-			StreamReader reader = new StreamReader(fileStream);
+			const int bufferSize = 32 * 1024 * 1024;
+			TextWriter output = Console.Out;
 
-			Console.WriteLine("# Original Strace: {0}", filename);
-			Console.WriteLine("# Parsed by: {0} @ {1}", Environment.UserName, Environment.MachineName);
-			Console.WriteLine("# Parsed at: {0}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-			Console.WriteLine("# Parsed with: {0}", Environment.OSVersion);
-			storage = new IOItemStorageVerbose(Console.Out);
+			try
+			{
+				if (args.Length >= 2)
+					output = new StreamWriter(filename, false, Encoding.Default, bufferSize);
 
-			ProceedFile(reader, 1);
-			fileStream.Seek(0, SeekOrigin.Begin);
-			storage.PhaseBetween();
-			ProceedFile(reader, 2);
+				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
+				{
+					Console.WriteLine("# Original Strace: {0}", filename);
+					Console.WriteLine("# Parsed by: {0} @ {1}", Environment.UserName, Environment.MachineName);
+					Console.WriteLine("# Parsed at: {0}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+					Console.WriteLine("# Parsed with: {0}", Environment.OSVersion);
+					storage = new IOItemStorageVerbose(output);
+
+					ProceedFile(reader, 1);
+				}
+				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
+				{
+					storage.PhaseBetween();
+					ProceedFile(reader, 2);
+				}
+			}
+			finally
+			{
+				output.Dispose();
+			}
 		}
 
 		static void ProceedFile(TextReader reader, int phase)

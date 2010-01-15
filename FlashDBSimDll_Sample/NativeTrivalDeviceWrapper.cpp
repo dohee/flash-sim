@@ -17,6 +17,12 @@ namespace Buffers {
 TrivalBlockDevice::
 TrivalBlockDevice(::TrivalBlockDevice* p): pdev(p) { }
 
+String^ TrivalBlockDevice::
+Name::get() { return this->GetType()->Name; }
+
+String^ TrivalBlockDevice::
+Description::get() { return nullptr; }
+
 size_t TrivalBlockDevice::
 PageSize::get() { return pdev->GetPageSize(); }
 
