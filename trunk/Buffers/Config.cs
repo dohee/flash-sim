@@ -20,6 +20,7 @@ namespace Buffers
 			ManagerGroup group = new ManagerGroup();
 
 			group.Add(new LRU(NPages));
+			group.Add(new LRU(new LRU(NPages), NPages));
 			//group.Add(Wrapper.CreateCFLRU(NPages, NPages / 2));
 			//group.Add(Wrapper.CreateCFLRUD(NPages));
 			//group.Add(Wrapper.CreateLRUWSR(NPages));

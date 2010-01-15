@@ -4,6 +4,9 @@ namespace Buffers
 {
 	public interface IBlockDevice
 	{
+		string Name { get; }
+		string Description { get; }
+
 		uint PageSize { get; }
 		int ReadCount { get; }
 		int WriteCount { get; }

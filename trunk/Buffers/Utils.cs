@@ -7,11 +7,11 @@ namespace Buffers
 {
 	static class Utils
 	{
-		public static int CalcTotalCost(int read, int write)
+		public static long CalcTotalCost(int read, int write)
 		{
-			return read * Config.ReadCost + write * Config.WriteCost;
+			return read * (long)Config.ReadCost + write * (long)Config.WriteCost;
 		}
-		public static int CalcTotalCost(IBlockDevice dev)
+		public static long CalcTotalCost(IBlockDevice dev)
 		{
 			return CalcTotalCost(dev.ReadCount, dev.WriteCount);
 		}

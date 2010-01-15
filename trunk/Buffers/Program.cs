@@ -24,7 +24,7 @@ namespace Buffers
 			try
 			{
 				if (args.Length >= 1)
-					reader = new StreamReader(args[0], Encoding.Default, true, 16 * 1024 * 1024);
+					reader = new StreamReader(args[0], Encoding.Default, true, 32 * 1024 * 1024);
 				else
 					reader = Console.In;
 
@@ -158,49 +158,106 @@ namespace Buffers
 
 
 
-		private static void GenerateOutput(ManagerGroup group, TextWriter output)
+		private class DevStatInfo
 		{
-			ColorStack.PushColor(ConsoleColor.Yellow);
-			output.Write("Group  ");
-			ColorStack.PopColor();
-			output.WriteLine("Read {0}  Write {1}  Flush {2}  Cost {3}",
-				group.ReadCount, group.WriteCount, group.FlushCount,
-				Utils.CalcTotalCost(group));
+			public string Title = null, Name = null, Description = null;
+			public int Read = -1, Write = -1, Flush = -1, Level = -1;
+			public long Cost = -1;
+		}
 
-			int[] maxlens = { 0, 0, 0, 0 };
-			for (int i = 0; i < group.Count; i++)
+		private static DevStatInfo[] FindDevice(IBlockDevice dev, int level)
+		{
+			// TODO 未完成
+			// Group 下的 Mgr 可以压缩
+			/*
+Device
+Manager
+	Device
+Manager
+	Manager
+		Device
+Group
+	Device
+	Manager/Device
+	Manager/Manager
+		Device
+	Manager/Group
+		Device
+		Manager/Device
+		Manager/Manager
+			Device
+	Group
+		Manager/Device
+		Manager/Manager
+			Device
+			*/
+
+			DevStatInfo info = new DevStatInfo();
+			info.Title = "Dev";
+			info.Level = level;
+			info.Name = dev.Name;
+			info.Description = (dev.Description == null ? "" : dev.Description);
+			info.Read = dev.ReadCount;
+			info.Write = dev.WriteCount;
+			info.Flush = 0;
+			info.Cost = Utils.CalcTotalCost(dev);
+
+			IBufferManager mgr = dev as IBufferManager;
+			
+			if (mgr == null)
+				return new DevStatInfo[] { info };
+
+
+			List<DevStatInfo> infos = new List<DevStatInfo>();
+			info.Flush = mgr.FlushCount;
+			infos.Add(info);
+
+			ManagerGroup grp = mgr as ManagerGroup;
+
+			if (grp == null)
+				infos.AddRange(FindDevice(mgr.AssociatedDevice, level + 1));
+			else
+				foreach (IBufferManager innermgr in grp)
+					infos.AddRange(FindDevice(innermgr, level + 1));
+			
+			return infos.ToArray();
+		}
+
+		private static void GenerateOutput(IBlockDevice dev, TextWriter output)
+		{
+			DevStatInfo[] infos = FindDevice(dev, 0);
+			int[] maxlens = { 0, 0, 0, 0, 0 };
+
+			foreach (var info in infos)
 			{
-				IBlockDevice dev = group[i].AssociatedDevice;
-				maxlens[0] = Math.Max(maxlens[0], i.ToString().Length);
-				maxlens[1] = Math.Max(maxlens[1], dev.ReadCount.ToString().Length);
-				maxlens[2] = Math.Max(maxlens[2], dev.WriteCount.ToString().Length);
-				maxlens[3] = Math.Max(maxlens[3], Utils.CalcTotalCost(dev).ToString().Length);
+				info.Title = new string(' ', info.Level) + info.Title;
+				info.Name = new string(' ', info.Level) + info.Name;
+				maxlens[0] = Math.Max(maxlens[0], info.Title.Length);
+				maxlens[1] = Math.Max(maxlens[1], info.Read.ToString().Length);
+				maxlens[2] = Math.Max(maxlens[2], info.Write.ToString().Length);
+				maxlens[3] = Math.Max(maxlens[3], info.Flush.ToString().Length);
+				maxlens[4] = Math.Max(maxlens[4], info.Cost.ToString().Length);
 			}
 
-			string formatDev = string.Format("Dev {{0,{0}}}  ", maxlens[0]);
+			string formatDev = string.Format("{{0,{0}}}  ", -maxlens[0]);
 			string formatCost = string.Format(
-				"Read {{0,{0}}}  Write {{1,{1}}}  Cost {{2,{2}}}  ",
-				maxlens[1], maxlens[2], maxlens[3]);
+				"Read {{0,{0}}}  Write {{1,{1}}}  Flush {{2,{2}}}  Cost {{3,{3}}}  ",
+				maxlens[1], maxlens[2], maxlens[3], maxlens[4]);
 
-			for (int i = 0; i < group.Count; i++)
+			foreach (var info in infos)
 			{
-				IBlockDevice dev = group[i].AssociatedDevice;
-
 				ColorStack.PushColor(ConsoleColor.Yellow);
-				output.Write(formatDev, i);
+				output.Write(formatDev, info.Title);
 				ColorStack.PopColor();
-				output.Write(formatCost, dev.ReadCount, dev.WriteCount, Utils.CalcTotalCost(dev));
+				output.Write(formatCost, info.Read, info.Write, info.Flush, info.Cost);
 
 				ColorStack.PushColor(ConsoleColor.Cyan);
-				output.Write(group[i].Name + " ");
+				output.Write(info.Name + " ");
 				ColorStack.PopColor();
 
-				if (group[i].Description != null)
-				{
-					ColorStack.PushColor(ConsoleColor.DarkGray);
-					output.Write(group[i].Description);
-					ColorStack.PopColor();
-				}
+				ColorStack.PushColor(ConsoleColor.DarkGray);
+				output.Write(info.Description);
+				ColorStack.PopColor();
 
 				output.WriteLine();
 			}

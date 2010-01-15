@@ -71,8 +71,6 @@ namespace Buffers.Managers
 		}
 		#endregion
 
-		public virtual string Name { get { return this.GetType().Name; } }
-		public virtual string Description { get { return null; } }
 		public IBlockDevice AssociatedDevice { get { return dev; } }
 		public override uint PageSize { get { return dev.PageSize; } }
 		public int FlushCount { get; private set; }
