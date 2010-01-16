@@ -83,6 +83,14 @@ private:
 
 		virtual void Flush() { pmgr->Flush(); }
 
+		virtual void CascadeFlush() {
+			Flush();
+
+			try {
+				Buffers::IBufferManager^ pinnermgr = safe_cast<Buffers::IBufferManager^>(pdev);
+				pinnermgr->CascadeFlush();
+			} catch (InvalidCastException^) { }
+		}
 	};
 
 

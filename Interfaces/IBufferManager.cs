@@ -8,5 +8,6 @@ namespace Buffers
 		int FlushCount { get; }
 
 		void Flush();
+		void CascadeFlush();
 	}
 }

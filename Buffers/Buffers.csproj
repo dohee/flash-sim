@@ -50,7 +50,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ColorStack.cs" />
     <Compile Include="Devices\BlockDeviceBase.cs" />
     <Compile Include="Devices\MemorySimulatedDevice.cs" />
     <Compile Include="Exceptions.cs" />
