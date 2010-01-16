@@ -17,14 +17,14 @@ namespace ParseStrace
 
 		private int pid;
 		private string halfLine = null;
-		private IOItemFormatter storage;
+		private IOItemFormatter formatter;
 		private Dictionary<int, FileState> curFiles = new Dictionary<int, FileState>();
 
 
-		public ProcFDTable(int pid, IOItemFormatter storage)
+		public ProcFDTable(int pid, IOItemFormatter formatter)
 		{
 			this.pid = pid;
-			this.storage = storage;
+			this.formatter = formatter;
 			curFiles.Add(0, new FileState("/dev/stdin", FDType.Terminal));
 			curFiles.Add(1, new FileState("/dev/stdout", FDType.Terminal));
 			curFiles.Add(2, new FileState("/dev/stderr", FDType.Terminal));
@@ -33,7 +33,7 @@ namespace ParseStrace
 
 		public ProcFDTable Fork(int newpid)
 		{
-			ProcFDTable other = new ProcFDTable(newpid, storage);
+			ProcFDTable other = new ProcFDTable(newpid, formatter);
 
 			foreach (var item in curFiles)
 				other.curFiles[item.Key] = item.Value;
@@ -142,9 +142,9 @@ namespace ParseStrace
 			fs.Position += ret;
 
 			if (phase == 1)
-				storage.PhaseOne(item);
+				formatter.PhaseOne(item);
 			else
-				storage.PhaseTwo(item);
+				formatter.PhaseTwo(item);
 		}
 
 		public string OnResumed()

@@ -35,7 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IOItem.cs" />
-    <Compile Include="IOItemStorages.cs" />
+    <Compile Include="IOItemFormatter.cs" />
     <Compile Include="ProcFDTable.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

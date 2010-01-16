@@ -13,7 +13,7 @@ namespace ParseStrace
 		static Regex regexResumed = new Regex(@"<\.\.\. (\w+) resumed> (.+)$");
 
 		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
-		static IOItemFormatter storage = null;
+		static IOItemFormatter formatter = null;
 
 
 		static void Main(string[] args)
@@ -27,15 +27,15 @@ namespace ParseStrace
 				if (args.Length >= 2)
 					output = new StreamWriter(filename, false, Encoding.Default, bufferSize);
 
-				storage = new IOItemVerboseFormatter(output);
-				storage.PhaseBefore(new StorageInfo(filename));
+				formatter = new IOItemVerboseFormatter(output);
+				formatter.PhaseBefore(new FormatterInfo(filename));
 
 				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
 				{
 					ProceedFile(reader, 1);
 				}
 				
-				storage.PhaseBetween();
+				formatter.PhaseBetween();
 
 				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
 				{
@@ -120,7 +120,7 @@ namespace ParseStrace
 			ProcFDTable table;
 			if (!fdTables.TryGetValue(pid, out table))
 			{
-				table = new ProcFDTable(pid, storage);
+				table = new ProcFDTable(pid, formatter);
 				fdTables[pid] = table;
 			}
 
