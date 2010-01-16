@@ -7,6 +7,14 @@ namespace Buffers
 {
 	static class Utils
 	{
+		private static readonly Stack<ConsoleColor> clrstack = new Stack<ConsoleColor>();
+
+
+		public static bool ArrayEqual<T>(T[] array, T[] another)
+		{
+			return (FindDiff(array, another) == -1);
+		}
+
 		public static long CalcTotalCost(int read, int write)
 		{
 			return read * (long)Config.ReadCost + write * (long)Config.WriteCost;
@@ -14,6 +22,20 @@ namespace Buffers
 		public static long CalcTotalCost(IBlockDevice dev)
 		{
 			return CalcTotalCost(dev.ReadCount, dev.WriteCount);
+		}
+
+		public static void EmitErrMsg(string message)
+		{
+			PushColor(ConsoleColor.Red);
+			Console.Error.WriteLine("{0}: {1}", Environment.GetCommandLineArgs()[0], message);
+			PopColor();
+		}
+		public static void EmitErrMsg(string format, params object[] obj)
+		{
+			PushColor(ConsoleColor.White);
+			Console.Error.Write(Environment.GetCommandLineArgs()[0]);
+			Console.Error.WriteLine(": " + format, obj);
+			PopColor();
 		}
 
 		public static int FindDiff<T>(T[] array, T[] another)
@@ -31,10 +53,6 @@ namespace Buffers
 
 			return -1;
 		}
-		public static bool ArrayEqual<T>(T[] array, T[] another)
-		{
-			return (FindDiff(array, another) == -1);
-		}
 
 		public static string FormatDescription(params object[] args)
 		{
@@ -45,5 +63,23 @@ namespace Buffers
 
 			return sb.ToString().TrimEnd(',');
 		}
+
+		public static string FormatSpan(TimeSpan ts)
+		{
+			return string.Format("{0:0}:{1:00}:{2:00}",
+				(int)ts.TotalHours, ts.Minutes, ts.Seconds);
+		}
+
+		public static void PopColor()
+		{
+			Console.ForegroundColor = clrstack.Pop();
+		}
+
+		public static void PushColor(ConsoleColor newcolor)
+		{
+			clrstack.Push(Console.ForegroundColor);
+			Console.ForegroundColor = newcolor;
+		}
+
 	}
 }

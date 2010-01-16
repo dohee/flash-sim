@@ -8,6 +8,7 @@ using System.Threading;
 using Buffers;
 using Buffers.Devices;
 using Buffers.Managers;
+using System.Text.RegularExpressions;
 
 
 namespace Buffers
@@ -60,15 +61,15 @@ namespace Buffers
 			}
 			catch (FileNotFoundException)
 			{
-				EmitErrMsg("File {0} not found", args[0]);
+				Utils.EmitErrMsg("File {0} not found", args[0]);
 			}
 			catch (DataNotConsistentException ex)
 			{
-				EmitErrMsg(ex.Message);
+				Utils.EmitErrMsg(ex.Message);
 			}
 			catch (Exception ex)
 			{
-				EmitErrMsg(ex.ToString());
+				Utils.EmitErrMsg(ex.ToString());
 			}
 			finally
 			{
@@ -79,37 +80,18 @@ namespace Buffers
 			}
 		}
 
-		private static void EmitErrMsg(string message)
-		{
-			ColorStack.PushColor(ConsoleColor.Red);
-			Console.Error.WriteLine("{0}: {1}", Environment.GetCommandLineArgs()[0], message);
-			ColorStack.PopColor();
-		}
-		private static void EmitErrMsg(string format, params object[] obj)
-		{
-			ColorStack.PushColor(ConsoleColor.White);
-			Console.Error.Write(Environment.GetCommandLineArgs()[0]);
-			Console.Error.WriteLine(": " + format, obj);
-			ColorStack.PopColor();
-		}
-		private static string FormatSpan(TimeSpan ts)
-		{
-			return string.Format("{0:0}:{1:00}:{2:00}",
-				(int)ts.TotalHours, ts.Minutes, ts.Seconds);
-		}
-
 		private static void WriteCountOnStderr(object obj)
 		{
 			long lineCount = Interlocked.Read(ref processedLineCount);
 			TimeSpan span = DateTime.Now - oldTime;
 
-			ColorStack.PushColor(ConsoleColor.Green);
+			Utils.PushColor(ConsoleColor.Green);
 			Console.Error.Write("\rProcessed " + lineCount);
 
 			if (totalLineCount != 0)
 				Console.Error.Write("/{0} ({1:P})", totalLineCount, (float)processedLineCount / totalLineCount);
 
-			Console.Error.Write(", Time " + FormatSpan(span));
+			Console.Error.Write(". Elapsed " + Utils.FormatSpan(span));
 
 			if (totalLineCount != 0)
 			{
@@ -122,18 +104,18 @@ namespace Buffers
 					if (remain.Ticks < 0)
 						remain = new TimeSpan(0);
 
-					remainstr = string.Format("{0:00}'{1:00}\"", (int)remain.TotalMinutes, remain.Seconds);
+					remainstr = Utils.FormatSpan(remain);
 				}
 				else
 				{
 					remainstr = "[N/A]";
 				}
 
-				Console.Error.Write(" ({0})", remainstr);
+				Console.Error.Write(", remaining {0}", remainstr);
 			}
 
 			Console.Error.Flush();
-			ColorStack.PopColor();
+			Utils.PopColor();
 		}
 
 
@@ -149,18 +131,28 @@ namespace Buffers
 #if DEBUG
 				if (lineCount > 10000)
 					break;
-				if (lineCount % 2000 == 0)
+				if (lineCount % 1000 == 0)
 					WriteCountOnStderr(null);
 
 				if (lineCount == 60)
 					lineCount = 60;
 #endif
 
-				string[] parts = line.Split('#');
-				line = parts[0];
+				if (line.StartsWith("# "))
+				{
+					string nlines = Regex.Match(line, @"^# Lines: (\d+)").Groups[1].Value;
 
-				parts = line.Split(new char[] { ' ', '\t' },
+					if (!string.IsNullOrEmpty(nlines))
+						totalLineCount = long.Parse(nlines);
+
+					continue;
+				}
+
+				line = line.Split('#')[0];
+				
+				string[] parts = line.Split(new char[] { ' ', '\t' },
 					StringSplitOptions.RemoveEmptyEntries);
+
 				if (parts.Length < 3)
 					continue;
 
@@ -183,15 +175,59 @@ namespace Buffers
 				}
 			}
 
-			group.Flush();
+			group.CascadeFlush();
+		}
+
+		private static void GenerateOutput(IBlockDevice dev, TextWriter output)
+		{
+			DevStatInfo[] infos = FindDevice(dev, 0, -1, false);
+			int[] maxlens = { 0, 0, 0, 0, 0 };
+
+			foreach (var info in infos)
+			{
+				maxlens[0] = Math.Max(maxlens[0], info.Id.Length);
+				maxlens[1] = Math.Max(maxlens[1], info.Read.ToString().Length);
+				maxlens[2] = Math.Max(maxlens[2], info.Write.ToString().Length);
+				maxlens[3] = Math.Max(maxlens[3], info.Flush.ToString().Length);
+				maxlens[4] = Math.Max(maxlens[4], info.Cost.ToString().Length);
+			}
+
+			string formatId = string.Format("{{0,{0}}} ", -maxlens[0]);
+			string formatCost = string.Format(
+				"R:{{0,{0}}}  W:{{1,{1}}}  F:{{2,{2}}}  C:{{3,{3}}} ",
+				maxlens[1], maxlens[2], maxlens[3], maxlens[4]);
+			string emptyCost = new string(' ',
+				string.Format(formatCost, 0, 0, 0, 0).Length);
+
+			foreach (var info in infos)
+			{
+				Utils.PushColor(ConsoleColor.Yellow);
+				output.Write(formatId, info.Id);
+				Utils.PopColor();
+
+				if (info.Suppress)
+					output.Write(emptyCost);
+				else
+					output.Write(formatCost, info.Read, info.Write, info.Flush, info.Cost);
+
+				Utils.PushColor(ConsoleColor.Cyan);
+				output.Write(info.Name + " ");
+				Utils.PopColor();
+
+				Utils.PushColor(ConsoleColor.DarkGray);
+				output.Write(info.Description);
+				Utils.PopColor();
+
+				output.WriteLine();
+			}
 		}
 
 
 		private class DevStatInfo
 		{
-			public string Id = null, Name = null, Description = null;
-			public int Read = -1, Write = -1, Flush = -1;
-			public long Cost = -1;
+			public string Id, Name, Description;
+			public int Read, Write, Flush;
+			public long Cost;
 			public bool Suppress;
 		}
 
@@ -226,50 +262,6 @@ namespace Buffers
 					infos.AddRange(FindDevice(grp[i], level + 1, i, true));
 
 			return infos.ToArray();
-		}
-
-		private static void GenerateOutput(IBlockDevice dev, TextWriter output)
-		{
-			DevStatInfo[] infos = FindDevice(dev, 0, -1, false);
-			int[] maxlens = { 0, 0, 0, 0, 0 };
-
-			foreach (var info in infos)
-			{
-				maxlens[0] = Math.Max(maxlens[0], info.Id.Length);
-				maxlens[1] = Math.Max(maxlens[1], info.Read.ToString().Length);
-				maxlens[2] = Math.Max(maxlens[2], info.Write.ToString().Length);
-				maxlens[3] = Math.Max(maxlens[3], info.Flush.ToString().Length);
-				maxlens[4] = Math.Max(maxlens[4], info.Cost.ToString().Length);
-			}
-
-			string formatId = string.Format("{{0,{0}}}  ", -maxlens[0]);
-			string formatCost = string.Format(
-				"Read {{0,{0}}}  Write {{1,{1}}}  Flush {{2,{2}}}  Cost {{3,{3}}}  ",
-				maxlens[1], maxlens[2], maxlens[3], maxlens[4]);
-			string emptyCost = new string(' ',
-				string.Format(formatCost, 0, 0, 0, 0).Length);
-
-			foreach (var info in infos)
-			{
-				ColorStack.PushColor(ConsoleColor.Yellow);
-				output.Write(formatId, info.Id);
-				ColorStack.PopColor();
-
-				if (info.Suppress)
-					output.Write(emptyCost);
-				else
-					output.Write(formatCost, info.Read, info.Write, info.Flush, info.Cost);
-
-				ColorStack.PushColor(ConsoleColor.Cyan);
-				output.Write(info.Name + " ");
-				ColorStack.PopColor();
-
-				ColorStack.PushColor(ConsoleColor.DarkGray);
-				output.Write(info.Description);
-				ColorStack.PopColor();
-
-				output.WriteLine();
-			}
 		}
 
 

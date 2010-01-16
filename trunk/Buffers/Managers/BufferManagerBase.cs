@@ -13,6 +13,16 @@ namespace Buffers.Managers
 		protected virtual void DoFlush() { }
 		protected virtual void OnPoolFull() { }
 
+		protected virtual void DoCascadeFlush()
+		{
+			DoFlush();
+			IBufferManager mgr = dev as IBufferManager;
+
+			if (mgr != null)
+				mgr.CascadeFlush();
+		}
+
+
 		protected void PerformAccess(IFrame frame, byte[] resultOrData, AccessType type)
 		{
 			if (!frame.Resident)
@@ -78,6 +88,11 @@ namespace Buffers.Managers
 		public void Flush()
 		{
 			DoFlush();
+			FlushCount++;
+		}
+		public virtual void CascadeFlush()
+		{
+			DoCascadeFlush();
 			FlushCount++;
 		}
 	}

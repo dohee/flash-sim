@@ -34,8 +34,10 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Formatter\IOItemDirectlyToWriter.cs" />
+    <Compile Include="Formatter\IOItemVerboseFormatter.cs" />
     <Compile Include="IOItem.cs" />
-    <Compile Include="IOItemFormatter.cs" />
+    <Compile Include="Formatter\IOItemFormatter.cs" />
     <Compile Include="ProcFDTable.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

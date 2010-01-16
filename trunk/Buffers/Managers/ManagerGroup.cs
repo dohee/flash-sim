@@ -63,7 +63,11 @@ namespace Buffers.Managers
 			foreach (var mgr in mgrs)
 				mgr.Flush();
 		}
-
+		protected override void DoCascadeFlush()
+		{
+			foreach (var mgr in mgrs)
+				mgr.CascadeFlush();
+		}
 	}
 
 }
