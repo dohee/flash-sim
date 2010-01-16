@@ -17,11 +17,11 @@ namespace ParseStrace
 
 		private int pid;
 		private string halfLine = null;
-		private IOItemStorage storage;
+		private IOItemFormatter storage;
 		private Dictionary<int, FileState> curFiles = new Dictionary<int, FileState>();
 
 
-		public ProcFDTable(int pid, IOItemStorage storage)
+		public ProcFDTable(int pid, IOItemFormatter storage)
 		{
 			this.pid = pid;
 			this.storage = storage;

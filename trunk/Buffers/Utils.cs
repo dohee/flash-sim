@@ -36,5 +36,14 @@ namespace Buffers
 			return (FindDiff(array, another) == -1);
 		}
 
+		public static string FormatDescription(params object[] args)
+		{
+			StringBuilder sb = new StringBuilder();
+			
+			for (int i = 1; i < args.Length; i+=2)
+				sb.AppendFormat("{0}={1};", args[i - 1], args[i]);
+
+			return sb.ToString().TrimEnd(',');
+		}
 	}
 }
