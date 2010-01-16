@@ -6,26 +6,38 @@ using System.Text;
 
 namespace ParseStrace
 {
-	abstract class IOItemStorage
+	class StorageInfo
 	{
+		public string Filename;
+
+		public StorageInfo(string filename)
+		{
+			Filename = filename;
+		}
+	}
+
+	abstract class IOItemFormatter
+	{
+		public abstract void PhaseBefore(StorageInfo info);
 		public abstract void PhaseOne(IOItem item);
 		public abstract void PhaseBetween();
 		public abstract void PhaseTwo(IOItem item);
 
 		protected readonly TextWriter writer;
 
-		public IOItemStorage(TextWriter writer)
+		public IOItemFormatter(TextWriter writer)
 		{
 			this.writer = writer;
 		}
 	}
 
 
-	sealed class IOItemDirectlyToWriter : IOItemStorage
+	sealed class IOItemDirectlyToWriter : IOItemFormatter
 	{
 		public IOItemDirectlyToWriter(TextWriter writer)
 			: base(writer) { }
 
+		public override void PhaseBefore(StorageInfo info) { }
 		public override void PhaseOne(IOItem item) { }
 		public override void PhaseBetween() { }
 
@@ -38,7 +50,7 @@ namespace ParseStrace
 		{
 			string typestring;
 
-			if (item.FDType== FDType.File)
+			if (item.FDType == FDType.File)
 				typestring = "";
 			else
 				typestring = "<" + item.TypeString + ">";
@@ -46,18 +58,19 @@ namespace ParseStrace
 			writer.WriteLine("{6} {5,-6} at {4,-9} of Pid={1} FD={2}{3}: {0}",
 				item.Filename, item.Pid, item.FDNum, typestring,
 				item.Position, item.Length,
-				item.IsWrite ?"Write":"Read ");
+				item.IsWrite ? "Write" : "Read ");
 		}
 	}
 
-	
-	sealed class IOItemStorageVerbose : IOItemStorage
+
+	sealed class IOItemVerboseFormatter : IOItemFormatter
 	{
 		private const int kPageSize = 4096;
+		private long nlines = 0;
 		private readonly IDictionary<string, int> filePages = new Dictionary<string, int>();
 		private IDictionary<string, int> fileStarts = null;
 
-		public IOItemStorageVerbose(TextWriter writer)
+		public IOItemVerboseFormatter(TextWriter writer)
 			: base(writer) { }
 
 		public void CalcPagePosition(IOItem item, out long pos, out long len)
@@ -69,8 +82,18 @@ namespace ParseStrace
 				len = 1;
 		}
 
+		public override void PhaseBefore(StorageInfo info)
+		{
+			writer.WriteLine("# Original Strace: " + info.Filename);
+			writer.WriteLine("# Parsed by: {0} @ {1}", Environment.UserName, Environment.MachineName);
+			writer.WriteLine("# Parsed at: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+			writer.WriteLine("# Parsed with: " + Environment.OSVersion);
+		}
+
 		public override void PhaseOne(IOItem item)
 		{
+			nlines++;
+
 			long pos, len;
 			CalcPagePosition(item, out pos, out len);
 
@@ -83,6 +106,8 @@ namespace ParseStrace
 
 		public override void PhaseBetween()
 		{
+			writer.WriteLine("# Lines: " + nlines);
+
 			fileStarts = new Dictionary<string, int>();
 			int start = 0;
 
@@ -112,5 +137,5 @@ namespace ParseStrace
 			IOItemDirectlyToWriter.Output(writer, item);
 		}
 	}
-	
+
 }

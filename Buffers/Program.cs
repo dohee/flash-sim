@@ -160,96 +160,76 @@ namespace Buffers
 
 		private class DevStatInfo
 		{
-			public string Title = null, Name = null, Description = null;
-			public int Read = -1, Write = -1, Flush = -1, Level = -1;
+			public string Id = null, Name = null, Description = null;
+			public int Read = -1, Write = -1, Flush = -1;
 			public long Cost = -1;
+			public bool Suppress;
 		}
 
-		private static DevStatInfo[] FindDevice(IBlockDevice dev, int level)
+		private static DevStatInfo[] FindDevice(IBlockDevice dev, int level, int index, bool suppress)
 		{
-			// TODO 未完成
-			// Group 下的 Mgr 可以压缩
-			/*
-Device
-Manager
-	Device
-Manager
-	Manager
-		Device
-Group
-	Device
-	Manager/Device
-	Manager/Manager
-		Device
-	Manager/Group
-		Device
-		Manager/Device
-		Manager/Manager
-			Device
-	Group
-		Manager/Device
-		Manager/Manager
-			Device
-			*/
+			IBufferManager mgr = dev as IBufferManager;
+			ManagerGroup grp = mgr as ManagerGroup;
 
 			DevStatInfo info = new DevStatInfo();
-			info.Title = "Dev";
-			info.Level = level;
-			info.Name = dev.Name;
+			info.Id = new string(' ', level) +
+				(mgr == null ? "Dev" : grp == null ? "Mgr" : "Group") +
+				(index < 0 ? "" : index.ToString());
+			info.Name = new string(' ', level) + dev.Name;
 			info.Description = (dev.Description == null ? "" : dev.Description);
 			info.Read = dev.ReadCount;
 			info.Write = dev.WriteCount;
 			info.Flush = 0;
 			info.Cost = Utils.CalcTotalCost(dev);
+			info.Suppress = suppress;
 
-			IBufferManager mgr = dev as IBufferManager;
-			
 			if (mgr == null)
 				return new DevStatInfo[] { info };
-
 
 			List<DevStatInfo> infos = new List<DevStatInfo>();
 			info.Flush = mgr.FlushCount;
 			infos.Add(info);
 
-			ManagerGroup grp = mgr as ManagerGroup;
-
 			if (grp == null)
-				infos.AddRange(FindDevice(mgr.AssociatedDevice, level + 1));
+				infos.AddRange(FindDevice(mgr.AssociatedDevice, level + 1, -1, false));
 			else
-				foreach (IBufferManager innermgr in grp)
-					infos.AddRange(FindDevice(innermgr, level + 1));
-			
+				for (int i = 0; i < grp.Count; i++)
+					infos.AddRange(FindDevice(grp[i], level + 1, i, true));
+
 			return infos.ToArray();
 		}
 
 		private static void GenerateOutput(IBlockDevice dev, TextWriter output)
 		{
-			DevStatInfo[] infos = FindDevice(dev, 0);
+			DevStatInfo[] infos = FindDevice(dev, 0, -1, false);
 			int[] maxlens = { 0, 0, 0, 0, 0 };
 
 			foreach (var info in infos)
 			{
-				info.Title = new string(' ', info.Level) + info.Title;
-				info.Name = new string(' ', info.Level) + info.Name;
-				maxlens[0] = Math.Max(maxlens[0], info.Title.Length);
+				maxlens[0] = Math.Max(maxlens[0], info.Id.Length);
 				maxlens[1] = Math.Max(maxlens[1], info.Read.ToString().Length);
 				maxlens[2] = Math.Max(maxlens[2], info.Write.ToString().Length);
 				maxlens[3] = Math.Max(maxlens[3], info.Flush.ToString().Length);
 				maxlens[4] = Math.Max(maxlens[4], info.Cost.ToString().Length);
 			}
 
-			string formatDev = string.Format("{{0,{0}}}  ", -maxlens[0]);
+			string formatId = string.Format("{{0,{0}}}  ", -maxlens[0]);
 			string formatCost = string.Format(
 				"Read {{0,{0}}}  Write {{1,{1}}}  Flush {{2,{2}}}  Cost {{3,{3}}}  ",
 				maxlens[1], maxlens[2], maxlens[3], maxlens[4]);
+			string emptyCost = new string(' ',
+				string.Format(formatCost, 0, 0, 0, 0).Length);
 
 			foreach (var info in infos)
 			{
 				ColorStack.PushColor(ConsoleColor.Yellow);
-				output.Write(formatDev, info.Title);
+				output.Write(formatId, info.Id);
 				ColorStack.PopColor();
-				output.Write(formatCost, info.Read, info.Write, info.Flush, info.Cost);
+
+				if (info.Suppress)
+					output.Write(emptyCost);
+				else
+					output.Write(formatCost, info.Read, info.Write, info.Flush, info.Cost);
 
 				ColorStack.PushColor(ConsoleColor.Cyan);
 				output.Write(info.Name + " ");

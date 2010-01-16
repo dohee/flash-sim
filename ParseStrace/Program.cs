@@ -13,7 +13,7 @@ namespace ParseStrace
 		static Regex regexResumed = new Regex(@"<\.\.\. (\w+) resumed> (.+)$");
 
 		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
-		static IOItemStorage storage = null;
+		static IOItemFormatter storage = null;
 
 
 		static void Main(string[] args)
@@ -27,19 +27,18 @@ namespace ParseStrace
 				if (args.Length >= 2)
 					output = new StreamWriter(filename, false, Encoding.Default, bufferSize);
 
+				storage = new IOItemVerboseFormatter(output);
+				storage.PhaseBefore(new StorageInfo(filename));
+
 				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
 				{
-					Console.WriteLine("# Original Strace: {0}", filename);
-					Console.WriteLine("# Parsed by: {0} @ {1}", Environment.UserName, Environment.MachineName);
-					Console.WriteLine("# Parsed at: {0}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-					Console.WriteLine("# Parsed with: {0}", Environment.OSVersion);
-					storage = new IOItemStorageVerbose(output);
-
 					ProceedFile(reader, 1);
 				}
+				
+				storage.PhaseBetween();
+
 				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
 				{
-					storage.PhaseBetween();
 					ProceedFile(reader, 2);
 				}
 			}

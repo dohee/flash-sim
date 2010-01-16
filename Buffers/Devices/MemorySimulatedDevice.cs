@@ -37,6 +37,9 @@ namespace Buffers.Devices
 		}
 		#endregion
 
+		public override string Name { get { return "MemoryDevice"; } }
+		public override string Description { get { return Utils.FormatDescription("PageSize", PageSize); } }
+
 		public byte[] ToArray()
 		{
 			return stream.ToArray();

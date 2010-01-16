@@ -34,8 +34,8 @@ namespace Buffers.Managers
 		{
 			get
 			{
-				return string.Format("By=Cat,NPages={0},WRRatio={1:0.00},HIRRatio={2:0.00}",
-					pool.NPages, ratioOfWriteRead, ratioOfHIRPage);
+				return Utils.FormatDescription("By", "Cat", "NPages", pool.NPages,
+					"WRRatio", ratioOfWriteRead.ToString("0.00"), "HIRRatio", ratioOfHIRPage.ToString("0.00"));
 			}
 		}
 
