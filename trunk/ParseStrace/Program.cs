@@ -25,7 +25,7 @@ namespace ParseStrace
 			try
 			{
 				if (args.Length >= 2)
-					output = new StreamWriter(filename, false, Encoding.Default, bufferSize);
+					output = new StreamWriter(args[1], false, Encoding.Default, bufferSize);
 
 				formatter = new IOItemVerboseFormatter(output);
 				formatter.PhaseBefore(new FormatterInfo(filename));
