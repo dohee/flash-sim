@@ -14,7 +14,8 @@ namespace Buffers
 {
 	class Program
 	{
-		static int processedLineCount = 0;
+		static long processedLineCount = 0, totalLineCount = 0;
+		static DateTime oldTime;
 
 		public static void Main(string[] args)
 		{
@@ -37,8 +38,7 @@ namespace Buffers
 				Timer tmr = new Timer(WriteCountOnStderr, null, 0, 500);
 #endif
 
-				DateTime old = DateTime.Now;
-				DateTime nnew;
+				oldTime = DateTime.Now;
 
 				try
 				{
@@ -46,14 +46,9 @@ namespace Buffers
 				}
 				finally
 				{
-					nnew = DateTime.Now;
 					if (tmr != null) tmr.Dispose();
-
 					WriteCountOnStderr(null);
 					Console.Error.WriteLine();
-					ColorStack.PushColor(ConsoleColor.Magenta);
-					Console.WriteLine(nnew - old);
-					ColorStack.PopColor();
 				}
 
 
@@ -97,6 +92,49 @@ namespace Buffers
 			Console.Error.WriteLine(": " + format, obj);
 			ColorStack.PopColor();
 		}
+		private static string FormatSpan(TimeSpan ts)
+		{
+			return string.Format("{0:0}:{1:00}:{2:00}",
+				(int)ts.TotalHours, ts.Minutes, ts.Seconds);
+		}
+
+		private static void WriteCountOnStderr(object obj)
+		{
+			long lineCount = Interlocked.Read(ref processedLineCount);
+			TimeSpan span = DateTime.Now - oldTime;
+
+			ColorStack.PushColor(ConsoleColor.Green);
+			Console.Error.Write("\rProcessed " + lineCount);
+
+			if (totalLineCount != 0)
+				Console.Error.Write("/{0} ({1:P})", totalLineCount, (float)processedLineCount / totalLineCount);
+
+			Console.Error.Write(", Time " + FormatSpan(span));
+
+			if (totalLineCount != 0)
+			{
+				string remainstr;
+
+				if (lineCount != 0)
+				{
+					TimeSpan total = new TimeSpan((long)(span.Ticks * ((float)totalLineCount / lineCount)));
+					TimeSpan remain = total - span;
+					if (remain.Ticks < 0)
+						remain = new TimeSpan(0);
+
+					remainstr = string.Format("{0:00}'{1:00}\"", (int)remain.TotalMinutes, remain.Seconds);
+				}
+				else
+				{
+					remainstr = "[N/A]";
+				}
+
+				Console.Error.Write(" ({0})", remainstr);
+			}
+
+			Console.Error.Flush();
+			ColorStack.PopColor();
+		}
 
 
 		private static void OperateOnTrace(ManagerGroup group, TextReader input)
@@ -107,7 +145,7 @@ namespace Buffers
 
 			while ((line = input.ReadLine()) != null)
 			{
-				int lineCount = Interlocked.Increment(ref processedLineCount);
+				long lineCount = Interlocked.Increment(ref processedLineCount);
 #if DEBUG
 				if (lineCount > 10000)
 					break;
@@ -115,7 +153,7 @@ namespace Buffers
 					WriteCountOnStderr(null);
 
 				if (lineCount == 60)
-					lineCount=60;
+					lineCount = 60;
 #endif
 
 				string[] parts = line.Split('#');
@@ -147,15 +185,6 @@ namespace Buffers
 
 			group.Flush();
 		}
-
-		private static void WriteCountOnStderr(object obj)
-		{
-			ColorStack.PushColor(ConsoleColor.Green);
-			Console.Error.Write("\rProcessed {0} Lines.", processedLineCount);
-			Console.Error.Flush();
-			ColorStack.PopColor();
-		}
-
 
 
 		private class DevStatInfo

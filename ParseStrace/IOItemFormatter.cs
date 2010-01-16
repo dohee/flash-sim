@@ -6,11 +6,11 @@ using System.Text;
 
 namespace ParseStrace
 {
-	class StorageInfo
+	class FormatterInfo
 	{
 		public string Filename;
 
-		public StorageInfo(string filename)
+		public FormatterInfo(string filename)
 		{
 			Filename = filename;
 		}
@@ -18,7 +18,7 @@ namespace ParseStrace
 
 	abstract class IOItemFormatter
 	{
-		public abstract void PhaseBefore(StorageInfo info);
+		public abstract void PhaseBefore(FormatterInfo info);
 		public abstract void PhaseOne(IOItem item);
 		public abstract void PhaseBetween();
 		public abstract void PhaseTwo(IOItem item);
@@ -37,7 +37,7 @@ namespace ParseStrace
 		public IOItemDirectlyToWriter(TextWriter writer)
 			: base(writer) { }
 
-		public override void PhaseBefore(StorageInfo info) { }
+		public override void PhaseBefore(FormatterInfo info) { }
 		public override void PhaseOne(IOItem item) { }
 		public override void PhaseBetween() { }
 
@@ -82,7 +82,7 @@ namespace ParseStrace
 				len = 1;
 		}
 
-		public override void PhaseBefore(StorageInfo info)
+		public override void PhaseBefore(FormatterInfo info)
 		{
 			writer.WriteLine("# Original Strace: " + info.Filename);
 			writer.WriteLine("# Parsed by: {0} @ {1}", Environment.UserName, Environment.MachineName);
