@@ -68,13 +68,13 @@ namespace Buffers.Managers
 		{
 			get
 			{
-				return string.Format(
-					"NPages={0},KickN={1},AdjustDR={2},EnlargeCR={3},SRLimit={4},SNRLimit={5},KickOffSR={6}",
-					pool.NPages, kickn,
-					conf.AdjustDRWhenReadInDR ? 1 : 0,
-					conf.EnlargeCRWhenReadInDNR ? 1 : 0,
-					conf.SRLimit, conf.SNRLimit,
-					conf.PickOffSRWhenHitInSR ? 1 : 0);
+				return Utils.FormatDescription("NPages", pool.NPages,
+					"KickN", kickn,
+					"AdjustDR", conf.AdjustDRWhenReadInDR ? 1 : 0,
+					"EnlargeCR", conf.EnlargeCRWhenReadInDNR ? 1 : 0,
+					"SRLimit", conf.SRLimit,
+					"SNRLimit", conf.SNRLimit,
+					"KickOffSR", conf.PickOffSRWhenHitInSR ? 1 : 0);
 			}
 		}
 

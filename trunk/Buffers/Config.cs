@@ -30,7 +30,7 @@ namespace Buffers
 				case "lru":
 					return new LRU(CreateDevice(verify), npages);
 				case "cflru":
-					return Wrapper.CreateCFLRU(CreateDevice(verify), npages, npages / 2);
+					return new CFLRU(CreateDevice(verify), npages, 0.5f);
 				case "cmft":
 					return new CMFTByCat(CreateDevice(verify), npages);
 				case "tn":

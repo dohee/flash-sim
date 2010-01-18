@@ -289,7 +289,7 @@ namespace Buffers.Managers
                 }
 			    queue.Remove(node);
 			    LinkedListNode<RWQuery> newNode = queue.AddFirst(new RWQuery(frame.Id, isWrite));
-                updateFrameNode(frame, isWriteQueue, node.Value.IsWrite,newNode);
+                updateFrameNode(frame, isWriteQueue, node.Value.Type== AccessType.Write,newNode);
                 
                 pruneHIR();
                 return newNode;
@@ -346,17 +346,17 @@ namespace Buffers.Managers
 
                     if (isWriteQueue)
                     {
-                        if (query.IsWrite && frame.WriteLowIR)
+                        if (query.Type== AccessType.Write && frame.WriteLowIR)
                             break;
                     }
                     else
                     {
-                        if (!query.IsWrite && frame.ReadLowIR)
+						if (query.Type == AccessType.Read && frame.ReadLowIR)
                             break;
                     }
 
                     LinkedListNode<RWQuery> delNode = queryNode;
-                    updateFrameNode(frame, isWriteQueue, delNode.Value.IsWrite, null);
+                    updateFrameNode(frame, isWriteQueue, delNode.Value.Type== AccessType.Write, null);
                     queryNode = queryNode.Previous;
                     queue.Remove(delNode);
                 }
