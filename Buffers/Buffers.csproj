@@ -61,6 +61,7 @@
     <Compile Include="Managers\FLIRS-ByLyf2.cs" />
     <Compile Include="Managers\FLIRS-ByCat.cs" />
     <Compile Include="Managers\FLIRS-ByLyf.cs" />
+    <Compile Include="Managers\CFLRU.cs" />
     <Compile Include="Memory\BlowFrame.cs" />
     <Compile Include="Memory\FrameWithRWInfo.cs" />
     <Compile Include="Memory\IFrame.cs" />

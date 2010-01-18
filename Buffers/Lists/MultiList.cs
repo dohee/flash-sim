@@ -166,6 +166,19 @@ namespace Buffers.Lists
 			return (intra == null ? null : new MultiListNode<T>(this, listIndex, intra));
 		}
 
+		/// <summary>返回一个循环访问第 listIndex 个链表的节点的枚举数。
+		/// </summary>
+		public IEnumerable<MultiListNode<T>> EnumNodes(int listIndex)
+		{
+			LinkedListNode<T> node = lists[listIndex].First;
+
+			while (node != null)
+			{
+				yield return new MultiListNode<T>(this, listIndex, node);
+				node = node.Next;
+			}
+		}
+
 		/// <summary>在第 listIndex 个链表的开头处添加新的节点或值。
 		/// </summary>
 		public MultiListNode<T> AddFirst(int listIndex, T value)
