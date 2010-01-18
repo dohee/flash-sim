@@ -136,9 +136,15 @@ namespace Buffers
 		private static TextReader InitReader(string filename)
 		{
 			if (string.IsNullOrEmpty(filename))
+			{
+				Console.WriteLine("Reading trace from stdin...");
 				return Console.In;
+			}
 			else
+			{
+				Console.WriteLine("Reading trace from file '{0}'...", filename);
 				return new StreamReader(filename, Encoding.Default, true, 32 * 1024 * 1024);
+			}
 		}
 
 		private static ManagerGroup InitGroup(uint npages, string[] algorithms, bool verify)
