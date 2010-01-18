@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Buffers;
 using Buffers.Devices;
 using Buffers.Managers;
-using System.Text.RegularExpressions;
+using Gnu.Getopt;
 
 
 namespace Buffers
@@ -22,16 +23,17 @@ namespace Buffers
 		{
 			TextReader reader = null;
 			ManagerGroup group = null;
+			string filename = null;
 
 			try
 			{
-				if (args.Length >= 1)
-					reader = new StreamReader(args[0], Encoding.Default, true, 32 * 1024 * 1024);
-				else
-					reader = Console.In;
+				uint npages;
+				string[] algorithms;
+				bool verify;
+				ParseArguments(args, out filename, out npages, out algorithms, out verify);
 
-				group = (Config.RunVerify ?
-					Config.InitVerifyGroup() : Config.InitGroup());
+				reader = InitReader(filename);
+				group = InitGroup(npages, algorithms, verify);
 
 #if DEBUG
 				Timer tmr = null;
@@ -53,15 +55,20 @@ namespace Buffers
 				}
 
 
-				if (Config.RunVerify)
+				if (verify)
 				{
 					VerifyData(group);
 					Console.WriteLine("Data verification succeeded.");
 				}
 			}
+			catch (InvalidCmdLineArgumentException ex)
+			{
+				Utils.EmitErrMsg(ex.Message);
+				ShowUsage();
+			}
 			catch (FileNotFoundException)
 			{
-				Utils.EmitErrMsg("File {0} not found", args[0]);
+				Utils.EmitErrMsg("File {0} not found", filename);
 			}
 			catch (DataNotConsistentException ex)
 			{
@@ -79,6 +86,77 @@ namespace Buffers
 					reader.Dispose();
 			}
 		}
+
+		private static void ShowUsage()
+		{
+			Console.Error.WriteLine(
+				"Usage: {0} [-c] -a <Algo>[,<Algo2>[,...]] -p <NPages> [<Filename>]",
+				Utils.GetProgramName());
+		}
+
+		private static void ParseArguments(string[] args, out string filename, out uint npages, out string[] algorithms, out bool verify)
+		{
+			filename = null;
+			npages = 1024;
+			algorithms = new string[] { "Trival" };
+			verify = false;
+
+			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cp:");
+			g.Opterr = false;
+			int c;
+
+			while ((c = g.getopt()) != -1)
+			{
+				switch (c)
+				{
+					case 'a':
+						algorithms = g.Optarg.Split(',');
+						break;
+					case 'c':
+						verify = true;
+						break;
+					case 'p':
+						if (!uint.TryParse(g.Optarg, out npages))
+							throw new InvalidCmdLineArgumentException("A positive integer is expected after -p");
+						break;
+
+					case ':':
+						throw new InvalidCmdLineArgumentException("Uncomplete argument: -" + (char)g.Optopt);
+					case '?':
+						throw new InvalidCmdLineArgumentException("Invalid argument: -" + (char)g.Optopt);
+					default:
+						break;
+				}
+			}
+
+			if (args.Length > g.Optind)
+				filename = args[g.Optind];
+		}
+
+		private static TextReader InitReader(string filename)
+		{
+			if (string.IsNullOrEmpty(filename))
+				return Console.In;
+			else
+				return new StreamReader(filename, Encoding.Default, true, 32 * 1024 * 1024);
+		}
+
+		private static ManagerGroup InitGroup(uint npages, string[] algorithms, bool verify)
+		{
+			ManagerGroup group = new ManagerGroup();
+
+			foreach (string algo in algorithms)
+			{
+				IBufferManager mgr = Config.CreateManager(algo, npages, verify);
+				if (mgr == null)
+					throw new InvalidCmdLineArgumentException(algo + " is not a valid algorithm name");
+
+				group.Add(mgr);
+			}
+
+			return group;
+		}
+
 
 		private static void WriteCountOnStderr(object obj)
 		{

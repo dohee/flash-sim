@@ -8,6 +8,7 @@ namespace Buffers
 	static class Utils
 	{
 		private static readonly Stack<ConsoleColor> clrstack = new Stack<ConsoleColor>();
+		private static string progname = null;
 
 
 		public static bool ArrayEqual<T>(T[] array, T[] another)
@@ -27,14 +28,14 @@ namespace Buffers
 		public static void EmitErrMsg(string message)
 		{
 			PushColor(ConsoleColor.Red);
-			Console.Error.WriteLine("{0}: {1}", Environment.GetCommandLineArgs()[0], message);
+			Console.Error.WriteLine("{0}: {1}", GetProgramName(), message);
 			PopColor();
 		}
 		public static void EmitErrMsg(string format, params object[] obj)
 		{
 			PushColor(ConsoleColor.White);
-			Console.Error.Write(Environment.GetCommandLineArgs()[0]);
-			Console.Error.WriteLine(": " + format, obj);
+			Console.Error.Write(GetProgramName() + ": ");
+			Console.Error.WriteLine(format, obj);
 			PopColor();
 		}
 
@@ -68,6 +69,17 @@ namespace Buffers
 		{
 			return string.Format("{0:0}:{1:00}:{2:00}",
 				(int)ts.TotalHours, ts.Minutes, ts.Seconds);
+		}
+
+		public static string GetProgramName()
+		{
+			if (progname == null)
+			{
+				string[] parts = Environment.GetCommandLineArgs()[0].Split('\\', '/');
+				progname = parts[parts.Length - 1];
+			}
+
+			return progname;
 		}
 
 		public static void PopColor()
