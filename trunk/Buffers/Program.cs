@@ -28,7 +28,7 @@ namespace Buffers
 			try
 			{
 				uint npages;
-				string[] algorithms;
+				AlgorithmSpec[] algorithms;
 				bool verify;
 				ParseArguments(args, out filename, out npages, out algorithms, out verify);
 
@@ -94,12 +94,14 @@ namespace Buffers
 				Utils.GetProgramName());
 		}
 
-		private static void ParseArguments(string[] args, out string filename, out uint npages, out string[] algorithms, out bool verify)
+		private static void ParseArguments(string[] args, out string filename, out uint npages, out AlgorithmSpec[] algorithms, out bool verify)
 		{
 			filename = null;
 			npages = 1024;
-			algorithms = new string[] { "Trival" };
 			verify = false;
+
+			Regex regexAlgo = new Regex(@"(\w+)(?:\(([^)]+)\))?");
+			List<AlgorithmSpec> algos = new List<AlgorithmSpec>();
 
 			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cp:");
 			g.Opterr = false;
@@ -110,11 +112,22 @@ namespace Buffers
 				switch (c)
 				{
 					case 'a':
-						algorithms = g.Optarg.Split(',');
+						foreach (Match m in regexAlgo.Matches(g.Optarg))
+						{
+							string name = m.Groups[1].Value;
+							string[] arg = m.Groups[2].Value.Split(',');
+
+							if (m.Groups[2].Success)
+								algos.Add(new AlgorithmSpec(name, arg));
+							else
+								algos.Add(new AlgorithmSpec(name));
+						}
 						break;
+
 					case 'c':
 						verify = true;
 						break;
+
 					case 'p':
 						if (!uint.TryParse(g.Optarg, out npages))
 							throw new InvalidCmdLineArgumentException("A positive integer is expected after -p");
@@ -128,6 +141,12 @@ namespace Buffers
 						break;
 				}
 			}
+
+
+			if (algos.Count == 0)
+				algorithms = new AlgorithmSpec[] { new AlgorithmSpec("Trival") };
+			else
+				algorithms = algos.ToArray();
 
 			if (args.Length > g.Optind)
 				filename = args[g.Optind];
@@ -147,17 +166,23 @@ namespace Buffers
 			}
 		}
 
-		private static ManagerGroup InitGroup(uint npages, string[] algorithms, bool verify)
+		private static ManagerGroup InitGroup(uint npages, AlgorithmSpec[] algorithms, bool verify)
 		{
 			ManagerGroup group = new ManagerGroup();
 
-			foreach (string algo in algorithms)
+			foreach (AlgorithmSpec algo in algorithms)
 			{
-				IBufferManager mgr = Config.CreateManager(algo, npages, verify);
-				if (mgr == null)
-					throw new InvalidCmdLineArgumentException(algo + " is not a valid algorithm name");
-
-				group.Add(mgr);
+				try
+				{
+					group.Add(Config.CreateManager(algo.Name, npages, algo.Arguments, verify));
+				}
+				catch (Exception ex)
+				{
+					throw new InvalidCmdLineArgumentException(
+						"Exception occurs when creating " + algo.Name +
+						". Details: " + ex.Message,
+						ex);
+				}
 			}
 
 			return group;
@@ -233,7 +258,7 @@ namespace Buffers
 				}
 
 				line = line.Split('#')[0];
-				
+
 				string[] parts = line.Split(new char[] { ' ', '\t' },
 					StringSplitOptions.RemoveEmptyEntries);
 
@@ -306,14 +331,6 @@ namespace Buffers
 			}
 		}
 
-
-		private class DevStatInfo
-		{
-			public string Id, Name, Description;
-			public int Read, Write, Flush;
-			public long Cost;
-			public bool Suppress;
-		}
 
 		private static DevStatInfo[] FindDevice(IBlockDevice dev, int level, int index, bool suppress)
 		{
@@ -411,5 +428,33 @@ namespace Buffers
 		}
 #endif
 
+
+
+
+
+		private class DevStatInfo
+		{
+			public string Id, Name, Description;
+			public int Read, Write, Flush;
+			public long Cost;
+			public bool Suppress;
+		}
+
+
+		private struct AlgorithmSpec
+		{
+			public string Name;
+			public string[] Arguments;
+
+			public AlgorithmSpec(string name)
+				: this(name, new string[0]) { }
+
+			public AlgorithmSpec(string name, string[] arguments)
+			{
+				Name = name;
+				Arguments = arguments;
+			}
+		}
 	}
+
 }
