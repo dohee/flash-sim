@@ -55,6 +55,7 @@
     <Compile Include="Exceptions.cs" />
     <Compile Include="Getopt\Getopt.cs" />
     <Compile Include="Getopt\LongOpt.cs" />
+    <Compile Include="Managers\LRUWSR.cs" />
     <Compile Include="Managers\QueueAndFrameBased\Blower-ByCat.cs" />
     <Compile Include="Managers\Blower-ByLyf.cs" />
     <Compile Include="Managers\Blower-ByLyf2.cs" />

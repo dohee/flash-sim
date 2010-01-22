@@ -7,13 +7,13 @@ namespace Buffers
 {
 	public static class Config
 	{
-		public static readonly int ReadCost = 66;
+		public static readonly int ReadCost = 80;
 		public static readonly int WriteCost = 200;
 
 		public static readonly string[] ManagerNames = {
-			"Trival", "CFLRU", "CMFT", "FLIRSByCat", "FLIRSByLyf", "LRU", "Tn" };
+			"Trival", "CFLRU", "LRUWSR", "CMFT", "FLIRSByCat", "FLIRSByLyf", "LRU", "Tn" };
 		private static readonly ManagerCreator[] ManagerCreators = {
-			CreateTrival, CreateCFLRU, CreateCMFT, CreateFLIRSByCat, CreateFLIRSByLyf,
+			CreateTrival, CreateCFLRU, CreateLRUWSR, CreateCMFT, CreateFLIRSByCat, CreateFLIRSByLyf,
 			CreateLRU, CreateTn };
 
 
@@ -52,6 +52,10 @@ namespace Buffers
 		{
 			return new CFLRU(CreateDevice(verify), npages, float.Parse(args[0]));
 		}
+        private static IBufferManager CreateLRUWSR(uint npages, string[] args, bool verify)
+        {
+            return new LRUWSR(CreateDevice(verify), npages);
+        }
 		private static IBufferManager CreateCMFT(uint npages, string[] args, bool verify)
 		{
 			return new CMFTByCat(CreateDevice(verify), npages);
