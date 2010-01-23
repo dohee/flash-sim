@@ -102,10 +102,6 @@
     <None Include="Properties\app.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FlashDBSimDll_Sample\FlashDBSimDll_Sample.vcproj">
-      <Project>{54B56689-0295-46DC-A695-8F0A1DF785D4}</Project>
-      <Name>FlashDBSimDll_Sample</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Interfaces\Interfaces.csproj">
       <Project>{5FBC737C-05B3-42D0-8A27-EFED2C84D0E6}</Project>
       <Name>Interfaces</Name>
