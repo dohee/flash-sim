@@ -8,6 +8,8 @@ namespace Buffers.Managers
 	public struct TnConfig
 	{
 		public bool AdjustDRWhenReadInDR;
+		public uint CNRLimit;
+		public uint DNRLimit;
 		public bool EnlargeCRWhenReadInDNR;
 		public uint SRLimit;
 		public uint SNRLimit;
@@ -21,6 +23,7 @@ namespace Buffers.Managers
 			this.SRLimit = SRLimit;
 			this.SNRLimit = SNRLimit;
 			this.PickOffSRWhenHitInSR = PickOffSRWhenHitInSR;
+			CNRLimit = DNRLimit = 0;
 		}
 	}
 

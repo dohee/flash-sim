@@ -35,6 +35,7 @@ namespace Buffers
 				ParseArguments(args, out filename, out readCost, out writeCost,
 					out npages, out algorithms, out verify);
 
+				Config.SetConfig(readCost, writeCost);
 				reader = InitReader(filename);
 				group = InitGroup(npages, algorithms, verify);
 
