@@ -83,9 +83,9 @@ namespace Buffers
 		private static IBufferManager CreateTn(uint npages, string[] args, bool verify)
 		{
 			if (args.Length == 0)
-				return new Tn(CreateDevice(verify), npages, RoundedRatio);
+				return new Tn(CreateDevice(verify), npages, Ratio);
 			else
-				return new Tn(CreateDevice(verify), npages, RoundedRatio, new TnConfig(
+				return new Tn(CreateDevice(verify), npages, Ratio, new TnConfig(
 					int.Parse(args[0]) != 0,
 					int.Parse(args[1]) != 0,
 					uint.Parse(args[2]),

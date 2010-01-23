@@ -32,21 +32,21 @@ namespace Buffers.Managers
 		private readonly MultiConcatLRUQueue<IFrame> q;
 
 		private readonly TnConfig conf;
-		private readonly uint kickn;
-		private uint crlimit_;
+		private readonly float kickn;
+		private float crlimit_;
 		private readonly uint CNRLimit, DNRLimit;
 
 
-		public Tn(uint npages, uint kickN)
+		public Tn(uint npages, float kickN)
 			: this(null, npages, kickN) { }
 
-		public Tn(IBlockDevice dev, uint npages, uint kickN)
+		public Tn(IBlockDevice dev, uint npages, float kickN)
 			: this(dev, npages, kickN, new TnConfig()) { }
 
-		public Tn(uint npages, uint kickN, TnConfig conf)
+		public Tn(uint npages, float kickN, TnConfig conf)
 			: this(null, npages, kickN, conf) { }
 
-		public Tn(IBlockDevice dev, uint npages, uint kickN, TnConfig conf)
+		public Tn(IBlockDevice dev, uint npages, float kickN, TnConfig conf)
 			: base(dev, npages)
 		{
 			q = new MultiConcatLRUQueue<IFrame>(new ConcatenatedLRUQueue<IFrame>[] {
@@ -79,17 +79,17 @@ namespace Buffers.Managers
 		}
 
 
-		private uint CRLimit { get { return crlimit_; } }
-		private uint DRLimit { get { return pool.NPages - crlimit_ - SRLimit; } }
+		private uint CRLimit { get { return (uint)crlimit_; } }
+		private uint DRLimit { get { return pool.NPages - (uint)crlimit_ - SRLimit; } }
 		private uint SRLimit { get { return conf.SRLimit; } }
 		private uint SNRLimit { get { return conf.SNRLimit; } }
 
-		private void EnlargeCRLimit(int relativeAmount)
+		private void EnlargeCRLimit(float relativeAmount)
 		{
-			int cr = (int)crlimit_ + relativeAmount;
+			float cr = crlimit_ + relativeAmount;
 			cr = Math.Max(cr, 0);
-			cr = Math.Min(cr, (int)(pool.NPages - SRLimit));
-			crlimit_ = (uint)cr;
+			cr = Math.Min(cr, pool.NPages - SRLimit);
+			crlimit_ = cr;
 			//Console.WriteLine("CurrentCRLimit: " + cr);
 		}
 
@@ -145,7 +145,7 @@ namespace Buffers.Managers
 				node = q.Access(node);
 				if (!resident)
 				{
-					EnlargeCRLimit(-(int)kickn);
+					EnlargeCRLimit(-kickn);
 					node.ListNode.Value.DataSlotId = pool.AllocSlot();
 				}
 				return node;
