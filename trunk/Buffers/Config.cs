@@ -7,8 +7,10 @@ namespace Buffers
 {
 	public static class Config
 	{
-		public static readonly int ReadCost = 80;
-		public static readonly int WriteCost = 200;
+		public static int ReadCost { get; private set; }
+		public static int WriteCost { get; private set; }
+		public static float Ratio { get { return (float)WriteCost / ReadCost; } }
+		public static uint RoundedRatio { get { return (uint)Ratio; } }
 
 		public static readonly string[] ManagerNames = {
 			"Trival", "CFLRU", "LRUWSR", "CMFT", "FLIRSByCat", "FLIRSByLyf", "LRU", "Tn" };
@@ -18,18 +20,24 @@ namespace Buffers
 
 
 
-		private static readonly float Ratio = (float)Config.WriteCost / Config.ReadCost;
-		private static readonly uint RoundedRatio = (uint)Math.Round(Ratio);
-
 		private delegate IBufferManager ManagerCreator(uint npages, string[] args, bool verify);
 		private static readonly IDictionary<string, ManagerCreator> creators = new Dictionary<string, ManagerCreator>();
 
 
 		static Config()
 		{
+			SetConfig(1, 1);
+
 			for (int i = 0; i < ManagerNames.Length; i++)
 				creators[ManagerNames[i].ToLower()] = ManagerCreators[i];
 		}
+
+		public static void SetConfig(int readcost, int writecost)
+		{
+			ReadCost = readcost;
+			WriteCost = writecost;
+		}
+
 
 
 		public static IBlockDevice CreateDevice(bool verify)

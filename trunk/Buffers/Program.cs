@@ -27,10 +27,13 @@ namespace Buffers
 
 			try
 			{
+				int readCost, writeCost;
 				uint npages;
 				AlgorithmSpec[] algorithms;
 				bool verify;
-				ParseArguments(args, out filename, out npages, out algorithms, out verify);
+				
+				ParseArguments(args, out filename, out readCost, out writeCost,
+					out npages, out algorithms, out verify);
 
 				reader = InitReader(filename);
 				group = InitGroup(npages, algorithms, verify);
@@ -90,20 +93,24 @@ namespace Buffers
 		private static void ShowUsage()
 		{
 			Console.Error.WriteLine(
-				"Usage: {0} [-c] -a <Algo>[,<Algo2>[,...]] -p <NPages> [<Filename>]",
+				"Usage: {0} [-c] [-r <ReadCost>] [-w <WriteCost>] -a <Algo>[,<Algo2>[,...]] -p <NPages> [<Filename>]",
 				Utils.GetProgramName());
 		}
 
-		private static void ParseArguments(string[] args, out string filename, out uint npages, out AlgorithmSpec[] algorithms, out bool verify)
+		private static void ParseArguments(string[] args, out string filename,
+			out int readCost,out int writeCost, out uint npages,
+			out AlgorithmSpec[] algorithms, out bool verify)
 		{
 			filename = null;
+			readCost = 80;
+			writeCost = 200;
 			npages = 1024;
 			verify = false;
 
 			Regex regexAlgo = new Regex(@"(\w+)(?:\(([^)]+)\))?");
 			List<AlgorithmSpec> algos = new List<AlgorithmSpec>();
 
-			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cp:");
+			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cp:r:w:");
 			g.Opterr = false;
 			int c;
 
@@ -129,8 +136,18 @@ namespace Buffers
 						break;
 
 					case 'p':
-						if (!uint.TryParse(g.Optarg, out npages))
+						if (!uint.TryParse(g.Optarg, out npages) || npages == 0)
 							throw new InvalidCmdLineArgumentException("A positive integer is expected after -p");
+						break;
+
+					case 'r':
+						if (!int.TryParse(g.Optarg, out readCost) || readCost <=0)
+							throw new InvalidCmdLineArgumentException("A positive integer is expected after -r");
+						break;
+
+					case 'w':
+						if (!int.TryParse(g.Optarg, out writeCost) || writeCost<=0)
+							throw new InvalidCmdLineArgumentException("A positive integer is expected after -w");
 						break;
 
 					case ':':

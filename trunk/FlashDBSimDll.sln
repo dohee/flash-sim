@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseStrace", "ParseStrace\ParseStrace.csproj", "{9A509430-873E-4CB9-8FFF-B473E5E604A2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tracegenerator", "tracegenerator\tracegenerator.vcproj", "{632F441F-E55E-4D98-B61B-4841B9A07EFC}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = FlashDBSimDll.vsmdi
@@ -39,12 +41,10 @@ Global
 		{54B56689-0295-46DC-A695-8F0A1DF785D4}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{54B56689-0295-46DC-A695-8F0A1DF785D4}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{54B56689-0295-46DC-A695-8F0A1DF785D4}.Debug|Win32.ActiveCfg = Debug|Win32
-		{54B56689-0295-46DC-A695-8F0A1DF785D4}.Debug|Win32.Build.0 = Debug|Win32
 		{54B56689-0295-46DC-A695-8F0A1DF785D4}.Release|Any CPU.ActiveCfg = Release|Win32
 		{54B56689-0295-46DC-A695-8F0A1DF785D4}.Release|Mixed Platforms.ActiveCfg = Release|Win32
 		{54B56689-0295-46DC-A695-8F0A1DF785D4}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{54B56689-0295-46DC-A695-8F0A1DF785D4}.Release|Win32.ActiveCfg = Release|Win32
-		{54B56689-0295-46DC-A695-8F0A1DF785D4}.Release|Win32.Build.0 = Release|Win32
 		{E1BE6B97-9559-4BA5-BC13-DF811BB28EAD}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{E1BE6B97-9559-4BA5-BC13-DF811BB28EAD}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{E1BE6B97-9559-4BA5-BC13-DF811BB28EAD}.Debug|Mixed Platforms.Build.0 = Debug|Win32
@@ -103,6 +103,16 @@ Global
 		{9A509430-873E-4CB9-8FFF-B473E5E604A2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{9A509430-873E-4CB9-8FFF-B473E5E604A2}.Release|Win32.ActiveCfg = Release|Any CPU
 		{9A509430-873E-4CB9-8FFF-B473E5E604A2}.Release|Win32.Build.0 = Release|Any CPU
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Debug|Win32.Build.0 = Debug|Win32
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Release|Any CPU.ActiveCfg = Release|Win32
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Release|Win32.ActiveCfg = Release|Win32
+		{632F441F-E55E-4D98-B61B-4841B9A07EFC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
