@@ -269,6 +269,7 @@ namespace Buffers
 				Console.Error.Write(", remaining {0}", remainstr);
 			}
 
+			Console.Error.Write("          ");
 			Console.Error.Flush();
 			Utils.PopColor();
 		}
