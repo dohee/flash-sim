@@ -10,6 +10,7 @@ using Buffers;
 using Buffers.Devices;
 using Buffers.Managers;
 using Gnu.Getopt;
+using Buffers.Memory;
 
 
 namespace Buffers
@@ -283,13 +284,13 @@ namespace Buffers
 			{
 				long lineCount = Interlocked.Increment(ref processedLineCount);
 #if DEBUG
-				if (lineCount > 10000)
+				if (lineCount >= 10000)
 					break;
 				if (lineCount % 1000 == 0)
 					WriteCountOnStderr(null);
 
-				if (lineCount == 60)
-					lineCount = 60;
+				if (lineCount == 5608)
+					lineCount = 5608;
 #endif
 
 				if (line.StartsWith("# "))
@@ -440,36 +441,17 @@ namespace Buffers
 #if ANALISE
 		private static bool FindBug(ManagerGroup group, int count)
 		{
-			var lyfMap = ((CMFT)group[1]).map;
-			var catMap = ((CMFTByCat)group[2]).map;
-
-			if (lyfMap.Count != catMap.Count)
-				return true;
-
-			foreach (var lyfItem in lyfMap)
-			{
-				Buffers.Memory.IRRFrame lyfFrame = lyfItem.Value;
-				Buffers.Queues.QueueNode node;
-
-				if (catMap.TryGetValue(lyfItem.Key, out node))
-				{
-					Buffers.Memory.IRRFrame catFrame = (Buffers.Memory.IRRFrame)node.ListNode.Value;
-
-					if (lyfFrame.DataSlotId != catFrame.DataSlotId ||
-						lyfFrame.Dirty != catFrame.Dirty ||
-						lyfFrame.ReadIRR != catFrame.ReadIRR ||
-						lyfFrame.ReadRecency != catFrame.ReadRecency ||
-						lyfFrame.WriteIRR != catFrame.WriteIRR ||
-						lyfFrame.WriteRecency != catFrame.WriteRecency)
-						return true;
-				}
-				else
-				{
-					return true;
-				}
-			}
-
 			return false;
+		}
+
+		private static int CompareFrame(IFrame f1, IFrame f2)
+		{
+			int r;
+			if ((r = f1.Id.CompareTo(f2.Id)) != 0)
+				return r;
+			if ((r = f1.Dirty.CompareTo(f2.Dirty)) != 0)
+				return r;
+			return 0;
 		}
 #endif
 

@@ -62,6 +62,7 @@
     <Compile Include="Managers\FLIRS-ByCat.cs" />
     <Compile Include="Managers\FLIRS-ByLyf.cs" />
     <Compile Include="Managers\CFLRU.cs" />
+    <Compile Include="Managers\Tn.cs" />
     <Compile Include="Memory\BlowFrame.cs" />
     <Compile Include="Memory\FrameWithRWInfo.cs" />
     <Compile Include="Memory\IFrame.cs" />
@@ -71,7 +72,7 @@
     <Compile Include="Managers\CMFT-ByLyf.cs" />
     <Compile Include="Managers\QueueAndFrameBased\CMFT-ByCat.cs" />
     <Compile Include="Managers\ManagerGroup.cs" />
-    <Compile Include="Managers\QueueAndFrameBased\Tn.cs" />
+    <Compile Include="Managers\QueueAndFrameBased\OldTn.cs" />
     <Compile Include="Managers\TrivalManager.cs" />
     <Compile Include="Memory\IRRFrame.cs" />
     <Compile Include="Memory\Pool.cs" />
