@@ -95,9 +95,12 @@ namespace Buffers
 				return new Tn(CreateDevice(verify), npages, Ratio, new TnConfig(
 					int.Parse(args[0]) != 0,
 					int.Parse(args[1]) != 0,
-					uint.Parse(args[2]),
-					uint.Parse(args[3]),
-					int.Parse(args[4]) != 0));
+					int.Parse(args[2]) != 0,
+					float.Parse(args[3]),
+					float.Parse(args[4]),
+					float.Parse(args[5]),
+					float.Parse(args[6])
+					));
 		}
 	}
 }
