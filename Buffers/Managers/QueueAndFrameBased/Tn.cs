@@ -8,22 +8,25 @@ namespace Buffers.Managers
 	public struct TnConfig
 	{
 		public bool AdjustDRWhenReadInDR;
-		public uint CNRLimit;
-		public uint DNRLimit;
+		public float CNRLimitRatio;
+		public float DNRLimitRatio;
 		public bool EnlargeCRWhenReadInDNR;
-		public uint SRLimit;
-		public uint SNRLimit;
 		public bool PickOffSRWhenHitInSR;
+		public float SRLimitRatio;
+		public float SNRLimitRatio;
 
-		public TnConfig(bool AdjustDRWhenReadInDR, bool EnlargeCRWhenReadInDNR,
-			uint SRLimit, uint SNRLimit, bool PickOffSRWhenHitInSR)
+		public TnConfig(
+			bool AdjustDRWhenReadInDR, bool EnlargeCRWhenReadInDNR,
+			bool PickOffSRWhenHitInSR, float CNRLimitRatio, float DNRLimitRatio,
+			float SRLimitRatio, float SNRLimitRatio)
 		{
 			this.AdjustDRWhenReadInDR = AdjustDRWhenReadInDR;
+			this.CNRLimitRatio = CNRLimitRatio;
+			this.DNRLimitRatio = DNRLimitRatio;
 			this.EnlargeCRWhenReadInDNR = EnlargeCRWhenReadInDNR;
-			this.SRLimit = SRLimit;
-			this.SNRLimit = SNRLimit;
 			this.PickOffSRWhenHitInSR = PickOffSRWhenHitInSR;
-			CNRLimit = DNRLimit = 0;
+			this.SRLimitRatio = SRLimitRatio;
+			this.SNRLimitRatio = SNRLimitRatio;
 		}
 	}
 
@@ -37,7 +40,7 @@ namespace Buffers.Managers
 		private readonly TnConfig conf;
 		private readonly float kickn;
 		private float crlimit_;
-		private readonly uint CNRLimit, DNRLimit;
+		private readonly uint CNRLimit, DNRLimit, SRLimit, SNRLimit;
 
 
 		public Tn(uint npages, float kickN)
@@ -61,10 +64,19 @@ namespace Buffers.Managers
 					new FIFOQueue<IFrame>(), new FIFOQueue<IFrame>())
 			});
 
+			if (conf.CNRLimitRatio == 0.0)
+				conf.CNRLimitRatio = 0.5f;
+			if (conf.DNRLimitRatio == 0.0)
+				conf.DNRLimitRatio = 0.5f;
+
+			CNRLimit = (uint)(npages * conf.CNRLimitRatio);
+			DNRLimit = (uint)(npages * conf.DNRLimitRatio);
+			SRLimit = (uint)(npages * conf.SRLimitRatio);
+			SNRLimit = (uint)(npages * conf.SNRLimitRatio);
+			crlimit_ = (float)(npages / 2.0);
+
 			this.conf = conf;
 			this.kickn = kickN;
-
-			crlimit_ = CNRLimit = DNRLimit = npages / 2;
 		}
 
 		public override string Description
@@ -72,20 +84,21 @@ namespace Buffers.Managers
 			get
 			{
 				return Utils.FormatDescription("NPages", pool.NPages,
-					"KickN", kickn,
+					"KickN", kickn.ToString("0.##"),
 					"AdjustDR", conf.AdjustDRWhenReadInDR ? 1 : 0,
 					"EnlargeCR", conf.EnlargeCRWhenReadInDNR ? 1 : 0,
-					"SRLimit", conf.SRLimit,
-					"SNRLimit", conf.SNRLimit,
-					"KickOffSR", conf.PickOffSRWhenHitInSR ? 1 : 0);
+					"KickOffSR", conf.PickOffSRWhenHitInSR ? 1 : 0,
+					"CNR", conf.CNRLimitRatio.ToString("0.##"),
+					"DNR", conf.DNRLimitRatio.ToString("0.##"),
+					"SR", conf.SRLimitRatio.ToString("0.##"),
+					"SNR", conf.SNRLimitRatio.ToString("0.##")
+					);
 			}
 		}
 
 
 		private uint CRLimit { get { return (uint)crlimit_; } }
 		private uint DRLimit { get { return pool.NPages - (uint)crlimit_ - SRLimit; } }
-		private uint SRLimit { get { return conf.SRLimit; } }
-		private uint SNRLimit { get { return conf.SNRLimit; } }
 
 		private void EnlargeCRLimit(float relativeAmount)
 		{
