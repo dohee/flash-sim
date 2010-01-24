@@ -19,6 +19,7 @@ namespace Buffers
 		static long processedLineCount = 0, totalLineCount = 0;
 		static DateTime oldTime;
 
+
 		public static void Main(string[] args)
 		{
 			TextReader reader = null;
@@ -28,16 +29,16 @@ namespace Buffers
 			try
 			{
 				int readCost, writeCost;
-				uint npages;
+				uint[] npageses;
 				AlgorithmSpec[] algorithms;
 				bool verify;
 				
 				ParseArguments(args, out filename, out readCost, out writeCost,
-					out npages, out algorithms, out verify);
+					out npageses, out algorithms, out verify);
 
 				Config.SetConfig(readCost, writeCost);
 				reader = InitReader(filename);
-				group = InitGroup(npages, algorithms, verify);
+				group = InitSuperGroup(npageses, algorithms, verify);
 
 #if DEBUG
 				Timer tmr = null;
@@ -91,21 +92,24 @@ namespace Buffers
 			}
 		}
 
+
 		private static void ShowUsage()
 		{
 			Console.Error.WriteLine(
-				"Usage: {0} [-c] [-r <ReadCost>] [-w <WriteCost>] -a <Algo>[,<Algo2>[,...]] -p <NPages> [<Filename>]",
+@"Usage: {0} [-c] [-r <ReadCost>] [-w <WriteCost>]
+       -a <Algorithm>[,<Algorithm2>[,...]]
+       -p <NPages>[,<NPages2>[,...]]
+       [<Filename>]",
 				Utils.GetProgramName());
 		}
 
 		private static void ParseArguments(string[] args, out string filename,
-			out int readCost,out int writeCost, out uint npages,
+			out int readCost,out int writeCost, out uint[] npageses,
 			out AlgorithmSpec[] algorithms, out bool verify)
 		{
-			filename = null;
 			readCost = 80;
 			writeCost = 200;
-			npages = 1024;
+			npageses = new uint[] { 1024 };
 			verify = false;
 
 			Regex regexAlgo = new Regex(@"(\w+)(?:\(([^)]+)\))?");
@@ -137,8 +141,15 @@ namespace Buffers
 						break;
 
 					case 'p':
-						if (!uint.TryParse(g.Optarg, out npages) || npages == 0)
-							throw new InvalidCmdLineArgumentException("A positive integer is expected after -p");
+						string[] strs = g.Optarg.Split(',');
+						npageses = new uint[strs.Length];
+
+						for (int i = 0; i < strs.Length; i++)
+						{
+							if (!uint.TryParse(strs[i], out npageses[i]) || npageses[i] == 0)
+								throw new InvalidCmdLineArgumentException("Positive integer(s) are expected after -p");
+						}
+
 						break;
 
 					case 'r':
@@ -168,7 +179,10 @@ namespace Buffers
 
 			if (args.Length > g.Optind)
 				filename = args[g.Optind];
+			else
+				filename = null;
 		}
+
 
 		private static TextReader InitReader(string filename)
 		{
@@ -182,6 +196,19 @@ namespace Buffers
 				Console.WriteLine("Reading trace from file '{0}'...", filename);
 				return new StreamReader(filename, Encoding.Default, true, 32 * 1024 * 1024);
 			}
+		}
+
+		private static ManagerGroup InitSuperGroup(uint[] npageses, AlgorithmSpec[] algorithms, bool verify)
+		{
+			if (npageses.Length == 1)
+				return InitGroup(npageses[0], algorithms, verify);
+
+			ManagerGroup group = new ManagerGroup();
+
+			foreach (uint npages in npageses)
+				group.Add(InitGroup(npages, algorithms, verify));
+
+			return group;
 		}
 
 		private static ManagerGroup InitGroup(uint npages, AlgorithmSpec[] algorithms, bool verify)
