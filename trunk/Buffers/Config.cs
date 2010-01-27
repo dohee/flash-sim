@@ -75,6 +75,11 @@ namespace Buffers
 		{
 			return new LRU(CreateDevice(verify), npages);
 		}
+        [ManagerFactory("FLRUByLyf")]
+        static IBufferManager CreateFLRUByLyf(uint npages, string[] args, bool verify)
+        {
+            return new FLRU(CreateDevice(verify), npages);
+        }
 		[ManagerFactory("FLIRSByCat")]
 		static IBufferManager CreateFLIRSByCat(uint npages, string[] args, bool verify)
 		{

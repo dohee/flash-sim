@@ -7,7 +7,7 @@ using Buffers.Lists;
 
 namespace Buffers.Managers
 {
-	public sealed class FLIRSbyLyf2 : BufferManagerBase
+    public sealed class FLIRSbyLyf2 : BufferManagerBase
 	{
 		//private readonly float ratio;
 		private readonly FLIRSQueue readList;
