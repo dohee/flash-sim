@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Buffers.Managers;
+using Buffers.Memory;
 
 
 namespace Buffers.Program
@@ -144,10 +145,10 @@ namespace Buffers.Program
 
 		private static void OperateOnTrace(ManagerGroup group, TextReader input)
 		{
-			byte[] data = new byte[group.PageSize];
 			char[] separators1 = { '#', ';', '/' };
-			char[] separators2 = { ' ', '\t' };
-			RandomDataGenerator generator = new RandomDataGenerator();
+			char[] separators2 = { ' ', '\t' };			
+			GroupAccessor accessor = new GroupAccessor(group);
+			TraceParser parser = null;
 			string line;
 
 			while ((line = input.ReadLine()) != null)
@@ -178,26 +179,18 @@ namespace Buffers.Program
 
 				parts = line.Split(separators2, StringSplitOptions.RemoveEmptyEntries);
 
-				if (parts.Length < 3)
-					continue;
+				if (parser == null)
+					parser = TraceParser.CreateParser(parts);
 
-				uint pageid = uint.Parse(parts[0]);
-				uint length = uint.Parse(parts[1]);
-				uint rw = uint.Parse(parts[2]);
+				RWQuery query;
+				RWQuery[] extraQueries;
+				parser.ParseLine(parts, out query, out extraQueries);
 
-				if (rw == 0)
-				{
-					while (length-- != 0)
-						group.Read(pageid++, data);
-				}
-				else
-				{
-					while (length-- != 0)
-					{
-						generator.Generate(data);
-						group.Write(pageid++, data);
-					}
-				}
+				accessor.Access(query);
+
+				if (extraQueries != null)
+					foreach (var item in extraQueries)
+						accessor.Access(item);
 			}
 
 			group.CascadeFlush();

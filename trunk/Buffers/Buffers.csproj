@@ -98,7 +98,7 @@
     <Compile Include="Queues\Old\QueueGroup.cs" />
     <Compile Include="Queues\Old\QueueBase.cs" />
     <Compile Include="Queues\Old\QueueNode.cs" />
-    <Compile Include="Program\RandomDataGenerator.cs" />
+    <Compile Include="Program\GroupAccessor.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
