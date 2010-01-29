@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Buffers
+namespace Buffers.Program
 {
 	class RandomDataGenerator
 	{
