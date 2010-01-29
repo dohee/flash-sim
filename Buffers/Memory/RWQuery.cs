@@ -8,9 +8,6 @@ namespace Buffers.Memory
 		public uint PageId { get; private set; }
 		public AccessType Type { get; private set; }
 
-		[Obsolete("请使用可读性更好的 Type 属性")]
-		public bool IsWrite { get { return Type == AccessType.Write; } }
-
 		public RWQuery(uint id, AccessType type) : this() { PageId = id; Type = type; }
 		public RWQuery(uint id, bool isWrite) : this(id, isWrite ? AccessType.Write : AccessType.Read) { }
 
