@@ -107,5 +107,21 @@ namespace Buffers
 					float.Parse(args[6])
 					));
 		}
+		[ManagerFactory("OldTn")]
+		static IBufferManager CreateOldTn(uint npages, string[] args, bool verify)
+		{
+			if (args.Length == 0)
+				return new OldTn(CreateDevice(verify), npages, Ratio);
+			else
+				return new OldTn(CreateDevice(verify), npages, Ratio, new TnConfig(
+					int.Parse(args[0]) != 0,
+					int.Parse(args[1]) != 0,
+					int.Parse(args[2]) != 0,
+					float.Parse(args[3]),
+					float.Parse(args[4]),
+					float.Parse(args[5]),
+					float.Parse(args[6])
+					));
+		}
 	}
 }
