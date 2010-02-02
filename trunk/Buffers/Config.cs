@@ -50,6 +50,8 @@ namespace Buffers
 
 
 
+#pragma warning disable 0169 // "Never used"
+#pragma warning disable 0618 // "Obsolete"
 		[ManagerFactory("Trival")]
 		static IBufferManager CreateTrival(uint npages, string[] args, bool verify)
 		{
@@ -137,5 +139,8 @@ namespace Buffers
 					int.Parse(args[2]) != 0
 					));
 		}
+#pragma warning restore 0618
+#pragma warning restore 0169
+
 	}
 }
