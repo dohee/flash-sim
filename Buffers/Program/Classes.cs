@@ -7,7 +7,7 @@ namespace Buffers.Program
 	{
 		public string Id, Name, Description;
 		public int Read, Write, Flush;
-		public long Cost;
+		public decimal Cost;
 		public bool Suppress;
 	}
 

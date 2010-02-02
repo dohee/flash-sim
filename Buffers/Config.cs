@@ -8,9 +8,9 @@ namespace Buffers
 {
 	public static class Config
 	{
-		public static int ReadCost { get; private set; }
-		public static int WriteCost { get; private set; }
-		public static float Ratio { get { return (float)WriteCost / ReadCost; } }
+		public static decimal ReadCost { get; private set; }
+		public static decimal WriteCost { get; private set; }
+		public static float Ratio { get { return (float)(WriteCost / ReadCost); } }
 		public static uint RoundedRatio { get { return (uint)Ratio; } }
 
 
@@ -31,7 +31,7 @@ namespace Buffers
 				}
 			}
 		}
-		public static void SetConfig(int readcost, int writecost)
+		public static void SetConfig(decimal readcost, decimal writecost)
 		{
 			ReadCost = readcost;
 			WriteCost = writecost;
