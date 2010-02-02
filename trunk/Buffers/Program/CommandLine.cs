@@ -18,7 +18,7 @@ namespace Buffers.Program
 		}
 
 		public static void ParseArguments(string[] args, out string filename,
-			out int readCost, out int writeCost, out uint[] npageses,
+			out decimal readCost, out decimal writeCost, out uint[] npageses,
 			out AlgorithmSpec[] algorithms, out bool verify)
 		{
 			readCost = 80;
@@ -67,12 +67,12 @@ namespace Buffers.Program
 						break;
 
 					case 'r':
-						if (!int.TryParse(g.Optarg, out readCost) || readCost <= 0)
+						if (!decimal.TryParse(g.Optarg, out readCost) || readCost <= 0)
 							throw new InvalidCmdLineArgumentException("A positive integer is expected after -r");
 						break;
 
 					case 'w':
-						if (!int.TryParse(g.Optarg, out writeCost) || writeCost <= 0)
+						if (!decimal.TryParse(g.Optarg, out writeCost) || writeCost <= 0)
 							throw new InvalidCmdLineArgumentException("A positive integer is expected after -w");
 						break;
 

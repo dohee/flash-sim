@@ -16,11 +16,11 @@ namespace Buffers
 			return (FindDiff(array, another) == -1);
 		}
 
-		public static long CalcTotalCost(int read, int write)
+		public static decimal CalcTotalCost(int read, int write)
 		{
-			return read * (long)Config.ReadCost + write * (long)Config.WriteCost;
+			return read * Config.ReadCost + write * Config.WriteCost;
 		}
-		public static long CalcTotalCost(IBlockDevice dev)
+		public static decimal CalcTotalCost(IBlockDevice dev)
 		{
 			return CalcTotalCost(dev.ReadCount, dev.WriteCount);
 		}

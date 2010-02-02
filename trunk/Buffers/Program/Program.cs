@@ -25,7 +25,7 @@ namespace Buffers.Program
 
 			try
 			{
-				int readCost, writeCost;
+				decimal readCost, writeCost;
 				uint[] npageses;
 				AlgorithmSpec[] algorithms;
 				bool verify;
