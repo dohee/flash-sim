@@ -54,6 +54,9 @@ namespace Buffers.Program
 				(index < 0 ? "" : index.ToString());
 			info.Name = new string(' ', level) + dev.Name;
 			info.Description = (dev.Description == null ? "" : dev.Description);
+            //........lyf.......
+            dev = mgr.AssociatedDevice;
+
 			info.Read = dev.ReadCount;
 			info.Write = dev.WriteCount;
 			info.Flush = 0;
@@ -67,11 +70,11 @@ namespace Buffers.Program
 			info.Flush = mgr.FlushCount;
 			infos.Add(info);
 
-			if (grp == null)
-				infos.AddRange(GatherStatistics(mgr.AssociatedDevice, level + 1, -1, false));
-			else
-				for (int i = 0; i < grp.Count; i++)
-					infos.AddRange(GatherStatistics(grp[i], level + 1, i, true));
+            if (grp == null)
+                ;//infos.AddRange(GatherStatistics(mgr.AssociatedDevice, level + 1, -1, false));
+            else
+                for (int i = 0; i < grp.Count; i++)
+                    infos.AddRange(GatherStatistics(grp[i], level + 1, i, true));
 
 			return infos.ToArray();
 		}

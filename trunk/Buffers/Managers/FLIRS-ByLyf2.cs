@@ -21,15 +21,19 @@ namespace Buffers.Managers
 			: this(null, npages) { }
 
 		public FLIRSbyLyf2(IBlockDevice dev, uint npages)
-			: base(dev, npages)
+			: this(dev, npages,0.1)
 		{
-			//this.ratio = ratio;
-			cacheSize = npages;
-			readList = new FLIRSQueue(false);
-			writeList = new FLIRSQueue(true);
-			hirQueue = new HIRQueue();
-			maxHIRQueueLength = Math.Max(npages / 100, 1);
 		}
+
+        public FLIRSbyLyf2(IBlockDevice dev, uint npages, double HIRRatio)
+            : base(dev, npages)
+        {
+            cacheSize = npages;
+            readList = new FLIRSQueue(false);
+            writeList = new FLIRSQueue(true);
+            hirQueue = new HIRQueue();
+            maxHIRQueueLength = Math.Max((uint)(npages * HIRRatio), 1);
+        }
 
 
 
