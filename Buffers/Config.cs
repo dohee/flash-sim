@@ -88,7 +88,7 @@ namespace Buffers
 		[ManagerFactory("FLIRSByLyf")]
 		static IBufferManager CreateFLIRSByLyf(uint npages, string[] args, bool verify)
 		{
-			return new FLIRSbyLyf2(CreateDevice(verify), npages);
+			return new FLIRSbyLyf2(CreateDevice(verify), npages, double.Parse(args[0]));
 		}
 		[ManagerFactory("Tn")]
 		[ManagerFactory("ACAR")]

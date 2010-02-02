@@ -223,9 +223,9 @@ namespace Buffers.Program
 				output.Write(formatId, info.Id);
 				Utils.PopColor();
 
-				if (info.Suppress)
-					output.Write(emptyCost);
-				else
+				//if (info.Suppress)
+					//output.Write(emptyCost);
+				//else
 					output.Write(formatCost, info.Read, info.Write, info.Flush, info.Cost);
 
 				Utils.PushColor(ConsoleColor.Cyan);

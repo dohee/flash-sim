@@ -17,7 +17,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		int size = 1;
 
 		//int dirty = (int)((address>400)&&(((double)rand()/ RAND_MAX<0.75));// || ((address<500)&&((double)rand()/ RAND_MAX<0.1)));
-		int dirty = (int)(rand()%8<address%8);//*(int)((double)rand()/ RAND_MAX  < (double)address/pageNumber);
+		int dirty = (int)(rand()%8<address%8)/2;//*(int)((double)rand()/ RAND_MAX  < (double)address/pageNumber);
 		cout<<address<<"\t"<<size<<"\t"<<dirty<<endl;
 		if (address<200) counter++;
 	}
