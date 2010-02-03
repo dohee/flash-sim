@@ -48,8 +48,7 @@ namespace Buffers
 				null, new object[] { npages, args, verify });
 		}
 
-
-
+           
 #pragma warning disable 0169 // "Never used"
 #pragma warning disable 0618 // "Obsolete"
 		[ManagerFactory("Trival")]
@@ -66,7 +65,7 @@ namespace Buffers
 		static IBufferManager CreateLRUWSR(uint npages, string[] args, bool verify)
 		{
 			return new LRUWSR(CreateDevice(verify), npages);
-		}
+		} 
 		[ManagerFactory("CMFT")]
 		static IBufferManager CreateCMFT(uint npages, string[] args, bool verify)
 		{
@@ -77,6 +76,11 @@ namespace Buffers
 		{
 			return new LRU(CreateDevice(verify), npages);
 		}
+        [ManagerFactory("LIRS")]
+        static IBufferManager CreateLIRS(uint npages, string[] args, bool verify)
+        {
+            return new LIRS_ByWu(CreateDevice(verify), npages, float.Parse(args[0]));
+        }
         [ManagerFactory("FLRUByLyf")]
         static IBufferManager CreateFLRUByLyf(uint npages, string[] args, bool verify)
         {
