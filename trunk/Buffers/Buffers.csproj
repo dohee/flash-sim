@@ -46,6 +46,8 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes.cs" />
@@ -55,6 +57,7 @@
     <Compile Include="Getopt\Getopt.cs" />
     <Compile Include="Getopt\LongOpt.cs" />
     <Compile Include="Managers\FLRU-ByLyf.cs" />
+    <Compile Include="Managers\LIRS-ByWu.cs" />
     <Compile Include="Managers\LRUWSR.cs" />
     <Compile Include="Managers\QueueAndFrameBased\Blower-ByCat.cs" />
     <Compile Include="Managers\Blower-ByLyf.cs" />
@@ -77,6 +80,7 @@
     <Compile Include="Managers\QueueAndFrameBased\OldTn.cs" />
     <Compile Include="Managers\TrivalManager.cs" />
     <Compile Include="Memory\IRRFrame.cs" />
+    <Compile Include="Memory\lirFrame.cs" />
     <Compile Include="Memory\Pool.cs" />
     <Compile Include="Memory\RWQuery.cs" />
     <Compile Include="Program\Classes.cs" />
