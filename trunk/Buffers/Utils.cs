@@ -41,14 +41,19 @@ namespace Buffers
 
 		public static int FindDiff<T>(T[] array, T[] another)
 		{
+			if (array.Length != another.Length)
+				return -3;
+
+			return FindDiff(array, another, array.Length);
+		}
+		public static int FindDiff<T>(T[] array, T[] another, int length)
+		{
 			if (array == null && another == null)
 				return -1;
 			if (array == null || another == null)
 				return -2;
-			if (array.Length != another.Length)
-				return -3;
 
-			for (int i = 0; i < array.Length; i++)
+			for (int i = 0; i < length; i++)
 				if (!array[i].Equals(another[i]))
 					return i;
 
