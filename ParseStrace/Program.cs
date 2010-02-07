@@ -101,9 +101,8 @@ namespace ParseStrace
 			long ret;
 
 			if (retstring == "?")
-				return;			
-			if (!long.TryParse(retstring, out ret))
-				ret = long.Parse(retstring.Substring(2), NumberStyles.HexNumber);
+				return;
+			ret = Utils.ParseHexLong(retstring);
 			if (ret < 0)
 				return;
 
@@ -135,13 +134,20 @@ namespace ParseStrace
 				case "open":
 				case "creat": table.OnOpen(args, ret); break;
 
+				case "mmap": table.OnMMap(1, args, phase); break;
+				case "mmap2": table.OnMMap(4096, args, phase); break;
+				case "mremap": break;
+				case "msync": break;
+				case "munmap": break;
+
+				case "read": table.OnReadWrite(false, args, ret, phase); break;
+				case "write": table.OnReadWrite(true, args, ret, phase); break;
+
 				case "accept": table.OnAccept(args, ret); break;
 				case "close": table.OnClose(args); break;
 				case "fcntl": table.OnFcntl(args, ret); break;
 				case "lseek": table.OnLSeek(args, ret); break;
 				case "pipe": table.OnPipe(args); break;
-				case "read": table.OnReadWrite(false, args, ret, phase); break;
-				case "write": table.OnReadWrite(true, args, ret, phase); break;
 
 				default: break;
 			}

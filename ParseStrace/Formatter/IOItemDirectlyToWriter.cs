@@ -26,7 +26,7 @@ namespace ParseStrace
 			else
 				typestring = "<" + item.TypeString + ">";
 
-			writer.WriteLine("{6} {5,-6} at {4,-9} of Pid={1} FD={2}{3}: {0}",
+			writer.WriteLine("{6} {5,-8} at {4,-9} of Pid={1} FD={2}{3}: {0}",
 				item.Filename, item.Pid, item.FDNum, typestring,
 				item.Position, item.Length,
 				item.IsWrite ? "Write" : "Read ");
