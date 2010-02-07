@@ -1,7 +1,18 @@
 ﻿using System;
+using System.Linq;
 
 namespace ParseStrace
 {
+	[Flags]
+	enum AccessType : byte
+	{
+		None = 0,
+		Read = 1,
+		Write = 2,
+		FileRoutine = 4,
+		MmapRoutine = 8,
+	}
+
 	enum FDType : byte
 	{
 		Unknown,
@@ -17,22 +28,22 @@ namespace ParseStrace
 		public readonly string Filename;
 		public readonly short FDNum;
 		public readonly FDType FDType;
-		public readonly bool IsWrite;
+		public readonly AccessType Access;
 		public readonly long Position;
 		public readonly long Length;
 
 		public IOItem(int pid, string filename, short fd,
-			bool isWrite, long pos, long length)
-			: this(pid, filename, fd, isWrite, pos, length, FDType.File) { }
+			AccessType access, long pos, long length)
+			: this(pid, filename, fd, access, pos, length, FDType.File) { }
 
 		public IOItem(int pid, string filename, short fd,
-			bool isWrite, long pos, long length, FDType type)
+			AccessType access, long pos, long length, FDType type)
 		{
 			Pid = pid;
 			Filename = filename;
 			FDNum = fd;
 			FDType = type;
-			IsWrite = isWrite;
+			Access = access;
 			Position = pos;
 			Length = length;
 		}
@@ -40,26 +51,10 @@ namespace ParseStrace
 		public override string ToString()
 		{
 			return string.Format(
-				"IOItem[{0} Len={1} at Pos={2} on {3} via FD={4}]",
-				IsWrite ? "write" : "read", Length,
-				Position, Filename, FDNum);
+				"IOItem[{0} Len={1} at Pos={2} on {3} via FD={4} of Type={5}]",
+				Access.AccessTypeToString(),
+				Length, Position, Filename, FDNum,
+				FDType.FDTypeToString());
 		}
-
-		public string TypeString
-		{
-			get
-			{
-				switch (FDType)
-				{
-					case FDType.Unknown: return "Unkn";
-					case FDType.File: return "File";
-					case FDType.Terminal: return "Term";
-					case FDType.Pipe: return "Pipe";
-					case FDType.Socket: return "Sock";
-					default: return null;
-				}
-			}
-		}
-
 	}
 }

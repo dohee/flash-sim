@@ -48,7 +48,7 @@ namespace ParseStrace
 
 		public override void PhaseBetween()
 		{
-			nlines++;
+			nlines += 2;
 			writer.WriteLine("# Lines: " + nlines);
 
 			fileStarts = new Dictionary<string, int>();
@@ -69,8 +69,8 @@ namespace ParseStrace
 				CalcPagePosition(item, out pos, out len);
 
 				writer.Write("{0}\t{1}\t{2}\t# ",
-					pos + fileStarts[item.Filename],
-					len, item.IsWrite ? 1 : 0);
+					pos + fileStarts[item.Filename], len,
+					(item.Access & AccessType.Write) == 0 ? 0 : 1);
 			}
 			else
 			{
@@ -78,6 +78,11 @@ namespace ParseStrace
 			}
 
 			IOItemDirectlyToWriter.Output(writer, item);
+		}
+
+		public override void PhaseAfter()
+		{
+			writer.WriteLine("# vim: set nowrap:");
 		}
 	}
 

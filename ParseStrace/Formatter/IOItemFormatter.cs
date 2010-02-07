@@ -19,6 +19,7 @@ namespace ParseStrace
 		public abstract void PhaseOne(IOItem item);
 		public abstract void PhaseBetween();
 		public abstract void PhaseTwo(IOItem item);
+		public abstract void PhaseAfter();
 
 		protected readonly TextWriter writer;
 
