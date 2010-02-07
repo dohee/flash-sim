@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Buffers.Devices;
 using Buffers.Managers;
 
@@ -81,18 +82,49 @@ namespace Buffers.Program
 
 		public static void VerifyData(ManagerGroup group)
 		{
-			byte[] correct = (group[0].AssociatedDevice as MemorySimulatedDevice).ToArray();
+			if (group.Count < 2)
+				return;
 
-			for (int i = 1; i < group.Count; i++)
+			MemoryStream[] streams = new MemoryStream[group.Count];
+
+			for (int i = 0; i < streams.Length; i++)
+				streams[i] = (group[i].AssociatedDevice as MemorySimulatedDevice).Stream;
+
+
+			long length0 = streams[0].Length;
+
+			for (int i = 1; i < streams.Length; i++)
 			{
-				byte[] current = (group[i].AssociatedDevice as MemorySimulatedDevice).ToArray();
-				int diffpos = Utils.FindDiff(correct, current);
+				long length = streams[i].Length;
 
-				if (diffpos != -1)
+				if (length0 != length)
 					throw new DataNotConsistentException(string.Format(
-						"Verified data not consistent at Page {0} between Device 0 and Device {1}",
-						diffpos, i));
+						"Verified data have different length. " +
+						"Device 0 has {0} pages, while Device {2} has {1} pages",
+						length0, length, i));
 			}
+
+
+			foreach (MemoryStream stream in streams)
+				stream.Seek(0, SeekOrigin.Begin);
+
+			int readcount;
+			byte[] data0 = new byte[128 * 1024], data = new byte[data0.Length];
+
+			while ((readcount = streams[0].Read(data0, 0, data0.Length)) != 0)
+			{
+				for (int i = 1; i < streams.Length; i++)
+				{
+					streams[i].Read(data, 0, data.Length);
+					int diffpos = Utils.FindDiff(data0, data, readcount);
+
+					if (diffpos != -1)
+						throw new DataNotConsistentException(string.Format(
+							"Verified data not consistent at Page {0} between Device 0 and Device {1}",
+							streams[0].Position - readcount + diffpos, i));
+				}
+			}
+
 		}
 
 	}
