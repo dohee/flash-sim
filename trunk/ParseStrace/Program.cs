@@ -40,6 +40,8 @@ namespace ParseStrace
 				{
 					ProceedFile(reader, 2);
 				}
+
+				formatter.PhaseAfter();
 			}
 			finally
 			{
@@ -102,7 +104,7 @@ namespace ParseStrace
 
 			if (retstring == "?")
 				return;
-			ret = Utils.ParseHexLong(retstring);
+			ret = retstring.ParseHexLong();
 			if (ret < 0)
 				return;
 

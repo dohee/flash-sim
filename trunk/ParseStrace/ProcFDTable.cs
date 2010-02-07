@@ -113,7 +113,7 @@ namespace ParseStrace
 			string[] args = argsline.Split(argumentSplitter, StringSplitOptions.None);
 			int fd = int.Parse(args[4]);
 			long length = long.Parse(args[1]);
-			long offset = Utils.ParseHexLong(args[5]);
+			long offset = args[5].ParseHexLong();
 
 			FileState fs;
 			if (!curFiles.TryGetValue(fd, out fs))
@@ -123,7 +123,7 @@ namespace ParseStrace
 			}
 
 			IOItem item = new IOItem(pid, fs.Filename, (short)fd,
-				false, offset, length, fs.FDType);
+				AccessType.Read|AccessType.MmapRoutine, offset, length, fs.FDType);
 
 			if (phase == 1)
 				formatter.PhaseOne(item);
@@ -165,7 +165,8 @@ namespace ParseStrace
 			}
 
 			IOItem item = new IOItem(pid, fs.Filename, (short)fd,
-				isWrite, fs.Position, ret, fs.FDType);
+				AccessType.FileRoutine | (isWrite ? AccessType.Write : AccessType.Read),
+				fs.Position, ret, fs.FDType);
 
 			fs.Position += ret;
 
