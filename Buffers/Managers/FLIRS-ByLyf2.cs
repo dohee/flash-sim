@@ -35,7 +35,7 @@ namespace Buffers.Managers
             maxHIRQueueLength = Math.Max((uint)(npages * HIRRatio), 1);
         }
 
-
+        public override string Description { get { return Utils.FormatDescription("hirPages", maxHIRQueueLength); } }
 
 		protected override void OnPoolFull()
 		{

@@ -146,8 +146,9 @@ namespace Buffers.Managers
 
             public bool ShouldBeVictim()
             {
-                return (!Dirty && NodeOfReadInReadQueue==null) ||
-                    (Dirty && NodeOfReadInReadQueue==null && NodeOfWriteInWriteQueue==null);
+                //return (!Dirty && NodeOfReadInReadQueue==null) ||
+                //    (Dirty && NodeOfReadInReadQueue==null && NodeOfWriteInWriteQueue==null);
+                return NodeOfReadInReadQueue == null && NodeOfWriteInWriteQueue == null;
             }
 
             public LinkedListNode<RWQuery> NodeOfReadInReadQueue { get; set; }
