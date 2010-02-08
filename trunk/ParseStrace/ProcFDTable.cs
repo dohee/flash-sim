@@ -17,14 +17,12 @@ namespace ParseStrace
 
 		private int pid;
 		private string halfLine = null;
-		private IOItemFormatter formatter;
 		private Dictionary<int, FileState> curFiles = new Dictionary<int, FileState>();
 
 
-		public ProcFDTable(int pid, IOItemFormatter formatter)
+		public ProcFDTable(int pid)
 		{
 			this.pid = pid;
-			this.formatter = formatter;
 			curFiles.Add(0, new FileState("/dev/stdin", FDType.Terminal));
 			curFiles.Add(1, new FileState("/dev/stdout", FDType.Terminal));
 			curFiles.Add(2, new FileState("/dev/stderr", FDType.Terminal));
@@ -33,7 +31,7 @@ namespace ParseStrace
 
 		public ProcFDTable Fork(int newpid)
 		{
-			ProcFDTable other = new ProcFDTable(newpid, formatter);
+			ProcFDTable other = new ProcFDTable(newpid);
 
 			foreach (var item in curFiles)
 				other.curFiles[item.Key] = item.Value;
@@ -67,26 +65,29 @@ namespace ParseStrace
 		}
 
 
-		public void OnAccept(string args, long ret)
+		public IOItem OnAccept(string args, long ret)
 		{
 			int accepting = GetFirstNumeric(args);
 			curFiles[(int)ret] = new FileState("/SocketTo/" + accepting, FDType.Socket);
+			return null;
 		}
 
-		public void OnClose(string args)
+		public IOItem OnClose(string args)
 		{
 			int fd = int.Parse(args);
 			curFiles.Remove(fd);
+			return null;
 		}
 
-		public void OnDup(string args, long ret)
+		public IOItem OnDup(string args, long ret)
 		{
 			int oldfd = GetFirstNumeric(args);
 			int newfd = (int)ret;
 			curFiles[newfd] = curFiles[oldfd];
+			return null;
 		}
 
-		public void OnFcntl(string args, long ret)
+		public IOItem OnFcntl(string args, long ret)
 		{
 			if (args.Contains("F_DUPFD"))
 			{
@@ -94,26 +95,29 @@ namespace ParseStrace
 				int newfd = (int)ret;
 				curFiles[newfd] = curFiles[oldfd];
 			}
+			return null;
 		}
 
-		public void OnLSeek(string args, long ret)
+		public IOItem OnLSeek(string args, long ret)
 		{
 			int fd = GetFirstNumeric(args);
 			Debug.Assert(curFiles.ContainsKey(fd));
 
 			FileState fs = curFiles[fd];
 			fs.Position = ret;
+
+			return null;
 		}
 
-		public void OnMMap(int offsetMultiple, string argsline, int phase)
+		public IOItem OnMmap(int offsetMultiple, string args)
 		{
-			if (argsline.Contains("MAP_ANON"))
-				return;
+			if (args.Contains("_ANON"))
+				return null;
 
-			string[] args = argsline.Split(argumentSplitter, StringSplitOptions.None);
-			int fd = int.Parse(args[4]);
-			long length = long.Parse(args[1]);
-			long offset = args[5].ParseHexLong();
+			string[] argss = args.Split(argumentSplitter, StringSplitOptions.None);
+			int fd = int.Parse(argss[4]);
+			long length = long.Parse(argss[1]);
+			long offset = argss[5].ParseHexLong();
 
 			FileState fs;
 			if (!curFiles.TryGetValue(fd, out fs))
@@ -122,23 +126,19 @@ namespace ParseStrace
 				curFiles[fd] = fs;
 			}
 
-			IOItem item = new IOItem(pid, fs.Filename, (short)fd,
-				AccessType.Read|AccessType.MmapRoutine, offset, length, fs.FDType);
-
-			if (phase == 1)
-				formatter.PhaseOne(item);
-			else
-				formatter.PhaseTwo(item);
+			return new IOItem(pid, fs.Filename, (short)fd,
+				AccessType.Read, AccessRoutine.Mmap, offset, length, fs.FDType);
 		}
 
-		public void OnOpen(string args, long ret)
+		public IOItem OnOpen(string args, long ret)
 		{
 			int fd = (int)ret;
 			string filename = regexOpen.Match(args).Groups[1].Value;
 			curFiles[fd] = new FileState(NormalizeFilename(filename));
+			return null;
 		}
 
-		public void OnPipe(string args)
+		public IOItem OnPipe(string args)
 		{
 			Match m = regexPipe.Match(args);
 			int reading = int.Parse(m.Groups[1].Value);
@@ -146,6 +146,8 @@ namespace ParseStrace
 
 			curFiles[reading] = new FileState("/Pipe/" + reading, FDType.Pipe);
 			curFiles[writing] = new FileState("/Pipe/" + writing, FDType.Pipe);
+
+			return null;
 		}
 
 		public void OnUnfinished(string halfline)
@@ -153,7 +155,7 @@ namespace ParseStrace
 			halfLine = halfline;
 		}
 
-		public void OnReadWrite(bool isWrite, string args, long ret, int phase)
+		public IOItem OnReadWrite(AccessRoutine routine, string args, long ret)
 		{
 			int fd = GetFirstNumeric(args);
 
@@ -164,16 +166,26 @@ namespace ParseStrace
 				curFiles[fd] = fs;
 			}
 
-			IOItem item = new IOItem(pid, fs.Filename, (short)fd,
-				AccessType.FileRoutine | (isWrite ? AccessType.Write : AccessType.Read),
-				fs.Position, ret, fs.FDType);
+			AccessType type = (routine == AccessRoutine.Read ||
+				routine == AccessRoutine.Readv ||
+				routine == AccessRoutine.Pread) ?
+				AccessType.Read : AccessType.Write;
 
-			fs.Position += ret;
+			long pos;
 
-			if (phase == 1)
-				formatter.PhaseOne(item);
+			if (routine == AccessRoutine.Pread || routine == AccessRoutine.Pwrite)
+			{
+				string[] argss = args.Split(argumentSplitter, StringSplitOptions.None);
+				pos = argss[argss.Length - 1].ParseHexLong();
+			}
 			else
-				formatter.PhaseTwo(item);
+			{
+				pos = fs.Position;
+				fs.Position += ret;
+			}
+
+			return new IOItem(pid, fs.Filename, (short)fd,
+				type, routine, pos, ret, fs.FDType);			
 		}
 
 		public string OnResumed()

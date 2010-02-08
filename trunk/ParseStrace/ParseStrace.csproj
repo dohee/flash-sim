@@ -37,6 +37,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums.cs" />
     <Compile Include="Formatter\IOItemDirectlyToWriter.cs" />
     <Compile Include="Formatter\IOItemVerboseFormatter.cs" />
     <Compile Include="IOItem.cs" />
