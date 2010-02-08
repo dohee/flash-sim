@@ -9,10 +9,10 @@ namespace ParseStrace
 {
 	class Program
 	{
-		static Regex regexResumed = new Regex(@"<\.\.\. (\w+) resumed> (.+)$");
+		delegate void PassIOItem(IOItem ioitem);
 
+		static Regex regexResumed = new Regex(@"<\.\.\. (\w+) resumed> (.+)$");
 		static Dictionary<int, ProcFDTable> fdTables = new Dictionary<int, ProcFDTable>();
-		static IOItemFormatter formatter = null;
 
 
 		static void Main(string[] args)
@@ -20,6 +20,7 @@ namespace ParseStrace
 			string filename = args[0];
 			const int bufferSize = 32 * 1024 * 1024;
 			TextWriter output = Console.Out;
+			IOItemFormatter formatter = null;
 
 			try
 			{
@@ -28,18 +29,16 @@ namespace ParseStrace
 
 				formatter = new IOItemVerboseFormatter(output);
 				formatter.PhaseBefore(new FormatterInfo(filename));
+				Console.Error.WriteLine("Phase 1:");
 
 				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
-				{
-					ProceedFile(reader, 1);
-				}
+					ProceedFile(reader, formatter.PhaseOne);
 				
 				formatter.PhaseBetween();
+				Console.Error.WriteLine("Phase 2:");
 
 				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
-				{
-					ProceedFile(reader, 2);
-				}
+					ProceedFile(reader, formatter.PhaseTwo);
 
 				formatter.PhaseAfter();
 			}
@@ -49,7 +48,7 @@ namespace ParseStrace
 			}
 		}
 
-		static void ProceedFile(TextReader reader, int phase)
+		static void ProceedFile(TextReader reader, PassIOItem passfunc)
 		{
 			string line;
 			int lowcount = 0, highcount = 0;
@@ -61,7 +60,9 @@ namespace ParseStrace
 				{
 					lowcount = 0;
 					highcount++;
-					Console.Error.Write("\rPhase {0}: Processed {1} lines.", phase, (long)highcount * kMaxLow);
+
+					Console.Error.Write("\rProcessed {0} lines.          ",
+						(long)highcount * kMaxLow);
 					Console.Error.Flush();
 				}
 
@@ -80,33 +81,38 @@ namespace ParseStrace
 					string former = fdTables[pid].OnResumed();
 					string latter = mresumed.Groups[2].Value;
 					string whole = former + latter;
-					ProceedLine(pid, whole, phase);
+
+					IOItem item = ProceedLine(pid, whole);
+					if (item != null)
+						passfunc(item);
 				}
 				else
 				{
-					ProceedLine(pid, line, phase);
+					IOItem item = ProceedLine(pid, line);
+					if (item != null)
+						passfunc(item);
 				}
 			}
 
-			Console.Error.WriteLine("\rPhase {0}: Processed {1} lines.",
-				phase, (long)highcount * kMaxLow + lowcount);
+			Console.Error.WriteLine("\rProcessed {0} lines.          ",
+				(long)highcount * kMaxLow + lowcount);
 		}
 
 
-		static void ProceedLine(int pid, string line, int phase)
+		static IOItem ProceedLine(int pid, string line)
 		{
 			int eqPos = line.LastIndexOf(" = ");
 			if (eqPos == -1)
-				return;
+				return null;
 
 			string retstring = line.Substring(eqPos + 3).Split(' ')[0];
 			long ret;
 
 			if (retstring == "?")
-				return;
+				return null;
 			ret = retstring.ParseHexLong();
 			if (ret < 0)
-				return;
+				return null;
 
 
 			int leftBracketPos = line.IndexOf('(');
@@ -120,7 +126,7 @@ namespace ParseStrace
 			ProcFDTable table;
 			if (!fdTables.TryGetValue(pid, out table))
 			{
-				table = new ProcFDTable(pid, formatter);
+				table = new ProcFDTable(pid);
 				fdTables[pid] = table;
 			}
 
@@ -128,32 +134,36 @@ namespace ParseStrace
 			{
 				case "fork":
 				case "vfork":
-				case "clone": fdTables[(int)ret] = table.Fork((int)ret); break;
+				case "clone": fdTables[(int)ret] = table.Fork((int)ret); return null;
 
 				case "dup":
-				case "dup2": table.OnDup(args, ret); break;
+				case "dup2": return table.OnDup(args, ret);
 
 				case "open":
-				case "creat": table.OnOpen(args, ret); break;
+				case "creat": return table.OnOpen(args, ret);
 
-				case "mmap": table.OnMMap(1, args, phase); break;
-				case "mmap2": table.OnMMap(4096, args, phase); break;
-				case "mremap": break;
-				case "msync": break;
-				case "munmap": break;
+				case "mmap": return table.OnMmap(1, args);
+				case "mmap2": return table.OnMmap(4096, args);
+				case "mremap":
+				case "msync":
+				case "munmap": return null;
 
-				case "read": table.OnReadWrite(false, args, ret, phase); break;
-				case "write": table.OnReadWrite(true, args, ret, phase); break;
+				case "read": return table.OnReadWrite(AccessRoutine.Read, args, ret);
+				case "readv": return table.OnReadWrite(AccessRoutine.Readv, args, ret);
+				case "pread": return table.OnReadWrite(AccessRoutine.Pread, args, ret);
+				case "write": return table.OnReadWrite(AccessRoutine.Write, args, ret);
+				case "writev": return table.OnReadWrite(AccessRoutine.Writev, args, ret);
+				case "pwrite": return table.OnReadWrite(AccessRoutine.Pwrite, args, ret);
+					
+				case "accept": return table.OnAccept(args, ret);
+				case "close": return table.OnClose(args);
+				case "fcntl": return table.OnFcntl(args, ret);
+				case "lseek": return table.OnLSeek(args, ret);
+				case "pipe": return table.OnPipe(args);
 
-				case "accept": table.OnAccept(args, ret); break;
-				case "close": table.OnClose(args); break;
-				case "fcntl": table.OnFcntl(args, ret); break;
-				case "lseek": table.OnLSeek(args, ret); break;
-				case "pipe": table.OnPipe(args); break;
-
-				default: break;
+				default: return null;
 			}
-		}
 
+		}
 	}
 }

@@ -27,10 +27,10 @@ namespace ParseStrace
 			else
 				typestring = "<" + item.FDType.FDTypeToString() + ">";
 
-			writer.WriteLine("{6,-10} {5,-8} at {4,-9} of Pid={1} FD={2}{3}: {0}",
+			writer.WriteLine("{6,-6} {5,-8} at {4,-9} of Pid={1} FD={2}{3}: {0}",
 				item.Filename, item.Pid, item.FDNum, typestring,
 				item.Position, item.Length,
-				item.Access.AccessTypeToString());
+				item.Routine.AccessRoutineToString());
 		}
 	}
 
