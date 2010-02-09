@@ -99,7 +99,7 @@ namespace Buffers.Program
 			else
 			{
 				Console.WriteLine("Reading trace from file '{0}'...", filename);
-				return new StreamReader(filename, Encoding.Default, true, 32 * 1024 * 1024);
+				return new StreamReader(filename, Encoding.Default, true, 8 * 1024 * 1024);
 			}
 		}
 
