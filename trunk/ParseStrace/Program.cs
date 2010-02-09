@@ -18,7 +18,7 @@ namespace ParseStrace
 		static void Main(string[] args)
 		{
 			string filename = args[0];
-			const int bufferSize = 32 * 1024 * 1024;
+			const int bufferSize = 8 * 1024 * 1024;
 			TextWriter output = Console.Out;
 			IOItemFormatter formatter = null;
 
