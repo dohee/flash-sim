@@ -6,6 +6,8 @@ namespace ParseStrace
 {
 	sealed class IOItemVerboseFormatter : IOItemFormatter
 	{
+		private static string vimModeline = "vim: set nowrap:";
+
 		private const int kPageSize = 4096;
 		private long nlines = 0;
 		private readonly IDictionary<string, int> filePages = new Dictionary<string, int>();
@@ -26,10 +28,11 @@ namespace ParseStrace
 		public override void PhaseBefore(FormatterInfo info)
 		{
 			writer.WriteLine("# Original Strace: " + info.Filename);
+			writer.WriteLine("# " + vimModeline);
 			writer.WriteLine("# Parsed by: {0} @ {1}", Environment.UserName, Environment.MachineName);
 			writer.WriteLine("# Parsed at: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 			writer.WriteLine("# Parsed with: " + Environment.OSVersion);
-			nlines += 4;
+			nlines += 5;
 		}
 
 		public override void PhaseOne(IOItem item)
@@ -82,7 +85,7 @@ namespace ParseStrace
 
 		public override void PhaseAfter()
 		{
-			writer.WriteLine("# vim: set nowrap:");
+			writer.WriteLine("# " + vimModeline);
 		}
 	}
 
