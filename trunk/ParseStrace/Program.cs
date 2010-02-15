@@ -20,6 +20,7 @@ namespace ParseStrace
 			IOItemFormatter formatter = null;
 			FileStream input = null;
 			TextWriter output = null;
+			StreamReader inputreader = null;
 
 			try
 			{
@@ -33,15 +34,15 @@ namespace ParseStrace
 				formatter = new IOItemVerboseFormatter(output, pids);
 				formatter.PhaseBefore(new FormatterInfo(infile));
 
-				using (StreamReader reader = new StreamReader(input))
-					ProceedFile(reader, formatter.PhaseOne);
+				inputreader = new StreamReader(input);
+				ProceedFile(inputreader, formatter.PhaseOne);
 
 				Console.Error.WriteLine("Phase 2:");
 				formatter.PhaseBetween();
-				input.Seek(0, SeekOrigin.Begin);
 
-				using (StreamReader reader = new StreamReader(input))
-					ProceedFile(reader, formatter.PhaseTwo);
+				inputreader.DiscardBufferedData();
+				inputreader.BaseStream.Seek(0, SeekOrigin.Begin);
+				ProceedFile(inputreader, formatter.PhaseTwo);
 
 				formatter.PhaseAfter();
 			}
