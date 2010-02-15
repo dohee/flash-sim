@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace ParseStrace
 {
@@ -11,10 +12,25 @@ namespace ParseStrace
 		private const int kPageSize = 4096;
 		private long nlines = 0;
 		private readonly IDictionary<string, int> filePages = new Dictionary<string, int>();
-		private IDictionary<string, int> fileStarts = null;
+		private readonly IDictionary<string, int> fileStarts = new Dictionary<string, int>();
+		private readonly ICollection<int> allowPIDs;
 
 		public IOItemVerboseFormatter(TextWriter writer)
-			: base(writer) { }
+			: this(writer, null) { }
+		public IOItemVerboseFormatter(TextWriter writer, ICollection<int> pids)
+			: base(writer)
+		{
+			if (pids == null)
+			{
+				allowPIDs = null;
+			}
+			else
+			{
+				allowPIDs = new HashSet<int>();
+				foreach (var pid in pids)
+					allowPIDs.Add(pid);
+			}
+		}
 
 		public void CalcPagePosition(IOItem item, out long pos, out long len)
 		{
@@ -32,7 +48,22 @@ namespace ParseStrace
 			writer.WriteLine("# Parsed by: {0} @ {1}", Environment.UserName, Environment.MachineName);
 			writer.WriteLine("# Parsed at: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 			writer.WriteLine("# Parsed with: " + Environment.OSVersion);
-			nlines += 5;
+			writer.Write("# Allowed PIDs: ");
+
+			if (allowPIDs == null)
+			{
+				writer.WriteLine("All");
+			}
+			else
+			{
+				int[] pids = allowPIDs.ToArray();
+				Array.Sort<int>(pids);
+				writer.WriteLine(string.Join(" ", pids.Select<int, string>(
+					delegate(int i) { return i.ToString(); }
+				).ToArray()));
+			}
+	
+			nlines += 6;
 		}
 
 		public override void PhaseOne(IOItem item)
@@ -53,8 +84,6 @@ namespace ParseStrace
 		{
 			nlines += 2;
 			writer.WriteLine("# Lines: " + nlines);
-
-			fileStarts = new Dictionary<string, int>();
 			int start = 0;
 
 			foreach (var item in filePages)
@@ -66,7 +95,8 @@ namespace ParseStrace
 
 		public override void PhaseTwo(IOItem item)
 		{
-			if (item.FDType == FDType.File)
+			if (item.FDType == FDType.File &&
+				(allowPIDs == null || allowPIDs.Contains(item.Pid)))
 			{
 				long pos, len;
 				CalcPagePosition(item, out pos, out len);

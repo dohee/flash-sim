@@ -6,7 +6,18 @@ namespace ParseStrace
 {
 	static class Utils
 	{
+		private static string progname = null;
 
+		public static string GetProgramName()
+		{
+			if (progname == null)
+			{
+				string[] parts = Environment.GetCommandLineArgs()[0].Split('\\', '/');
+				progname = parts[parts.Length - 1];
+			}
+
+			return progname;
+		}
 
 		public static long ParseHexLong(this string str)
 		{

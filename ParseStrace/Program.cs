@@ -17,34 +17,67 @@ namespace ParseStrace
 
 		static void Main(string[] args)
 		{
-			string filename = args[0];
-			const int bufferSize = 8 * 1024 * 1024;
-			TextWriter output = Console.Out;
 			IOItemFormatter formatter = null;
+			FileStream input = null;
+			TextWriter output = null;
 
 			try
 			{
-				if (args.Length >= 2)
-					output = new StreamWriter(args[1], false, Encoding.Default, bufferSize);
+				string infile, outfile, pidfile;
+				int[] pids;
+				CommandLine.ParseArguments(args, out infile, out outfile, out pids, out pidfile);
+				ProcessArguments(infile, outfile, pidfile, ref pids, out input, out output);
 
-				formatter = new IOItemVerboseFormatter(output);
-				formatter.PhaseBefore(new FormatterInfo(filename));
+
 				Console.Error.WriteLine("Phase 1:");
+				formatter = new IOItemVerboseFormatter(output, pids);
+				formatter.PhaseBefore(new FormatterInfo(infile));
 
-				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
+				using (StreamReader reader = new StreamReader(input))
 					ProceedFile(reader, formatter.PhaseOne);
-				
-				formatter.PhaseBetween();
-				Console.Error.WriteLine("Phase 2:");
 
-				using (StreamReader reader = new StreamReader(filename, Encoding.Default, true, bufferSize))
+				Console.Error.WriteLine("Phase 2:");
+				formatter.PhaseBetween();
+				input.Seek(0, SeekOrigin.Begin);
+
+				using (StreamReader reader = new StreamReader(input))
 					ProceedFile(reader, formatter.PhaseTwo);
 
 				formatter.PhaseAfter();
 			}
 			finally
 			{
-				output.Dispose();
+				if (input != null)
+					input.Dispose();
+				if (output != null)
+					output.Dispose();
+			}
+		}
+
+		static void ProcessArguments(string infile, string outfile, string pidfile,
+			ref int[] pids, out FileStream input, out TextWriter output)
+		{
+			const int bufferSize = 8 * 1024 * 1024;
+			input = new FileStream(infile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize);
+
+			if (outfile == null)
+				output = Console.Out;
+			else
+				output = new StreamWriter(outfile, false, Encoding.Default, bufferSize);
+
+			if (pidfile != null)
+			{
+				using (StreamReader pidread = new StreamReader(pidfile, Encoding.Default, true, bufferSize))
+				{
+					string[] pidstrs = pidread.ReadToEnd().Split(
+						new char[] { ' ', '\n', '\r', ';', ':', '.', ',', '|' },
+						StringSplitOptions.RemoveEmptyEntries);
+
+					pids = new int[pidstrs.Length];
+
+					for (int i = 0; i < pidstrs.Length; i++)
+						pids[i] = int.Parse(pidstrs[i]);
+				}
 			}
 		}
 
@@ -154,7 +187,7 @@ namespace ParseStrace
 				case "write": return table.OnReadWrite(AccessRoutine.Write, args, ret);
 				case "writev": return table.OnReadWrite(AccessRoutine.Writev, args, ret);
 				case "pwrite": return table.OnReadWrite(AccessRoutine.Pwrite, args, ret);
-					
+
 				case "accept": return table.OnAccept(args, ret);
 				case "close": return table.OnClose(args);
 				case "fcntl": return table.OnFcntl(args, ret);
