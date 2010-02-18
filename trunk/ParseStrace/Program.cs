@@ -1,5 +1,8 @@
-﻿using System;
+﻿#define LINE_IN_TRY
+
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -135,6 +138,23 @@ namespace ParseStrace
 
 		static IOItem ProceedLine(int pid, string line)
 		{
+#if LINE_IN_TRY
+			try
+			{
+#endif
+				return ProceedLineInTry(pid, line);
+#if LINE_IN_TRY
+			}
+			catch (Exception ex)
+			{
+				Debug.Print(ex.ToString());
+				return null;
+			}
+#endif
+		}
+
+		static IOItem ProceedLineInTry(int pid, string line)
+		{
 			int eqPos = line.LastIndexOf(" = ");
 			if (eqPos == -1)
 				return null;
@@ -193,11 +213,12 @@ namespace ParseStrace
 				case "close": return table.OnClose(args);
 				case "fcntl": return table.OnFcntl(args, ret);
 				case "lseek": return table.OnLSeek(args, ret);
+				case "_llseek": return table.OnLLSeek(args);
 				case "pipe": return table.OnPipe(args);
+				case "socket": return table.OnSocket(args, ret);
 
 				default: return null;
 			}
-
 		}
 	}
 }

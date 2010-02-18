@@ -42,7 +42,7 @@ namespace ParseStrace
 
 		private static int GetFirstNumeric(string args)
 		{
-			return int.Parse(args.Split(argumentSplitter, 2, StringSplitOptions.None)[0]);
+			return (int)long.Parse(Regex.Match(args, @"^\d+").Value);
 		}
 
 		private string NormalizeFilename(string filename)
@@ -68,13 +68,13 @@ namespace ParseStrace
 		public IOItem OnAccept(string args, long ret)
 		{
 			int accepting = GetFirstNumeric(args);
-			curFiles[(int)ret] = new FileState("/SocketTo/" + accepting, FDType.Socket);
+			curFiles[(int)ret] = new FileState("/AcceptFrom/" + accepting, FDType.Socket);
 			return null;
 		}
 
 		public IOItem OnClose(string args)
 		{
-			int fd = int.Parse(args);
+			int fd = GetFirstNumeric(args);
 			curFiles.Remove(fd);
 			return null;
 		}
@@ -105,6 +105,21 @@ namespace ParseStrace
 
 			FileState fs = curFiles[fd];
 			fs.Position = ret;
+
+			return null;
+		}
+
+		public IOItem OnLLSeek(string args)
+		{
+			string[] argss = args.Split(argumentSplitter, StringSplitOptions.None);
+			int fd = int.Parse(argss[0]);
+
+			string pos = argss[argss.Length - 2];
+			long lpos = long.Parse(pos.Trim('[', ']', ' '));
+
+			Debug.Assert(curFiles.ContainsKey(fd));
+			FileState fs = curFiles[fd];
+			fs.Position = lpos;
 
 			return null;
 		}
@@ -150,11 +165,6 @@ namespace ParseStrace
 			return null;
 		}
 
-		public void OnUnfinished(string halfline)
-		{
-			halfLine = halfline;
-		}
-
 		public IOItem OnReadWrite(AccessRoutine routine, string args, long ret)
 		{
 			int fd = GetFirstNumeric(args);
@@ -195,6 +205,17 @@ namespace ParseStrace
 			return str;
 		}
 
+		public IOItem OnSocket(string args, long ret)
+		{
+			curFiles[(int)ret] = new FileState("/Socket/" + ret, FDType.Socket);
+			return null;
+		}
+
+		public void OnUnfinished(string halfline)
+		{
+			halfLine = halfline;
+		}
+
 
 		private class FileState
 		{
@@ -217,6 +238,8 @@ namespace ParseStrace
 					Filename, FDType, Position);
 			}
 		}
+
+
 
 
 	}
