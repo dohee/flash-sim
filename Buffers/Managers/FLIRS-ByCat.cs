@@ -54,12 +54,13 @@ namespace Buffers.Managers
 				hirPages.RemoveLast();
 
 				RWFrame frame = map[pageid];
-				map.Remove(pageid);
+                frame.NodeOfHIRPage = null;
+				//map.Remove(pageid);
 
-				if (frame.NodeOfRead != null)
+				/*if (frame.NodeOfRead != null)
 					rwlist.Remove(frame.NodeOfRead);
 				if (frame.NodeOfWrite != null)
-					rwlist.Remove(frame.NodeOfWrite);
+					rwlist.Remove(frame.NodeOfWrite);*/
 
 				//if (frame.Resident)
 				{
@@ -111,7 +112,7 @@ namespace Buffers.Managers
 			//if ((!frame.Dirty && !frame.ReadLowIR) ||
 				//(frame.Dirty && !frame.ReadLowIR && !frame.WriteLowIR))
             ////////////////////////////////////////////////
-            if(!frame.ReadLowIR && !frame.WriteLowIR)
+            if(!frame.ReadLowIR && !frame.WriteLowIR&&frame.Resident)
                 ////////////////////////////////////////////////
 				frame.NodeOfHIRPage = hirPages.AddFirst(frame.Id);
 		}

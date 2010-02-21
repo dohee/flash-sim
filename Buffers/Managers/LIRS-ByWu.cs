@@ -23,7 +23,7 @@ namespace Buffers.Managers
         public LIRS_ByWu(IBlockDevice dev, uint npages, float hirPercent)
             : base(dev, npages)
         {
-            hirSize = (int)(npages * hirPercent);
+            hirSize = Math.Max((int)(npages * hirPercent),1);
             lirSize = npages - hirSize;
             lirNum = 0;
         }
