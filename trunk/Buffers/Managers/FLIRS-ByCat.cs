@@ -46,7 +46,7 @@ namespace Buffers.Managers
 
 		protected override void OnPoolFull()
 		{
-			while (true)
+			//while (true)
 			{
 				Debug.Assert(hirPages.Count > 0);
 
@@ -61,11 +61,11 @@ namespace Buffers.Managers
 				if (frame.NodeOfWrite != null)
 					rwlist.Remove(frame.NodeOfWrite);
 
-				if (frame.Resident)
+				//if (frame.Resident)
 				{
 					WriteIfDirty(frame);
 					pool.FreeSlot(frame.DataSlotId);
-					break;
+					//break;
 				}
 			}
 		}
@@ -108,8 +108,11 @@ namespace Buffers.Managers
 		{
 			Debug.Assert(frame.NodeOfHIRPage == null);
 
-			if ((!frame.Dirty && !frame.ReadLowIR) ||
-				(frame.Dirty && !frame.ReadLowIR && !frame.WriteLowIR))
+			//if ((!frame.Dirty && !frame.ReadLowIR) ||
+				//(frame.Dirty && !frame.ReadLowIR && !frame.WriteLowIR))
+            ////////////////////////////////////////////////
+            if(!frame.ReadLowIR && !frame.WriteLowIR)
+                ////////////////////////////////////////////////
 				frame.NodeOfHIRPage = hirPages.AddFirst(frame.Id);
 		}
 
@@ -144,13 +147,17 @@ namespace Buffers.Managers
 			RWFrame frame = map[query.PageId];
 
 			frame.SetNodeOf(query.Type, null);
-			frame.SetLowIROf(query.Type, false);
+            //////////////////////
+            if(query.Type==AccessType.Write&& frame.WriteLowIR)
+                ///////////////////////
+			    frame.SetLowIROf(query.Type, false);
 
 			if (frame.NodeOfHIRPage == null)
 				TryAssignHIRPageNode(frame);
 
 			if (frame.NodeOfHIRPage == null && frame.NodeOfRead == null && frame.NodeOfWrite == null)
 			{
+                //Never Come HERE
 				WriteIfDirty(frame);
 				if (frame.Resident)
 					pool.FreeSlot(frame.DataSlotId);
