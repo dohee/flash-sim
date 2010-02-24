@@ -55,9 +55,10 @@ namespace Buffers.Managers
 
 				RWFrame frame = map[pageid];
                 frame.NodeOfHIRPage = null;
-				//map.Remove(pageid);
+                //要变回去就把这个注释去掉
+				/*map.Remove(pageid);
 
-				/*if (frame.NodeOfRead != null)
+				if (frame.NodeOfRead != null)
 					rwlist.Remove(frame.NodeOfRead);
 				if (frame.NodeOfWrite != null)
 					rwlist.Remove(frame.NodeOfWrite);*/
@@ -66,6 +67,7 @@ namespace Buffers.Managers
 				{
 					WriteIfDirty(frame);
 					pool.FreeSlot(frame.DataSlotId);
+                    frame.DataSlotId = -1;
 					//break;
 				}
 			}
