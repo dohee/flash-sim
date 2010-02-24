@@ -6,52 +6,96 @@ namespace Buffers.Program
 {
 	abstract class TraceParser
 	{
-		public abstract void ParseLine(string[] parts, out RWQuery query, out RWQuery[] extraQueries);
+		public abstract void ParseLine(string[] parts, out uint startPageId, out uint length, out AccessType type);
 
 		public static TraceParser CreateParser(string[] lineParts)
 		{
-			if (lineParts.Length == 3)
+			if (PositionLengthParser.IsMyFormat(lineParts))
 				return new PositionLengthParser();
-			else if (lineParts.Length == 4)
+			else if (RelnodeBlocknumParser.IsMyFormat(lineParts))
 				return new RelnodeBlocknumParser();
+			else if (SPCParser.IsMyFormat(lineParts))
+				return new SPCParser();
 			else
 				return null;
 		}
 	}
 
+
 	class PositionLengthParser : TraceParser
 	{
-		public override void ParseLine(string[] parts, out RWQuery query, out RWQuery[] extraQueries)
+		public static bool IsMyFormat(string[] parts)
 		{
-			uint pageid = uint.Parse(parts[0]);
-			uint length = uint.Parse(parts[1]);
-			uint rw = uint.Parse(parts[2]);
+			uint tmp, rw;
+			return parts.Length == 3 &&
+				uint.TryParse(parts[0], out tmp) &&
+				uint.TryParse(parts[1], out tmp) &&
+				uint.TryParse(parts[2], out rw) &&
+				(rw == 0 || rw == 1);
+		}
 
-			query = new RWQuery(pageid, (rw == 0 ? AccessType.Read : AccessType.Write));
-
-			if (length == 1)
-			{
-				extraQueries = null;
-				return;
-			}
-
-			AccessType type = query.Type;
-			extraQueries = new RWQuery[length - 1];
-
-			for (int i = 0; i < extraQueries.Length; i++)
-				extraQueries[i] = new RWQuery(++pageid, type);
+		public override void ParseLine(string[] parts, out uint startPageId, out uint length, out AccessType type)
+		{
+			startPageId = uint.Parse(parts[0]);
+			length = uint.Parse(parts[1]);
+			type = (uint.Parse(parts[2]) == 0 ? AccessType.Read : AccessType.Write);
 		}
 	}
 
 	class RelnodeBlocknumParser : TraceParser
 	{
-		public override void ParseLine(string[] parts, out RWQuery query, out RWQuery[] extraQueries)
+		public static bool IsMyFormat(string[] parts)
 		{
-			extraQueries = null;
+			uint tmp;
+			float ftmp;
 
-			query = new RWQuery(
-				uint.Parse(parts[1]) + uint.Parse(parts[2]),
-				parts[3] == "R" ? AccessType.Read : AccessType.Write);
+			if (parts.Length == 4 &&
+				float.TryParse(parts[0], out ftmp) &&
+				uint.TryParse(parts[1], out tmp) &&
+				uint.TryParse(parts[2], out tmp))
+			{
+				string p3 = parts[3].ToLower();
+				return (p3 == "r" || p3 == "w");
+			}
+
+			return false;
+		}
+
+		public override void ParseLine(string[] parts, out uint startPageId, out uint length, out AccessType type)
+		{
+			startPageId = uint.Parse(parts[1]) + uint.Parse(parts[2]);
+			length = 1;
+			type = (parts[3].ToLower() == "r" ? AccessType.Read : AccessType.Write);
+		}
+	}
+
+	class SPCParser : TraceParser
+	{
+		private const int kPageSize = 4096;
+
+		public static bool IsMyFormat(string[] parts)
+		{
+			uint tmp;
+			float ftmp;
+
+			if (parts.Length >= 5 &&
+				uint.TryParse(parts[0], out tmp) &&
+				uint.TryParse(parts[1], out tmp) &&
+				uint.TryParse(parts[2], out tmp) &&
+				float.TryParse(parts[4], out ftmp))
+			{
+				string p3 = parts[3].ToLower();
+				return (p3 == "r" || p3 == "w");
+			}
+
+			return false;
+		}
+
+		public override void ParseLine(string[] parts, out uint startPageId, out uint length, out AccessType type)
+		{
+			startPageId = uint.Parse(parts[1]);
+			length = Math.Max(1, (uint.Parse(parts[2]) + (kPageSize - 1)) / kPageSize);			length = Math.Max(length, 1);
+			type = (parts[3].ToLower() == "r" ? AccessType.Read : AccessType.Write);
 		}
 	}
 }
