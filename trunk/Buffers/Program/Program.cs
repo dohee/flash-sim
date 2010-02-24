@@ -146,7 +146,7 @@ namespace Buffers.Program
 		private static void OperateOnTrace(ManagerGroup group, TextReader input)
 		{
 			char[] separators1 = { '#', ';', '/' };
-			char[] separators2 = { ' ', '\t' };			
+			char[] separators2 = { ' ', '\t', ',' };			
 			GroupAccessor accessor = new GroupAccessor(group);
 			TraceParser parser = null;
 			string line;
@@ -182,15 +182,12 @@ namespace Buffers.Program
 				if (parser == null)
 					parser = TraceParser.CreateParser(parts);
 
-				RWQuery query;
-				RWQuery[] extraQueries;
-				parser.ParseLine(parts, out query, out extraQueries);
+				uint pageid, length;
+				AccessType type;
+				parser.ParseLine(parts, out pageid, out length, out type);
 
-				accessor.Access(query);
-
-				if (extraQueries != null)
-					foreach (var item in extraQueries)
-						accessor.Access(item);
+				for (uint i = 0; i < length; i++)
+					accessor.Access(new RWQuery(pageid + i, type));
 			}
 
 			group.CascadeFlush();
