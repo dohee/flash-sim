@@ -10,12 +10,12 @@ namespace Buffers.Program
 
 		public static TraceParser CreateParser(string[] lineParts)
 		{
-			if (PositionLengthParser.IsMyFormat(lineParts))
-				return new PositionLengthParser();
-			else if (RelnodeBlocknumParser.IsMyFormat(lineParts))
-				return new RelnodeBlocknumParser();
-			else if (SPCParser.IsMyFormat(lineParts))
-				return new SPCParser();
+			TraceParser p;
+
+			if ((p = PositionLengthParser.TryCreate(lineParts)) != null ||
+				(p = RelnodeBlocknumParser.TryCreate(lineParts)) != null ||
+				(p = SPCParser.TryCreate(lineParts)) != null)
+				return p;
 			else
 				return null;
 		}
@@ -24,14 +24,15 @@ namespace Buffers.Program
 
 	class PositionLengthParser : TraceParser
 	{
-		public static bool IsMyFormat(string[] parts)
+		public static TraceParser TryCreate(string[] parts)
 		{
 			uint tmp, rw;
-			return parts.Length == 3 &&
+			return (parts.Length == 3 &&
 				uint.TryParse(parts[0], out tmp) &&
 				uint.TryParse(parts[1], out tmp) &&
 				uint.TryParse(parts[2], out rw) &&
-				(rw == 0 || rw == 1);
+				(rw == 0 || rw == 1)) ?
+				new PositionLengthParser() : null;
 		}
 
 		public override void ParseLine(string[] parts, out uint startPageId, out uint length, out AccessType type)
@@ -42,9 +43,10 @@ namespace Buffers.Program
 		}
 	}
 
+
 	class RelnodeBlocknumParser : TraceParser
 	{
-		public static bool IsMyFormat(string[] parts)
+		public static TraceParser TryCreate(string[] parts)
 		{
 			uint tmp;
 			float ftmp;
@@ -55,25 +57,44 @@ namespace Buffers.Program
 				uint.TryParse(parts[2], out tmp))
 			{
 				string p3 = parts[3].ToLower();
-				return (p3 == "r" || p3 == "w");
+				return (p3 == "r" || p3 == "w") ?
+					new RelnodeBlocknumParser(0) : null;
+			}
+			else if (parts.Length == 5 &&
+				uint.TryParse(parts[0], out tmp) &&
+				float.TryParse(parts[1], out ftmp) &&
+				uint.TryParse(parts[2], out tmp) &&
+				uint.TryParse(parts[3], out tmp))
+			{
+				string p3 = parts[4].ToLower();
+				return (p3 == "r" || p3 == "w") ?
+					new RelnodeBlocknumParser(1) : null;
 			}
 
-			return false;
+			return null;
+		}
+
+		private readonly int partofs;
+
+		public RelnodeBlocknumParser(int partofs)
+		{
+			this.partofs = partofs;
 		}
 
 		public override void ParseLine(string[] parts, out uint startPageId, out uint length, out AccessType type)
 		{
-			startPageId = uint.Parse(parts[1]) + uint.Parse(parts[2]);
+			startPageId = uint.Parse(parts[1 + partofs]) + uint.Parse(parts[2 + partofs]);
 			length = 1;
-			type = (parts[3].ToLower() == "r" ? AccessType.Read : AccessType.Write);
+			type = (parts[3 + partofs].ToLower() == "r" ? AccessType.Read : AccessType.Write);
 		}
 	}
+
 
 	class SPCParser : TraceParser
 	{
 		private const int kPageSize = 4096;
 
-		public static bool IsMyFormat(string[] parts)
+		public static TraceParser TryCreate(string[] parts)
 		{
 			uint tmp;
 			float ftmp;
@@ -85,10 +106,11 @@ namespace Buffers.Program
 				float.TryParse(parts[4], out ftmp))
 			{
 				string p3 = parts[3].ToLower();
-				return (p3 == "r" || p3 == "w");
+				return (p3 == "r" || p3 == "w") ?
+					new SPCParser() : null;
 			}
 
-			return false;
+			return null;
 		}
 
 		public override void ParseLine(string[] parts, out uint startPageId, out uint length, out AccessType type)
@@ -98,4 +120,5 @@ namespace Buffers.Program
 			type = (parts[3].ToLower() == "r" ? AccessType.Read : AccessType.Write);
 		}
 	}
+
 }
