@@ -54,8 +54,8 @@ namespace Buffers.Managers
 				hirPages.RemoveLast();
 
 				RWFrame frame = map[pageid];
-                frame.NodeOfHIRPage = null;
-                //要变回去就把这个注释去掉
+				frame.NodeOfHIRPage = null;
+				//要变回去就把这个注释去掉
 				/*map.Remove(pageid);
 
 				if (frame.NodeOfRead != null)
@@ -67,7 +67,7 @@ namespace Buffers.Managers
 				{
 					WriteIfDirty(frame);
 					pool.FreeSlot(frame.DataSlotId);
-                    frame.DataSlotId = -1;
+					frame.DataSlotId = -1;
 					//break;
 				}
 			}
@@ -112,10 +112,10 @@ namespace Buffers.Managers
 			Debug.Assert(frame.NodeOfHIRPage == null);
 
 			//if ((!frame.Dirty && !frame.ReadLowIR) ||
-				//(frame.Dirty && !frame.ReadLowIR && !frame.WriteLowIR))
-            ////////////////////////////////////////////////
-            if(!frame.ReadLowIR && !frame.WriteLowIR&&frame.Resident)
-                ////////////////////////////////////////////////
+			//(frame.Dirty && !frame.ReadLowIR && !frame.WriteLowIR))
+			////////////////////////////////////////////////
+			if (!frame.ReadLowIR && !frame.WriteLowIR && frame.Resident)
+				////////////////////////////////////////////////
 				frame.NodeOfHIRPage = hirPages.AddFirst(frame.Id);
 		}
 
@@ -146,21 +146,21 @@ namespace Buffers.Managers
 
 		private void ShrinkWLIRArea()
 		{
-			RWQuery query = rwlist.RemoveLast(1);
+			RWQuery query = rwlist.RemoveLast(1, true);
 			RWFrame frame = map[query.PageId];
 
 			frame.SetNodeOf(query.Type, null);
-            //////////////////////
-            if(query.Type==AccessType.Write&& frame.WriteLowIR)
-                ///////////////////////
-			    frame.SetLowIROf(query.Type, false);
+			//////////////////////
+			if (query.Type == AccessType.Write && frame.WriteLowIR)
+				///////////////////////
+				frame.SetLowIROf(query.Type, false);
 
 			if (frame.NodeOfHIRPage == null)
 				TryAssignHIRPageNode(frame);
 
 			if (frame.NodeOfHIRPage == null && frame.NodeOfRead == null && frame.NodeOfWrite == null)
 			{
-                //Never Come HERE
+				//Never Come HERE
 				WriteIfDirty(frame);
 				if (frame.Resident)
 					pool.FreeSlot(frame.DataSlotId);
