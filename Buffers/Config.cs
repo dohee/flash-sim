@@ -65,7 +65,12 @@ namespace Buffers
 		static IBufferManager CreateLRUWSR(uint npages, string[] args, bool verify)
 		{
 			return new LRUWSR(CreateDevice(verify), npages);
-		} 
+		}
+        [ManagerFactory("CCFLRU")]
+        static IBufferManager CreateCCFLRU(uint npages, string[] args, bool verify)
+        {
+            return new CCFLRU(CreateDevice(verify), npages);
+        } 
 		[ManagerFactory("CMFT")]
 		static IBufferManager CreateCMFT(uint npages, string[] args, bool verify)
 		{
