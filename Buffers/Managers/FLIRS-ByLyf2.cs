@@ -197,6 +197,7 @@ namespace Buffers.Managers
 				return string.Format("Frame{{Id={0},Dirty={1},SlotId={2},ReadLowIR={3},WriteLowIR={4}}}",
 					Id, Dirty, DataSlotId, ReadLowIR, WriteLowIR);
 			}
+
 			/*public override string ToString()
 			{
 				return string.Format("Frame{{Id={0},Dirty={1},SlotId={2}}}",
@@ -304,6 +305,7 @@ namespace Buffers.Managers
 				if (isWriteQueue && isWrite)
 				{
 					frame.WriteLowIR = true;
+                    //frame.ReadLowIR = true;
 				}
 				else if (!isWriteQueue && !isWrite)
 				{
