@@ -108,6 +108,15 @@ namespace Buffers.Lists
 		{
 			return lists[listIndex].Count;
 		}
+		/// <summary>获取一系列的链表的节点数总和。
+		/// </summary>
+		public int GetNodeCountSum(params int[] listIndices)
+		{
+			int sum = 0;
+			foreach (int i in listIndices)
+				sum += lists[i].Count;
+			return sum;
+		}
 
 
 		/// <summary>获取 node 的上一个节点。

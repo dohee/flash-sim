@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Buffers;
 using Buffers.Memory;
-using Buffers.Queues;
 using Buffers.Lists;
 
 namespace Buffers.Managers
@@ -31,7 +30,6 @@ namespace Buffers.Managers
 		}
 
 		public override string Name { get { return "FLIRS"; } }
-
 		public override string Description
 		{
 			get
