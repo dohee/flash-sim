@@ -24,18 +24,28 @@ namespace Buffers.Managers
         {
             FrameWSR frame;
             LinkedListNode<IFrame> node;
-
-            while (true)
+            if (cclist.Count > 0)//不空就踢cleanlist的。
             {
-                frame = list.Last.Value as FrameWSR;
-                list.RemoveLast();
-                if (!frame.Dirty || frame.cold >= COLDMAX)
-                    break;
-                else
+                frame = cclist.Last.Value as FrameWSR;
+                cclist.RemoveLast();
+            }
+            else//用LRUWSR的踢法
+            {
+                while (true)
                 {
-                    frame.cold++;
-                    node = list.AddFirst(frame);
-                    map[frame.Id] = node;
+                    frame = list.Last.Value as FrameWSR;
+                    list.RemoveLast();
+                    if (!frame.Dirty || frame.cold >= COLDMAX)
+                        break;
+                    else
+                    {
+                        frame.cold++;
+                        if (frame.cold >= COLDMAX && !frame.Dirty)//是cold clean
+                            node = cclist.AddFirst(frame);
+                        else
+                            node = list.AddFirst(frame);
+                        map[frame.Id] = node;
+                    }
                 }
             }
             map.Remove(frame.Id);
@@ -51,17 +61,20 @@ namespace Buffers.Managers
             if (map.TryGetValue(pageid, out node))
             {
                 frame = node.Value as FrameWSR;
-                node.List.Remove(node);
-                list.Remove(node);
+                node.List.Remove(node);//不管在哪都先拿出来再放到好的位置
                 frame.cold = 0;
             }
             else
             {
                 frame = new FrameWSR(pageid);
+                frame.cold = COLDMAX;
             }
 
             PerformAccess(frame, resultOrData, type);
-            node = list.AddFirst(frame);
+            if (frame.cold >= COLDMAX && !frame.Dirty)//是cold clean
+                node = cclist.AddFirst(frame);
+            else
+                node = list.AddFirst(frame);
             map[pageid] = node;
         }
 
