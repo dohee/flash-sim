@@ -67,6 +67,11 @@ namespace Buffers
 		{
 			return new CMFTByCat(CreateDevice(verify), npages);
 		}
+		[ManagerFactory("CRAW")]
+		static IBufferManager CreateCRAW(uint npages, string[] args, bool verify)
+		{
+			return new CRAW(CreateDevice(verify), npages, Ratio);
+		}
 		[ManagerFactory("FLIRSByCat")]
 		static IBufferManager CreateFLIRSByCat(uint npages, string[] args, bool verify)
 		{
