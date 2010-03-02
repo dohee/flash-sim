@@ -72,8 +72,8 @@ namespace Buffers
 
 		public static string FormatSpan(TimeSpan ts)
 		{
-			return string.Format("{0:0}:{1:00}:{2:00}",
-				(int)ts.TotalHours, ts.Minutes, ts.Seconds);
+			return string.Format("{0:0}:{1:00}:{2:00}.{3:000}",
+				(int)ts.TotalHours, ts.Minutes, ts.Seconds, ts.Milliseconds);
 		}
 
 		public static string GetProgramName()
@@ -98,5 +98,16 @@ namespace Buffers
 			Console.ForegroundColor = newcolor;
 		}
 
+	}
+
+	class RandomDataGenerator
+	{
+		private byte cur = 1;
+
+		public void Generate(byte[] data)
+		{
+			for (int i = 0; i < data.Length; i++)
+				data[i] = cur++;
+		}
 	}
 }
