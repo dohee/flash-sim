@@ -54,6 +54,7 @@
     <Compile Include="Exceptions.cs" />
     <Compile Include="Getopt\Getopt.cs" />
     <Compile Include="Getopt\LongOpt.cs" />
+    <Compile Include="Managers\CCFLRU.cs" />
     <Compile Include="Managers\FLRU-ByLyf.cs" />
     <Compile Include="Managers\LIRS-ByWu.cs" />
     <Compile Include="Managers\LRUWSR.cs" />

@@ -51,6 +51,7 @@ namespace Buffers.Managers
             if (map.TryGetValue(pageid, out node))
             {
                 frame = node.Value as FrameWSR;
+                node.List.Remove(node);
                 list.Remove(node);
                 frame.cold = 0;
             }
