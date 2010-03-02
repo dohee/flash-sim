@@ -63,6 +63,7 @@ namespace Buffers.Program
 					Console.WriteLine("Data verification succeeded.");
 				}
 			}
+#if! DEBUG
 			catch (InvalidCmdLineArgumentException ex)
 			{
 				Utils.EmitErrMsg(ex.Message);
@@ -80,6 +81,7 @@ namespace Buffers.Program
 			{
 				Utils.EmitErrMsg(ex.ToString());
 			}
+#endif
 			finally
 			{
 				if (group != null)
@@ -155,7 +157,7 @@ namespace Buffers.Program
 			{
 				long lineCount = Interlocked.Increment(ref processedLineCount);
 #if DEBUG
-				if (lineCount >= 1000000)
+				if (lineCount >= 200000)
 					break;
 				if (lineCount % 1000 == 0)
 					WriteCountOnStderr(null);
