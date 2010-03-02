@@ -58,12 +58,12 @@ namespace Buffers.Managers
 				RWFrame frame = map[pageid];
 				frame.NodeOfHIRPage = null;
 				//要变回去就把这个注释去掉
-				/*map.Remove(pageid);
+				map.Remove(pageid);
 
 				if (frame.NodeOfRead != null)
 					rwlist.Remove(frame.NodeOfRead);
 				if (frame.NodeOfWrite != null)
-					rwlist.Remove(frame.NodeOfWrite);*/
+					rwlist.Remove(frame.NodeOfWrite);
 
 				//if (frame.Resident)
 				{

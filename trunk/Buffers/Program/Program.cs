@@ -155,7 +155,7 @@ namespace Buffers.Program
 			{
 				long lineCount = Interlocked.Increment(ref processedLineCount);
 #if DEBUG
-				if (lineCount >= 10000)
+				if (lineCount >= 1000000)
 					break;
 				if (lineCount % 1000 == 0)
 					WriteCountOnStderr(null);

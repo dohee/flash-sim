@@ -33,9 +33,15 @@ namespace Buffers.Managers
             {
                 while (true)
                 {
+                    if (list.Count == 0)//全踢到cclist里了。。。原来算法没有考虑。
+                    {
+                        frame = cclist.Last.Value as FrameWSR;
+                        cclist.RemoveLast();
+                        break;
+                    }
                     frame = list.Last.Value as FrameWSR;
                     list.RemoveLast();
-                    if (!frame.Dirty || frame.cold >= COLDMAX)
+                    if (frame.cold >= COLDMAX)
                         break;
                     else
                     {
