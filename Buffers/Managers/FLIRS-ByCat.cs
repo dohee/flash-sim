@@ -30,6 +30,8 @@ namespace Buffers.Managers
 			rwlist.SetConcat(0, 1);
 		}
 
+		public override string Name { get { return "FLIRS"; } }
+
 		public override string Description
 		{
 			get
