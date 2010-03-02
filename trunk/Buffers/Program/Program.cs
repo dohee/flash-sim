@@ -29,10 +29,11 @@ namespace Buffers.Program
 				uint[] npageses;
 				AlgorithmSpec[] algorithms;
 				bool verify;
+				string opfile;
 
 				CommandLine.ParseArguments(args, out filename, out readCost, out writeCost,
-					out npageses, out algorithms, out verify);
-
+					out npageses, out algorithms, out verify, out opfile);
+				//XXXXXX tagged by youngcat XXXXXXXXXX
 				Config.SetConfig(readCost, writeCost);
 				reader = InitReader(filename);
 				group = GroupOp.InitGroup(npageses, algorithms, verify);
@@ -40,7 +41,9 @@ namespace Buffers.Program
 #if DEBUG
 				Timer tmr = null;
 #else
-				Timer tmr = new Timer(WriteCountOnStderr, null, 0, 500);
+				Timer tmr = new Timer(
+					delegate(object obj) { WriteCount(Console.Error, true); },
+					null, 0, 500);
 #endif
 
 				oldTime = DateTime.Now;
@@ -52,8 +55,12 @@ namespace Buffers.Program
 				finally
 				{
 					if (tmr != null) tmr.Dispose();
-					WriteCountOnStderr(null);
-					Console.Error.WriteLine();
+					WriteCount(Console.Error, true);
+					Console.Error.Write('\r');
+					Console.Error.Flush();
+
+					WriteCount(Console.Out, false);
+					Console.Out.WriteLine();
 				}
 
 
@@ -105,18 +112,21 @@ namespace Buffers.Program
 			}
 		}
 
-		private static void WriteCountOnStderr(object obj)
+		private static void WriteCount(TextWriter writer, bool carrage)
 		{
 			long lineCount = Interlocked.Read(ref processedLineCount);
 			TimeSpan span = DateTime.Now - oldTime;
 
+			if (carrage)
+				writer.Write('\r');
+
 			Utils.PushColor(ConsoleColor.Green);
-			Console.Error.Write("\rProcessed " + lineCount);
+			writer.Write("Processed " + lineCount);
 
 			if (totalLineCount != 0)
-				Console.Error.Write("/{0} ({1:P})", totalLineCount, (float)processedLineCount / totalLineCount);
+				writer.Write("/{0} ({1:P})", totalLineCount, (float)processedLineCount / totalLineCount);
 
-			Console.Error.Write(". Elapsed " + Utils.FormatSpan(span));
+			writer.Write(". Elapsed " + Utils.FormatSpan(span));
 
 			if (totalLineCount != 0)
 			{
@@ -136,11 +146,11 @@ namespace Buffers.Program
 					remainstr = "[N/A]";
 				}
 
-				Console.Error.Write(", remaining {0}", remainstr);
+				writer.Write(", remaining {0}", remainstr);
 			}
 
-			Console.Error.Write("          ");
-			Console.Error.Flush();
+			writer.Write("          ");
+			writer.Flush();
 			Utils.PopColor();
 		}
 
@@ -148,7 +158,7 @@ namespace Buffers.Program
 		private static void OperateOnTrace(ManagerGroup group, TextReader input)
 		{
 			char[] separators1 = { '#', ';', '/' };
-			char[] separators2 = { ' ', '\t', ',' };			
+			char[] separators2 = { ' ', '\t', ',' };
 			GroupAccessor accessor = new GroupAccessor(group);
 			TraceParser parser = null;
 			string line;
@@ -159,8 +169,8 @@ namespace Buffers.Program
 #if DEBUG
 				if (lineCount >= 200000)
 					break;
-				if (lineCount % 1000 == 0)
-					WriteCountOnStderr(null);
+				if (lineCount % 5000 == 0)
+					WriteCount(Console.Error, true);
 
 				if (lineCount == 5608)
 					lineCount = 5608;

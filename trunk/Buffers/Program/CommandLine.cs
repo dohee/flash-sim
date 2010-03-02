@@ -10,21 +10,25 @@ namespace Buffers.Program
 		public static void ShowUsage()
 		{
 			Console.Error.WriteLine(
-@"Usage: {0} [-c] [-r <ReadCost>] [-w <WriteCost>]
-       -a <Algorithm>[,<Algorithm2>[,...]]
-       -p <NPages>[,<NPages2>[,...]]
-       [<Filename>]",
+@"Usage: {0} [-r <ReadCost>] [-w <WriteCost>] [-c]
+         -a <Algorithm>[,<Algorithm2>[,...]]
+         -p <NPages>[,<NPages2>[,...]]
+         [<TraceFile>]
+       {0} [-r <ReadCost>] [-w <WriteCost>] -f <FileToOperate>
+         -a <Algorithm> -p <NPages>
+         [<TraceFile>]",
 				Utils.GetProgramName());
 		}
 
 		public static void ParseArguments(string[] args, out string filename,
 			out decimal readCost, out decimal writeCost, out uint[] npageses,
-			out AlgorithmSpec[] algorithms, out bool verify)
+			out AlgorithmSpec[] algorithms, out bool verify, out string opfile)
 		{
 			readCost = 80;
 			writeCost = 200;
 			npageses = new uint[] { 1024 };
 			verify = false;
+			opfile = null;
 
 			Regex regexAlgo = new Regex(@"(\w+)(?:\(([^)]+)\))?");
 			List<AlgorithmSpec> algos = new List<AlgorithmSpec>();
@@ -52,6 +56,10 @@ namespace Buffers.Program
 
 					case 'c':
 						verify = true;
+						break;
+
+					case 'f':
+						opfile = g.Optarg;
 						break;
 
 					case 'p':

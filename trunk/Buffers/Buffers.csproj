@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Attributes.cs" />
     <Compile Include="Devices\BlockDeviceBase.cs" />
+    <Compile Include="Devices\FileSimulatedDevice.cs" />
     <Compile Include="Devices\MemorySimulatedDevice.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Getopt\Getopt.cs" />
