@@ -29,6 +29,7 @@ namespace Buffers.Managers
             writeList = new FLIRSQueue(true);
         }
 
+		public override string Name { get { return "FLRU"; } }
 
         protected override void OnPoolFull()
         {

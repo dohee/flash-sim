@@ -35,7 +35,8 @@ namespace Buffers.Managers
             maxHIRQueueLength = Math.Max((uint)(npages * HIRRatio), 1);
         }
 
-        public override string Description { get { return Utils.FormatDescription("Npages", cacheSize, "hirPages", maxHIRQueueLength); } }
+		public override string Name { get { return "FLIRS"; } }
+		public override string Description { get { return Utils.FormatDescription("By", "LYF", "Npages", cacheSize, "hirPages", maxHIRQueueLength); } }
 
 		protected override void OnPoolFull()
 		{

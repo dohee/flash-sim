@@ -28,7 +28,7 @@ namespace Buffers.Managers
             lirNum = 0;
         }
 
-
+		public override string Name { get { return "LIRS"; } }
         public override string Description { get { return Utils.FormatDescription("lirPages", lirSize, "hirPages", hirSize); } }
 
         protected override void OnPoolFull()
