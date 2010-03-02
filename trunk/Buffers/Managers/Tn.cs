@@ -37,21 +37,21 @@ namespace Buffers.Managers
 		private readonly Dictionary<uint, MultiListNode<IFrame>> map = new Dictionary<uint, MultiListNode<IFrame>>();
 
 		private readonly TnConfig conf;
-		private readonly float kickn;
+		private readonly float WRRatio, rplus, wplus;
 		private float crlimit_;
 		private readonly uint CNRLimit, DNRLimit, SRLimit, SNRLimit;
 
 
-		public Tn(uint npages, float kickN)
-			: this(null, npages, kickN) { }
+		public Tn(uint npages, float WRRatio)
+			: this(null, npages, WRRatio) { }
 
-		public Tn(IBlockDevice dev, uint npages, float kickN)
-			: this(dev, npages, kickN, new TnConfig()) { }
+		public Tn(IBlockDevice dev, uint npages, float WRRatio)
+			: this(dev, npages, WRRatio, new TnConfig()) { }
 
-		public Tn(uint npages, float kickN, TnConfig conf)
-			: this(null, npages, kickN, conf) { }
+		public Tn(uint npages, float WRRatio, TnConfig conf)
+			: this(null, npages, WRRatio, conf) { }
 
-		public Tn(IBlockDevice dev, uint npages, float kickN, TnConfig conf)
+		public Tn(IBlockDevice dev, uint npages, float WRRatio, TnConfig conf)
 			: base(dev, npages)
 		{
 			q.SetConcat(0, 1);
@@ -70,7 +70,18 @@ namespace Buffers.Managers
 			crlimit_ = (float)(npages / 2.0);
 
 			this.conf = conf;
-			this.kickn = kickN;
+			this.WRRatio = WRRatio;
+
+			if (WRRatio > 1)
+			{
+				rplus = 1;
+				wplus = WRRatio;
+			}
+			else
+			{
+				rplus = 1 / WRRatio;
+				wplus = 1;
+			}
 		}
 
 		public override string Description
@@ -78,7 +89,7 @@ namespace Buffers.Managers
 			get
 			{
 				return Utils.FormatDescription("NPages", pool.NPages,
-					"KickN", kickn.ToString("0.##"),
+					"KickN", WRRatio.ToString("0.##"),
 					"AdjustDR", conf.AdjustDRWhenReadInDR ? 1 : 0,
 					"EnlargeCR", conf.EnlargeCRWhenReadInDNR ? 1 : 0,
 					"KickOffSR", conf.PickOffSRWhenHitInSR ? 1 : 0,
@@ -135,7 +146,7 @@ namespace Buffers.Managers
 			{
 				node = q.AddFirst(0, q.Remove(node));
 				if (!f.Resident)
-					EnlargeCRLimit(1);
+					EnlargeCRLimit(rplus);
 				PerformAccess(f, resultOrData, type);
 			}
 			else if (inClean && type == AccessType.Write)
@@ -153,7 +164,7 @@ namespace Buffers.Managers
 			else if (inDNR && type == AccessType.Read)
 			{
 				if (conf.EnlargeCRWhenReadInDNR)
-					EnlargeCRLimit(1);
+					EnlargeCRLimit(rplus);
 				q.Remove(node);
 				PerformAccess(f, resultOrData, type);
 				node = q.AddFirst(0, f);
@@ -162,7 +173,7 @@ namespace Buffers.Managers
 			{
 				q.Remove(node);
 				if (!f.Resident)
-					EnlargeCRLimit(-kickn);
+					EnlargeCRLimit(-wplus);
 				PerformAccess(f, resultOrData, type);
 				node = q.AddFirst(2, f);
 			}
