@@ -49,7 +49,7 @@ namespace Buffers.Program
 
 				try
 				{
-					OperateOnTrace(group, reader);
+					OperateOnTrace(group, reader, (runmode.Mode == RunMode.Verify));
 				}
 				finally
 				{
@@ -154,11 +154,11 @@ namespace Buffers.Program
 		}
 
 
-		private static void OperateOnTrace(ManagerGroup group, TextReader input)
+		private static void OperateOnTrace(ManagerGroup group, TextReader input, bool generateData)
 		{
 			char[] separators1 = { '#', ';', '/' };
 			char[] separators2 = { ' ', '\t', ',' };
-			GroupAccessor accessor = new GroupAccessor(group);
+			GroupAccessor accessor = new GroupAccessor(group, generateData);
 			TraceParser parser = null;
 			string line;
 
