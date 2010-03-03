@@ -3,18 +3,10 @@ using System.Collections.Generic;
 
 namespace Buffers.Program
 {
-	class DevStatInfo
-	{
-		public string Id, Name, Description;
-		public int Read, Write, Flush;
-		public decimal Cost;
-		public bool Suppress;
-	}
-
 	struct AlgorithmSpec
 	{
-		public string Name;
-		public string[] Arguments;
+		public readonly string Name;
+		public readonly string[] Arguments;
 
 		public AlgorithmSpec(string name)
 			: this(name, new string[0]) { }
@@ -23,6 +15,35 @@ namespace Buffers.Program
 		{
 			Name = name;
 			Arguments = arguments;
+		}
+	}
+
+
+	class DevStatInfo
+	{
+		public string Id, Name, Description;
+		public int Read, Write, Flush;
+		public decimal Cost;
+		public bool Suppress;
+	}
+
+
+	enum RunMode
+	{
+		Normal,
+		Verify,
+		File,
+	}
+
+	struct RunModeInfo
+	{
+		public readonly RunMode Mode;
+		public readonly object ExtInfo;
+
+		public RunModeInfo(RunMode mode, object extinfo)
+		{
+			Mode = mode;
+			ExtInfo = extinfo;
 		}
 	}
 }

@@ -22,18 +22,20 @@ namespace Buffers.Program
 
 		public static void ParseArguments(string[] args, out string filename,
 			out decimal readCost, out decimal writeCost, out uint[] npageses,
-			out AlgorithmSpec[] algorithms, out bool verify, out string opfile)
+			out AlgorithmSpec[] algorithms, out RunModeInfo mode)
 		{
+			// Init
 			readCost = 80;
 			writeCost = 200;
 			npageses = new uint[] { 1024 };
-			verify = false;
-			opfile = null;
 
+			bool verify = false, fileop = false;
+			string opfilename = null;
 			Regex regexAlgo = new Regex(@"(\w+)(?:\(([^)]+)\))?");
 			List<AlgorithmSpec> algos = new List<AlgorithmSpec>();
 
-			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cp:r:w:");
+			// Parse
+			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cf:p:r:w:");
 			g.Opterr = false;
 			int c;
 
@@ -59,7 +61,8 @@ namespace Buffers.Program
 						break;
 
 					case 'f':
-						opfile = g.Optarg;
+						fileop = true;
+						opfilename = g.Optarg;
 						break;
 
 					case 'p':
@@ -69,40 +72,62 @@ namespace Buffers.Program
 						for (int i = 0; i < strs.Length; i++)
 						{
 							if (!uint.TryParse(strs[i], out npageses[i]) || npageses[i] == 0)
-								throw new InvalidCmdLineArgumentException("Positive integer(s) are expected after -p");
+								throw new InvalidCmdLineArgumentException(
+									"Positive integer(s) are expected after -p");
 						}
 
 						break;
 
 					case 'r':
 						if (!decimal.TryParse(g.Optarg, out readCost) || readCost <= 0)
-							throw new InvalidCmdLineArgumentException("A positive integer is expected after -r");
+							throw new InvalidCmdLineArgumentException(
+								"A positive integer is expected after -r");
 						break;
 
 					case 'w':
 						if (!decimal.TryParse(g.Optarg, out writeCost) || writeCost <= 0)
-							throw new InvalidCmdLineArgumentException("A positive integer is expected after -w");
+							throw new InvalidCmdLineArgumentException(
+								"A positive integer is expected after -w");
 						break;
 
 					case ':':
-						throw new InvalidCmdLineArgumentException("Uncomplete argument: -" + (char)g.Optopt);
+						throw new InvalidCmdLineArgumentException(
+							"Uncomplete argument: -" + (char)g.Optopt);
 					case '?':
-						throw new InvalidCmdLineArgumentException("Invalid argument: -" + (char)g.Optopt);
+						throw new InvalidCmdLineArgumentException(
+							"Invalid argument: -" + (char)g.Optopt);
 					default:
 						break;
 				}
 			}
 
 
+			// Filename
+			if (args.Length > g.Optind)
+				filename = args[g.Optind];
+			else
+				filename = null;
+
+			// Algorithm
 			if (algos.Count == 0)
 				algorithms = new AlgorithmSpec[] { new AlgorithmSpec("Trival") };
 			else
 				algorithms = algos.ToArray();
 
-			if (args.Length > g.Optind)
-				filename = args[g.Optind];
+			// Run Mode
+			if (fileop && (algorithms.Length > 1 || npageses.Length > 1))
+				throw new InvalidCmdLineArgumentException(
+					"In -f mode, only ONE algorithm and only ONE npages is allowed.");
+
+			if (verify && fileop)
+				throw new InvalidCmdLineArgumentException(
+					"Cannot specify both -c and -f");
+			else if (verify)
+				mode = new RunModeInfo(RunMode.Verify, null);
+			else if (fileop)
+				mode = new RunModeInfo(RunMode.File, opfilename);
 			else
-				filename = null;
+				mode = new RunModeInfo(RunMode.Normal, null);
 		}
 	}
 }

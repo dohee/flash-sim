@@ -8,20 +8,22 @@ namespace Buffers.Program
 {
 	static class GroupOp
 	{
-		public static ManagerGroup InitGroup(uint[] npageses, AlgorithmSpec[] algorithms, bool verify)
+		public static ManagerGroup InitGroup(uint[] npageses,
+			AlgorithmSpec[] algorithms, RunModeInfo mode)
 		{
 			if (npageses.Length == 1)
-				return InitSubGroup(npageses[0], algorithms, verify);
+				return InitSubGroup(npageses[0], algorithms, mode);
 
 			ManagerGroup group = new ManagerGroup();
 
 			foreach (uint npages in npageses)
-				group.Add(InitSubGroup(npages, algorithms, verify));
+				group.Add(InitSubGroup(npages, algorithms, mode));
 
 			return group;
 		}
 
-		private static ManagerGroup InitSubGroup(uint npages, AlgorithmSpec[] algorithms, bool verify)
+		private static ManagerGroup InitSubGroup(uint npages,
+			AlgorithmSpec[] algorithms, RunModeInfo mode)
 		{
 			string algoname = null;
 
@@ -31,7 +33,9 @@ namespace Buffers.Program
 				foreach (AlgorithmSpec algo in algorithms)
 				{
 					algoname = algo.Name;
-					group.Add(Config.CreateManager(algoname, npages, algo.Arguments, verify));
+					group.Add(Config.CreateManager(
+						Config.CreateDevice(mode),
+						algoname, npages, algo.Arguments));
 				}
 				return group;
 			}

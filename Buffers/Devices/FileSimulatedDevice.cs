@@ -13,7 +13,7 @@ namespace Buffers.Devices
 		{
 			PageSize = pagesize;
 
-			stream = new FileStream(path, FileMode.OpenOrCreate,
+			stream = new FileStream(path, FileMode.Open,
 				FileAccess.ReadWrite, FileShare.Read, 1, FileOptions.WriteThrough);
 
 			npages = (uint)(stream.Length / pagesize);
