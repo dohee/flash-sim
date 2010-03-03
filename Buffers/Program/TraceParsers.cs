@@ -92,8 +92,6 @@ namespace Buffers.Program
 
 	class SPCParser : TraceParser
 	{
-		private const int kPageSize = 4096;
-
 		public static TraceParser TryCreate(string[] parts)
 		{
 			uint tmp;
@@ -116,7 +114,8 @@ namespace Buffers.Program
 		public override void ParseLine(string[] parts, out uint startPageId, out uint length, out AccessType type)
 		{
 			startPageId = uint.Parse(parts[1]);
-			length = Math.Max(1, (uint.Parse(parts[2]) + (kPageSize - 1)) / kPageSize);			length = Math.Max(length, 1);
+			length = Math.Max(1, (uint.Parse(parts[2]) + (Config.PageSize - 1)) / Config.PageSize);
+			length = Math.Max(length, 1);
 			type = (parts[3].ToLower() == "r" ? AccessType.Read : AccessType.Write);
 		}
 	}

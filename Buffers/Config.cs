@@ -9,6 +9,7 @@ namespace Buffers
 {
 	static class Config
 	{
+		public static readonly uint PageSize = 8192;
 		public static decimal ReadCost { get; private set; }
 		public static decimal WriteCost { get; private set; }
 		public static float Ratio { get { return (float)(WriteCost / ReadCost); } }
@@ -46,7 +47,7 @@ namespace Buffers
 				case RunMode.Verify:
 					return new MemorySimulatedDevice(1);
 				case RunMode.File:
-					return new FileSimulatedDevice(4096, (string)mode.ExtInfo);
+					return new FileSimulatedDevice(PageSize, (string)mode.ExtInfo);
 				default:
 					return null;
 			}
