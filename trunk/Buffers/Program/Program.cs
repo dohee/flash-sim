@@ -28,15 +28,14 @@ namespace Buffers.Program
 				decimal readCost, writeCost;
 				uint[] npageses;
 				AlgorithmSpec[] algorithms;
-				bool verify;
-				string opfile;
-
+				RunModeInfo runmode;
+				
 				CommandLine.ParseArguments(args, out filename, out readCost, out writeCost,
-					out npageses, out algorithms, out verify, out opfile);
-				//XXXXXX tagged by youngcat XXXXXXXXXX
+					out npageses, out algorithms, out runmode);
+
 				Config.SetConfig(readCost, writeCost);
 				reader = InitReader(filename);
-				group = GroupOp.InitGroup(npageses, algorithms, verify);
+				group = GroupOp.InitGroup(npageses, algorithms, runmode);
 
 #if DEBUG
 				Timer tmr = null;
@@ -64,7 +63,7 @@ namespace Buffers.Program
 				}
 
 
-				if (verify)
+				if (runmode.Mode == RunMode.Verify)
 				{
 					GroupOp.VerifyData(group);
 					Console.WriteLine("Data verification succeeded.");

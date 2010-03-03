@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using Buffers.Devices;
 using Buffers.Managers;
 using System.Reflection;
+using Buffers.Program;
 
 namespace Buffers
 {
-	public static class Config
+	static class Config
 	{
 		public static decimal ReadCost { get; private set; }
 		public static decimal WriteCost { get; private set; }
@@ -14,7 +15,7 @@ namespace Buffers
 		public static uint RoundedRatio { get { return (uint)Ratio; } }
 
 
-		private delegate IBufferManager ManagerCreator(uint npages, string[] args, bool verify);
+		private delegate IBufferManager ManagerCreator(uint npages, string[] args);
 		private static readonly IDictionary<string, MethodInfo> creators = new Dictionary<string, MethodInfo>();
 
 
@@ -38,14 +39,24 @@ namespace Buffers
 		}
 
 
-		public static IBlockDevice CreateDevice(bool verify)
+		public static IBlockDevice CreateDevice(RunModeInfo mode)
 		{
-			return verify ? new MemorySimulatedDevice(1) : null;
+			switch (mode.Mode)
+			{
+				case RunMode.Verify:
+					return new MemorySimulatedDevice(1);
+				case RunMode.File:
+					return new FileSimulatedDevice(4096, (string)mode.ExtInfo);
+				default:
+					return null;
+			}
 		}
-		public static IBufferManager CreateManager(string name, uint npages, string[] args, bool verify)
+
+		public static IBufferManager CreateManager(IBlockDevice dev,
+			string name, uint npages, string[] args)
 		{
 			return (IBufferManager)creators[name.ToLower()].Invoke(
-				null, new object[] { npages, args, verify });
+				null, new object[] { dev, npages, args });
 		}
 
            
@@ -53,63 +64,63 @@ namespace Buffers
 #pragma warning disable 0618 // "Obsolete"
 		// 注意：按字母表顺序排列
         [ManagerFactory("CCFLRU")]
-        static IBufferManager CreateCCFLRU(uint npages, string[] args, bool verify)
+		static IBufferManager CreateCCFLRU(IBlockDevice dev, uint npages, string[] args)
         {
-            return new CCFLRU(CreateDevice(verify), npages);
+            return new CCFLRU(dev, npages);
         } 
 		[ManagerFactory("CFLRU")]
-		static IBufferManager CreateCFLRU(uint npages, string[] args, bool verify)
+		static IBufferManager CreateCFLRU(IBlockDevice dev, uint npages, string[] args)
 		{
-			return new CFLRU(CreateDevice(verify), npages, float.Parse(args[0]));
+			return new CFLRU(dev, npages, float.Parse(args[0]));
 		}
 		[ManagerFactory("CMFT")]
-		static IBufferManager CreateCMFT(uint npages, string[] args, bool verify)
+		static IBufferManager CreateCMFT(IBlockDevice dev, uint npages, string[] args)
 		{
-			return new CMFTByCat(CreateDevice(verify), npages);
+			return new CMFTByCat(dev, npages);
 		}
 		[ManagerFactory("CRAW")]
-		static IBufferManager CreateCRAW(uint npages, string[] args, bool verify)
+		static IBufferManager CreateCRAW(IBlockDevice dev, uint npages, string[] args)
 		{
-			return new CRAW(CreateDevice(verify), npages, Ratio);
+			return new CRAW(dev, npages, Ratio);
 		}
 		[ManagerFactory("FLIRSByCat")]
-		static IBufferManager CreateFLIRSByCat(uint npages, string[] args, bool verify)
+		static IBufferManager CreateFLIRSByCat(IBlockDevice dev, uint npages, string[] args)
 		{
-			return new FLIRSByCat(CreateDevice(verify), npages, Ratio, float.Parse(args[0]));
+			return new FLIRSByCat(dev, npages, Ratio, float.Parse(args[0]));
 		}
 		[ManagerFactory("FLIRSByLyf")]
-		static IBufferManager CreateFLIRSByLyf(uint npages, string[] args, bool verify)
+		static IBufferManager CreateFLIRSByLyf(IBlockDevice dev, uint npages, string[] args)
 		{
-			return new FLIRSbyLyf2(CreateDevice(verify), npages, double.Parse(args[0]));
+			return new FLIRSbyLyf2(dev, npages, double.Parse(args[0]));
 		}
 		[ManagerFactory("FLRU")]
         [ManagerFactory("FLRUByLyf")]
-        static IBufferManager CreateFLRUByLyf(uint npages, string[] args, bool verify)
+		static IBufferManager CreateFLRUByLyf(IBlockDevice dev, uint npages, string[] args)
         {
-            return new FLRU(CreateDevice(verify), npages);
+            return new FLRU(dev, npages);
         }
         [ManagerFactory("LIRS")]
-        static IBufferManager CreateLIRS(uint npages, string[] args, bool verify)
+		static IBufferManager CreateLIRS(IBlockDevice dev, uint npages, string[] args)
         {
-            return new LIRS_ByWu(CreateDevice(verify), npages, float.Parse(args[0]));
+            return new LIRS_ByWu(dev, npages, float.Parse(args[0]));
         }
 		[ManagerFactory("LRU")]
-		static IBufferManager CreateLRU(uint npages, string[] args, bool verify)
+		static IBufferManager CreateLRU(IBlockDevice dev, uint npages, string[] args)
 		{
-			return new LRU(CreateDevice(verify), npages);
+			return new LRU(dev, npages);
 		}
 		[ManagerFactory("LRUWSR")]
-		static IBufferManager CreateLRUWSR(uint npages, string[] args, bool verify)
+		static IBufferManager CreateLRUWSR(IBlockDevice dev, uint npages, string[] args)
 		{
-			return new LRUWSR(CreateDevice(verify), npages);
+			return new LRUWSR(dev, npages);
 		}
 		[ManagerFactory("OldTn")]
-		static IBufferManager CreateOldTn(uint npages, string[] args, bool verify)
+		static IBufferManager CreateOldTn(IBlockDevice dev, uint npages, string[] args)
 		{
 			if (args.Length == 0)
-				return new OldTn(CreateDevice(verify), npages, Ratio);
+				return new OldTn(dev, npages, Ratio);
 			else
-				return new OldTn(CreateDevice(verify), npages, Ratio, new TnConfig(
+				return new OldTn(dev, npages, Ratio, new TnConfig(
 					int.Parse(args[0]) != 0,
 					int.Parse(args[1]) != 0,
 					int.Parse(args[2]) != 0,
@@ -120,12 +131,12 @@ namespace Buffers
 					));
 		}
 		[ManagerFactory("OldOldTn")]
-		static IBufferManager CreateOldOldTn(uint npages, string[] args, bool verify)
+		static IBufferManager CreateOldOldTn(IBlockDevice dev, uint npages, string[] args)
 		{
 			if (args.Length == 0)
-				return new OldOldTn(CreateDevice(verify), npages, Ratio);
+				return new OldOldTn(dev, npages, Ratio);
 			else
-				return new OldOldTn(CreateDevice(verify), npages, Ratio, new OldOldTnConfig(
+				return new OldOldTn(dev, npages, Ratio, new OldOldTnConfig(
 					int.Parse(args[0]) != 0,
 					int.Parse(args[1]) != 0,
 					uint.Parse(args[5]),
@@ -135,12 +146,12 @@ namespace Buffers
 		}
 		[ManagerFactory("Tn")]
 		[ManagerFactory("ACAR")]
-		static IBufferManager CreateTn(uint npages, string[] args, bool verify)
+		static IBufferManager CreateTn(IBlockDevice dev, uint npages, string[] args)
 		{
 			if (args.Length == 0)
-				return new Tn(CreateDevice(verify), npages, Ratio);
+				return new Tn(dev, npages, Ratio);
 			else
-				return new Tn(CreateDevice(verify), npages, Ratio, new TnConfig(
+				return new Tn(dev, npages, Ratio, new TnConfig(
 					int.Parse(args[0]) != 0,
 					int.Parse(args[1]) != 0,
 					int.Parse(args[2]) != 0,
@@ -151,9 +162,9 @@ namespace Buffers
 					));
 		}
 		[ManagerFactory("Trival")]
-		static IBufferManager CreateTrival(uint npages, string[] args, bool verify)
+		static IBufferManager CreateTrival(IBlockDevice dev, uint npages, string[] args)
 		{
-			return new TrivalManager(CreateDevice(verify));
+			return new TrivalManager(dev);
 		}
 #pragma warning restore 0618
 #pragma warning restore 0169

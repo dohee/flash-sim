@@ -6,7 +6,7 @@ namespace Buffers.Program
 {
 	class GroupAccessor
 	{
-		private RandomDataGenerator generator = new RandomDataGenerator();
+		private Random rand = new Random();
 		private ManagerGroup group;
 		private byte[] data;
 
@@ -24,7 +24,7 @@ namespace Buffers.Program
 			}
 			else
 			{
-				generator.Generate(data);
+				rand.NextBytes(data);
 				group.Write(query.PageId, data);
 			}
 		}
