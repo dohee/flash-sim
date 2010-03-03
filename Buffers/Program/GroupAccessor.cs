@@ -6,14 +6,15 @@ namespace Buffers.Program
 {
 	class GroupAccessor
 	{
-		private Random rand = new Random();
-		private ManagerGroup group;
-		private byte[] data;
+		private readonly ManagerGroup group;
+		private readonly byte[] data;
+		private readonly Random rand;
 
-		public GroupAccessor(ManagerGroup group)
+		public GroupAccessor(ManagerGroup group, bool generateData)
 		{
 			this.group = group;
 			this.data = new byte[group.PageSize];
+			this.rand = (generateData ? new Random() : null);
 		}
 
 		public void Access(RWQuery query)
@@ -24,7 +25,8 @@ namespace Buffers.Program
 			}
 			else
 			{
-				rand.NextBytes(data);
+				if (rand != null)
+					rand.NextBytes(data);
 				group.Write(query.PageId, data);
 			}
 		}

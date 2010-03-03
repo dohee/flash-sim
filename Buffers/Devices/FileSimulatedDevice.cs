@@ -8,22 +8,18 @@ namespace Buffers.Devices
 	{
 		private readonly FileStream stream;
 		private readonly uint npages;
+		private readonly bool canseek;
 
 		public FileSimulatedDevice(uint pagesize, string path)
-		{
-			PageSize = pagesize;
-
-			stream = new FileStream(path, FileMode.Open,
-				FileAccess.ReadWrite, FileShare.Read, 1, FileOptions.WriteThrough);
-
-			npages = (uint)(stream.Length / pagesize);
-		}
-
-		public FileSimulatedDevice(uint pagesize, string path,
+			: this(pagesize, path, false) { }
+		public FileSimulatedDevice(uint pagesize, string path, bool checkbound)
+			: this(pagesize, path, checkbound, false) { }
+		public FileSimulatedDevice(uint pagesize, string path, bool checkbound, bool deleteBeforeOpen)
+			: this(pagesize, path, checkbound, deleteBeforeOpen, 0) { }
+		public FileSimulatedDevice(uint pagesize, string path, bool checkbound,
 			bool deleteBeforeOpen, uint npages)
 		{
-			this.PageSize = pagesize;
-			this.npages = npages;
+			PageSize = pagesize;
 
 			if (deleteBeforeOpen)
 				File.Delete(path);
@@ -31,26 +27,35 @@ namespace Buffers.Devices
 			stream = new FileStream(path, FileMode.OpenOrCreate,
 				FileAccess.ReadWrite, FileShare.Read, 1, FileOptions.WriteThrough);
 
-			/*
-			byte[] data = new byte[pagesize];
-			new RandomDataGenerator().Generate(data);
-
-			long pos = stream.Seek(0, SeekOrigin.End);
-			long end = fixedPageCount * pagesize;
-
-			if (pos < end)
-			{
-				long posCeil = ((pos + pagesize - 1) / pagesize) * pagesize;
-				stream.Write(data, (int)(pos % pagesize), (int)(posCeil - pos));
-				pos = posCeil;
-			}
-
-			for (; pos < end; pos += pagesize)
-				stream.Write(data, 0, (int)pagesize);
-			*/
+			canseek = stream.CanSeek;
 
 			if (stream.Length < npages * pagesize)
+			{
+				/*
+				byte[] data = new byte[pagesize];
+				new RandomDataGenerator().Generate(data);
+
+				long pos = stream.Seek(0, SeekOrigin.End);
+				long end = fixedPageCount * pagesize;
+
+				if (pos < end)
+				{
+					long posCeil = ((pos + pagesize - 1) / pagesize) * pagesize;
+					stream.Write(data, (int)(pos % pagesize), (int)(posCeil - pos));
+					pos = posCeil;
+				}
+
+				for (; pos < end; pos += pagesize)
+					stream.Write(data, 0, (int)pagesize);
+				*/
+
 				stream.SetLength(npages * pagesize);
+			}
+
+			if (checkbound)
+				npages = (uint)(stream.Length / pagesize);
+			else
+				npages = 0xFFFFFFFF;
 		}
 
 
@@ -94,7 +99,9 @@ namespace Buffers.Devices
 			if (pageid >= npages)
 				throw new ArgumentOutOfRangeException("PageID larger than NPages");
 
-			stream.Seek((long)pageid * PageSize, SeekOrigin.Begin);
+			if (canseek)
+				stream.Seek((long)pageid * PageSize, SeekOrigin.Begin);
+
 			int i = stream.Read(result, 0, (int)PageSize);
 
 			for (; i < result.Length; i++)
@@ -105,7 +112,9 @@ namespace Buffers.Devices
 			if (pageid >= npages)
 				throw new ArgumentOutOfRangeException("PageID larger than NPages");
 
-			stream.Seek((long)pageid * PageSize, SeekOrigin.Begin);
+			if (canseek)
+				stream.Seek((long)pageid * PageSize, SeekOrigin.Begin);
+
 			stream.Write(data, 0, (int)PageSize);
 		}
 	}
