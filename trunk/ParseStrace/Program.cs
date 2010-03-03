@@ -197,7 +197,7 @@ namespace ParseStrace
 				case "creat": return table.OnOpen(args, ret);
 
 				case "mmap": return table.OnMmap(1, args);
-				case "mmap2": return table.OnMmap(4096, args);
+				case "mmap2": return table.OnMmap((int)Config.PageSize, args);
 				case "mremap":
 				case "msync":
 				case "munmap": return null;
