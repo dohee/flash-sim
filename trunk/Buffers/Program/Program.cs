@@ -17,7 +17,7 @@ namespace Buffers.Program
 		static DateTime oldTime;
 
 
-		public static void Main(string[] args)
+		public static int Main(string[] args)
 		{
 			TextReader reader = null;
 			ManagerGroup group = null;
@@ -29,7 +29,7 @@ namespace Buffers.Program
 				uint[] npageses;
 				AlgorithmSpec[] algorithms;
 				RunModeInfo runmode;
-				
+
 				CommandLine.ParseArguments(args, out filename, out readCost, out writeCost,
 					out npageses, out algorithms, out runmode);
 
@@ -68,24 +68,37 @@ namespace Buffers.Program
 					GroupOp.VerifyData(group);
 					Console.WriteLine("Data verification succeeded.");
 				}
+
+				return 0;
 			}
 #if! DEBUG
+			catch (CmdLineHelpException)
+			{
+				CommandLine.ShowUsage(Console.Out);
+				Console.Out.WriteLine();
+				CommandLine.ShowHelp(Console.Out);
+				return 0;
+			}
 			catch (InvalidCmdLineArgumentException ex)
 			{
 				Utils.EmitErrMsg(ex.Message);
 				CommandLine.ShowUsage();
+				return 1;
 			}
 			catch (FileNotFoundException)
 			{
 				Utils.EmitErrMsg("File {0} not found", filename);
+				return 2;
 			}
 			catch (DataNotConsistentException ex)
 			{
 				Utils.EmitErrMsg(ex.Message);
+				return 3;
 			}
 			catch (Exception ex)
 			{
 				Utils.EmitErrMsg(ex.ToString());
+				return 9;
 			}
 #endif
 			finally
