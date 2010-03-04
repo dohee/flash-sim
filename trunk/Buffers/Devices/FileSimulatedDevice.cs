@@ -53,9 +53,9 @@ namespace Buffers.Devices
 			}
 
 			if (checkbound)
-				npages = (uint)(stream.Length / pagesize);
+				this.npages = (uint)(stream.Length / pagesize);
 			else
-				npages = 0xFFFFFFFF;
+				this.npages = 0xFFFFFFFF;
 		}
 
 
@@ -97,7 +97,7 @@ namespace Buffers.Devices
 		protected override void DoRead(uint pageid, byte[] result)
 		{
 			if (pageid >= npages)
-				throw new ArgumentOutOfRangeException("PageID larger than NPages");
+				throw new ArgumentOutOfRangeException("pageid", "PageID larger than NPages");
 
 			if (canseek)
 				stream.Seek((long)pageid * PageSize, SeekOrigin.Begin);
@@ -110,7 +110,7 @@ namespace Buffers.Devices
 		protected override void DoWrite(uint pageid, byte[] data)
 		{
 			if (pageid >= npages)
-				throw new ArgumentOutOfRangeException("PageID larger than NPages");
+				throw new ArgumentOutOfRangeException("pageid", "PageID larger than NPages");
 
 			if (canseek)
 				stream.Seek((long)pageid * PageSize, SeekOrigin.Begin);

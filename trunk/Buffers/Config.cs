@@ -47,7 +47,11 @@ namespace Buffers
 				case RunMode.Verify:
 					return new MemorySimulatedDevice(1);
 				case RunMode.File:
-					return new FileSimulatedDevice(PageSize, (string)mode.ExtInfo);
+					return new FileSimulatedDevice(PageSize,
+						(string)((object[])mode.ExtInfo)[0],
+						(bool)((object[])mode.ExtInfo)[1]);
+				case RunMode.Trace:
+					return null;
 				default:
 					return null;
 			}
