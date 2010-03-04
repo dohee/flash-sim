@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 
+#if! __MonoCS__
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
+#endif
+
+
 namespace Buffers.Devices
 {
 	public class FileSimulatedDevice : BlockDeviceBase
@@ -24,8 +30,24 @@ namespace Buffers.Devices
 			if (deleteBeforeOpen)
 				File.Delete(path);
 
+#if! __MonoCS__
+			SafeFileHandle handle = UnmanagedFileIO.CreateFile(
+				path,
+				UnmanagedFileIO.GENERIC_READ | UnmanagedFileIO.GENERIC_WRITE,
+				UnmanagedFileIO.FILE_SHARE_READ,
+				IntPtr.Zero,
+				UnmanagedFileIO.OPEN_ALWAYS,
+				UnmanagedFileIO.FILE_FLAG_NO_BUFFERING | UnmanagedFileIO.FILE_FLAG_WRITE_THROUGH,
+				IntPtr.Zero);
+
+			if (handle.IsInvalid)
+				Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+
+			stream = new FileStream(handle, FileAccess.ReadWrite);
+#else
 			stream = new FileStream(path, FileMode.OpenOrCreate,
 				FileAccess.ReadWrite, FileShare.Read, 1, FileOptions.WriteThrough);
+#endif
 
 			canseek = stream.CanSeek;
 
