@@ -10,10 +10,10 @@ namespace Buffers.Program
 		public static void ShowUsage()
 		{
 			Console.Error.WriteLine(
-@"Usage: {0} [-r <ReadCost>] [-w <WriteCost>] [-c]/[-s <TraceLog>]
+@"Usage: {0} [-r <ReadCost>] [-w <WriteCost>] [-c]/[-t <TraceLogPrefix>]
          -a <Algorithm>[,<Algorithm2>[,...]] -p <NPages>[,<NPages2>[,...]]
          [<TraceFile>]
-       {0} [-r <ReadCost>] [-w <WriteCost>] -f/-F <FileToOperate>
+       {0} [-r <ReadCost>] [-w <WriteCost>] -f/-F <OperatingFile>
          -a <Algorithm> -p <NPages>
          [<TraceFile>]",
 				Utils.GetProgramName());
@@ -35,7 +35,7 @@ namespace Buffers.Program
 			List<AlgorithmSpec> algos = new List<AlgorithmSpec>();
 
 			// Parse
-			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cf:F:p:r:s:w:");
+			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cf:F:p:r:t:w:");
 			g.Opterr = false;
 			int c;
 
@@ -91,7 +91,7 @@ namespace Buffers.Program
 								"A positive integer is expected after -r");
 						break;
 
-					case 's':
+					case 't':
 						tracelog = true;
 						tracelogfile = g.Optarg;
 						break;

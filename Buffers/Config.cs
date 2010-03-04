@@ -18,6 +18,7 @@ namespace Buffers
 
 		private delegate IBufferManager ManagerCreator(uint npages, string[] args);
 		private static readonly IDictionary<string, MethodInfo> creators = new Dictionary<string, MethodInfo>();
+		private static readonly IDictionary<string, string> normalNames = new Dictionary<string, string>();
 
 
 		static Config()
@@ -26,13 +27,20 @@ namespace Buffers
 
 			foreach (MethodInfo method in typeof(Config).GetMethods(BindingFlags.Static | BindingFlags.NonPublic))
 			{
+				string normalName = null;
 				foreach (object objattr in method.GetCustomAttributes(typeof(ManagerFactoryAttribute), false))
 				{
 					ManagerFactoryAttribute attr = objattr as ManagerFactoryAttribute;
 					creators[attr.CmdLineName.ToLower()] = method;
+
+					if (normalName == null)
+						normalName = attr.CmdLineName;
+
+					normalNames[attr.CmdLineName.ToLower()] = normalName;
 				}
 			}
 		}
+
 		public static void SetConfig(decimal readcost, decimal writecost)
 		{
 			ReadCost = readcost;
@@ -40,28 +48,37 @@ namespace Buffers
 		}
 
 
-		public static IBlockDevice CreateDevice(RunModeInfo mode)
+		public static IBlockDevice CreateDevice(RunModeInfo mode, string algostring)
 		{
 			switch (mode.Mode)
 			{
 				case RunMode.Verify:
 					return new MemorySimulatedDevice(1);
+
 				case RunMode.File:
 					return new FileSimulatedDevice(PageSize,
 						(string)((object[])mode.ExtInfo)[0],
 						(bool)((object[])mode.ExtInfo)[1]);
+
 				case RunMode.Trace:
-					return null;
+					return new TraceLogDevice(
+						(string)mode.ExtInfo + "." + algostring + ".trace");
+
 				default:
 					return null;
 			}
 		}
 
-		public static IBufferManager CreateManager(IBlockDevice dev,
-			string name, uint npages, string[] args)
+		public static IBufferManager CreateManager(RunModeInfo mode,
+			AlgorithmSpec algo, uint npages)
 		{
-			return (IBufferManager)creators[name.ToLower()].Invoke(
-				null, new object[] { dev, npages, args });
+			string lowerName = algo.Name.ToLower();
+
+			string algoString = normalNames[lowerName] + algo.ArgumentString;
+			IBlockDevice dev = CreateDevice(mode, algoString);
+
+			return (IBufferManager)creators[lowerName].Invoke(
+				null, new object[] { dev, npages, algo.Arguments });
 		}
 
            

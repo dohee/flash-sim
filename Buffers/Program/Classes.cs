@@ -16,6 +16,22 @@ namespace Buffers.Program
 			Name = name;
 			Arguments = arguments;
 		}
+
+		public string ArgumentString
+		{
+			get
+			{
+				if (Arguments.Length == 0)
+					return "";
+				else
+					return "(" + string.Join(",", Arguments) + ")";
+			}
+		}
+
+		public override string ToString()
+		{
+			return Name + ArgumentString;
+		}
 	}
 
 

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Buffers.Devices
 {
-	public class FileSimulatedDevice : BlockDeviceBase, IDisposable
+	public class FileSimulatedDevice : BlockDeviceBase
 	{
 		private readonly FileStream stream;
 		private readonly uint npages;
@@ -58,27 +58,20 @@ namespace Buffers.Devices
 				this.npages = 0xFFFFFFFF;
 		}
 
-
-		#region Dispose 函数族
+		#region Derived Dispose 函数族
 		private bool _disposed_FileSimulatedDevice = false;
 
-		~FileSimulatedDevice()
-		{
-			Dispose(false);
-		}
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-		protected virtual void Dispose(bool isDisposing)
+		protected override void Dispose(bool isDisposing)
 		{
 			if (_disposed_FileSimulatedDevice)
 				return;
 
 			if (isDisposing)
-				stream.Dispose(); // 清理托管资源
+				stream.Close(); // 清理托管资源
 
+			// 清理非托管资源
+
+			base.Dispose(isDisposing);
 			_disposed_FileSimulatedDevice = true;
 		}
 		#endregion

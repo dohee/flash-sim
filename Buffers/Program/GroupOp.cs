@@ -33,9 +33,7 @@ namespace Buffers.Program
 				foreach (AlgorithmSpec algo in algorithms)
 				{
 					algoname = algo.Name;
-					group.Add(Config.CreateManager(
-						Config.CreateDevice(mode),
-						algoname, npages, algo.Arguments));
+					group.Add(Config.CreateManager(mode, algo, npages));
 				}
 				return group;
 			}

@@ -52,6 +52,7 @@
     <Compile Include="Devices\BlockDeviceBase.cs" />
     <Compile Include="Devices\FileSimulatedDevice.cs" />
     <Compile Include="Devices\MemorySimulatedDevice.cs" />
+    <Compile Include="Devices\TraceLogDevice.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Getopt\Getopt.cs" />
     <Compile Include="Getopt\LongOpt.cs" />
