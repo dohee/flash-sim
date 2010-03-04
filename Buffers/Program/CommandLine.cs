@@ -35,7 +35,7 @@ namespace Buffers.Program
 @"例：
 {0} -h
 		显示此帮助
-{0} -r 25 -w 200 -a LRU,Tn -p 150,300 trace80-20.txt
+{0} -a LRU,Tn -p 150,300 -r 25 -w 200 trace80-20.txt
 		你懂的
 {0} -a LRU,Tn -p 150,300 trace80-20.txt
 		同上，使用默认的 80/200 代价
@@ -48,7 +48,7 @@ namespace Buffers.Program
 {0} trace80-20.txt
 		同(a)，算法是默认的 TrivalManager
 {0}
-		没参数，其实是同上，使用标准输入作为 trace
+		没参数；其实是同上，使用标准输入作为 trace
 {0} -a LRU,Tn -c trace80-20.txt
 		同(a)，带数据校验。PageID 不能太大，否则内存不足
 {0} -a LRU,Tn -t path/trace/prefix trace80-20.txt
