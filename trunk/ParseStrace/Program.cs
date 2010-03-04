@@ -21,9 +21,8 @@ namespace ParseStrace
 		static void Main(string[] args)
 		{
 			IOItemFormatter formatter = null;
-			FileStream input = null;
+			StreamReader input = null;
 			TextWriter output = null;
-			StreamReader inputreader = null;
 
 			try
 			{
@@ -37,15 +36,14 @@ namespace ParseStrace
 				formatter = new IOItemVerboseFormatter(output, pids);
 				formatter.PhaseBefore(new FormatterInfo(infile));
 
-				inputreader = new StreamReader(input);
-				ProceedFile(inputreader, formatter.PhaseOne);
+				ProceedFile(input, formatter.PhaseOne);
 
 				Console.Error.WriteLine("Phase 2:");
 				formatter.PhaseBetween();
 
-				inputreader.DiscardBufferedData();
-				inputreader.BaseStream.Seek(0, SeekOrigin.Begin);
-				ProceedFile(inputreader, formatter.PhaseTwo);
+				input.DiscardBufferedData();
+				input.BaseStream.Seek(0, SeekOrigin.Begin);
+				ProceedFile(input, formatter.PhaseTwo);
 
 				formatter.PhaseAfter();
 			}
@@ -59,15 +57,22 @@ namespace ParseStrace
 		}
 
 		static void ProcessArguments(string infile, string outfile, string pidfile,
-			ref int[] pids, out FileStream input, out TextWriter output)
+			ref int[] pids, out StreamReader input, out TextWriter output)
 		{
-			const int bufferSize = 8 * 1024 * 1024;
-			input = new FileStream(infile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize);
+			const int bufferSize = 1 * 1024 * 1024;
+
+			input = new StreamReader(new FileStream(
+				infile, FileMode.Open, FileAccess.Read, FileShare.Read,
+				bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan),
+				Encoding.Default, true, bufferSize);
 
 			if (outfile == null)
 				output = Console.Out;
 			else
-				output = new StreamWriter(outfile, false, Encoding.Default, bufferSize);
+				output = new StreamWriter(new FileStream(
+					outfile, FileMode.Create, FileAccess.Write, FileShare.Read,
+					bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan),
+					Encoding.Default, bufferSize);
 
 			if (pidfile != null)
 			{

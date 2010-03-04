@@ -2,7 +2,7 @@
 
 namespace Buffers
 {
-	public interface IBlockDevice
+	public interface IBlockDevice : IDisposable
 	{
 		string Name { get; }
 		string Description { get; }

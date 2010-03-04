@@ -15,6 +15,28 @@ namespace Buffers.Managers
 		public ManagerGroup(bool verifyRead)
 			: base(null, 0) { this.verifyRead = verifyRead; }
 
+		#region Derived Dispose 函数族
+		private bool _disposed_ManagerGroup = false;
+
+		protected override void Dispose(bool isDisposing)
+		{
+			if (_disposed_ManagerGroup)
+				return;
+
+			if (isDisposing) // 清理托管资源
+			{
+				DoFlush();
+				foreach (var mgr in mgrs)
+					mgr.Dispose();
+			}
+
+			// 清理非托管资源
+
+			base.Dispose(isDisposing);
+			_disposed_ManagerGroup = true;
+		}
+		#endregion
+
 		public int Count { get { return mgrs.Count; } }
 		public IBufferManager this[int index] { get { return mgrs[index]; } }
 		public IEnumerator<IBufferManager> GetEnumerator() { return mgrs.GetEnumerator(); }

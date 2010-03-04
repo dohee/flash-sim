@@ -5,7 +5,7 @@ using Buffers.Memory;
 
 namespace Buffers.Managers
 {
-	public abstract class BufferManagerBase : BlockDeviceBase, IBufferManager, IDisposable
+	public abstract class BufferManagerBase : BlockDeviceBase, IBufferManager
 	{
 		protected IBlockDevice dev;
 		protected readonly Pool pool;
@@ -58,25 +58,23 @@ namespace Buffers.Managers
 			this.pool = (npages == 0 ? null : new Pool(npages, dev.PageSize, OnPoolFull));
 		}
 
-		#region Dispose 函数族
+		#region Derived Dispose 函数族
 		private bool _disposed_BufferManagerBase = false;
 
-		~BufferManagerBase()
-		{
-			Dispose(false);
-		}
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-		protected virtual void Dispose(bool isDisposing)
+		protected override void Dispose(bool isDisposing)
 		{
 			if (_disposed_BufferManagerBase)
 				return;
 
-			DoFlush(); // 清理非托管资源
+			if (isDisposing) // 清理托管资源
+			{
+				DoFlush();
+				dev.Dispose();
+			}
 
+			// 清理非托管资源
+
+			base.Dispose(isDisposing);
 			_disposed_BufferManagerBase = true;
 		}
 		#endregion

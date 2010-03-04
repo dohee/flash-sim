@@ -91,7 +91,10 @@ namespace Buffers.Program
 			finally
 			{
 				if (group != null)
+				{
 					GenerateOutput(group, Console.Out);
+					group.Dispose();
+				}
 				if (reader != null)
 					reader.Dispose();
 			}
@@ -107,7 +110,10 @@ namespace Buffers.Program
 			else
 			{
 				Console.WriteLine("Reading trace from file '{0}'...", filename);
-				return new StreamReader(filename, Encoding.Default, true, 8 * 1024 * 1024);
+				return new StreamReader(new FileStream(
+					filename, FileMode.Open, FileAccess.Read, FileShare.Read,
+					1024 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan),
+					Encoding.Default, true, 1024 * 1024);
 			}
 		}
 
