@@ -74,7 +74,7 @@
     <Compile Include="Memory\FrameWithRWInfo.cs" />
     <Compile Include="Memory\IFrame.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="Devices\TrivalBlockDevice.cs" />
+    <Compile Include="Devices\NullBlockDevice.cs" />
     <Compile Include="Managers\BufferManagerBase.cs" />
     <Compile Include="Managers\CMFT-ByLyf.cs" />
     <Compile Include="Managers\QueueAndFrameBased\CMFT-ByCat.cs" />

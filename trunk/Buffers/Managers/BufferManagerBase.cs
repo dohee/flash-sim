@@ -54,7 +54,7 @@ namespace Buffers.Managers
 
 		public BufferManagerBase(IBlockDevice device, uint npages)
 		{
-			this.dev = (device == null ? new TrivalBlockDevice() : device);
+			this.dev = (device == null ? new NullBlockDevice() : device);
 			this.pool = (npages == 0 ? null : new Pool(npages, dev.PageSize, OnPoolFull));
 		}
 

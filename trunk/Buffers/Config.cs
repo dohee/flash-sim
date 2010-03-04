@@ -65,7 +65,7 @@ namespace Buffers
 						(string)mode.ExtInfo + "." + algostring + ".trace");
 
 				default:
-					return null;
+					return new NullBlockDevice();
 			}
 		}
 
