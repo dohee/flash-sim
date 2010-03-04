@@ -25,4 +25,11 @@ namespace Buffers
 		protected InvalidCmdLineArgumentException(SerializationInfo info, StreamingContext context)
 			: base(info, context) { }
 	}
+
+	[global::System.Serializable]
+	public class CmdLineHelpException : InvalidCmdLineArgumentException
+	{
+		public CmdLineHelpException() { }
+		protected CmdLineHelpException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+	}
 }
