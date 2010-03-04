@@ -33,6 +33,7 @@ namespace Buffers.Program
 		Normal,
 		Verify,
 		File,
+		Trace,
 	}
 
 	struct RunModeInfo

@@ -10,11 +10,10 @@ namespace Buffers.Program
 		public static void ShowUsage()
 		{
 			Console.Error.WriteLine(
-@"Usage: {0} [-r <ReadCost>] [-w <WriteCost>] [-c]
-         -a <Algorithm>[,<Algorithm2>[,...]]
-         -p <NPages>[,<NPages2>[,...]]
+@"Usage: {0} [-r <ReadCost>] [-w <WriteCost>] [-c]/[-s <TraceLog>]
+         -a <Algorithm>[,<Algorithm2>[,...]] -p <NPages>[,<NPages2>[,...]]
          [<TraceFile>]
-       {0} [-r <ReadCost>] [-w <WriteCost>] -f <FileToOperate>
+       {0} [-r <ReadCost>] [-w <WriteCost>] -f/-F <FileToOperate>
          -a <Algorithm> -p <NPages>
          [<TraceFile>]",
 				Utils.GetProgramName());
@@ -29,13 +28,14 @@ namespace Buffers.Program
 			writeCost = 200;
 			npageses = new uint[] { 1024 };
 
-			bool verify = false, fileop = false;
-			string opfilename = null;
+			bool verify = false, tracelog = false;
+			bool fileop = false, fileopWithoutCheckSize = false;
+			string opfilename = null, tracelogfile = null;
 			Regex regexAlgo = new Regex(@"(\w+)(?:\(([^)]+)\))?");
 			List<AlgorithmSpec> algos = new List<AlgorithmSpec>();
 
 			// Parse
-			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cf:p:r:w:");
+			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cf:F:p:r:s:w:");
 			g.Opterr = false;
 			int c;
 
@@ -62,6 +62,13 @@ namespace Buffers.Program
 
 					case 'f':
 						fileop = true;
+						fileopWithoutCheckSize = true;
+						opfilename = g.Optarg;
+						break;
+
+					case 'F':
+						fileop = true;
+						fileopWithoutCheckSize = false;
 						opfilename = g.Optarg;
 						break;
 
@@ -82,6 +89,11 @@ namespace Buffers.Program
 						if (!decimal.TryParse(g.Optarg, out readCost) || readCost <= 0)
 							throw new InvalidCmdLineArgumentException(
 								"A positive integer is expected after -r");
+						break;
+
+					case 's':
+						tracelog = true;
+						tracelogfile = g.Optarg;
 						break;
 
 					case 'w':
@@ -121,11 +133,20 @@ namespace Buffers.Program
 
 			if (verify && fileop)
 				throw new InvalidCmdLineArgumentException(
-					"Cannot specify both -c and -f");
+					"Cannot specify both -c and -f/-F");
+			else if (verify && tracelog)
+				throw new InvalidCmdLineArgumentException(
+					"Cannot specify both -c and -s");
+			else if (fileop && tracelog)
+				throw new InvalidCmdLineArgumentException(
+					"Cannot specify both -s and -f/-F");
 			else if (verify)
 				mode = new RunModeInfo(RunMode.Verify, null);
 			else if (fileop)
-				mode = new RunModeInfo(RunMode.File, opfilename);
+				mode = new RunModeInfo(RunMode.File, new object[] {
+					opfilename, fileopWithoutCheckSize });
+			else if (tracelog)
+				mode = new RunModeInfo(RunMode.Trace, tracelogfile);
 			else
 				mode = new RunModeInfo(RunMode.Normal, null);
 		}
