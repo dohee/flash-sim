@@ -134,7 +134,7 @@ namespace Buffers.Program
 		{
 			long lineCount = Interlocked.Read(ref processedLineCount);
 			TimeSpan span = DateTime.Now - oldTime;
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new StringBuilder(100);
 
 			if (carrage)
 				sb.Append('\r');
