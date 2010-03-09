@@ -134,17 +134,17 @@ namespace Buffers.Program
 		{
 			long lineCount = Interlocked.Read(ref processedLineCount);
 			TimeSpan span = DateTime.Now - oldTime;
+			StringBuilder sb = new StringBuilder();
 
 			if (carrage)
-				writer.Write('\r');
+				sb.Append('\r');
 
-			Utils.PushColor(ConsoleColor.Green);
-			writer.Write("Line " + lineCount);
+			sb.Append("Line " + lineCount);
 
 			if (totalLineCount != 0)
-				writer.Write("/{0}", totalLineCount, (float)lineCount / totalLineCount);
+				sb.AppendFormat("/{0}", totalLineCount, (float)lineCount / totalLineCount);
 
-			writer.Write(". Time " + Utils.FormatSpan(span));
+			sb.Append(". Time " + Utils.FormatSpan(span));
 
 			if (totalLineCount != 0)
 			{
@@ -156,10 +156,14 @@ namespace Buffers.Program
 				else
 					totalstr = "[N/A]";
 
-				writer.Write("/{0} ({1:P})", totalstr, (float)lineCount / totalLineCount);
+				sb.AppendFormat("/{0} ({1:P})", totalstr, (float)lineCount / totalLineCount);
 			}
 
-			writer.Write("    ");
+			sb.AppendFormat("    ");
+			string str = sb.ToString();
+
+			Utils.PushColor(ConsoleColor.Green);
+			writer.Write(str);
 			writer.Flush();
 			Utils.PopColor();
 		}
