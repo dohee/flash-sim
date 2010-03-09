@@ -20,11 +20,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		size_t address = zipfGenerator.get();
 		int size = 1;
-		int dirty =1;
+		//int dirty =1;
 
 		//int dirty = (int)((address>400)&&(((double)rand()/ RAND_MAX<0.75));// || ((address<500)&&((double)rand()/ RAND_MAX<0.1)));
 		//int dirty = (int)(rand()%8<address%8)/2;//*(int)((double)rand()/ RAND_MAX  < (double)address/pageNumber);
-		if(getRandom()<0.5)
+		/*if(getRandom()<0.5)
 		{
 			dirty=0;
 			address=(int)(getRandom()*200);
@@ -33,8 +33,18 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			dirty=1;
 			address=(int)(getRandom()*300)+200;
+		}*/
+		
+		//int dirty = (int)(rand()%8<(address%8)/2);
+		int dirty = (int)(getRandom()<(double)(address%8)/10.0);
+		/*if (getRandom()< sin((double)address*3.14/pageNumber))
+		{
+			dirty=1;
 		}
-			
+		else
+		{
+			dirty=0;
+		}*/
 
 		cout<<address<<"\t"<<size<<"\t"<<dirty<<endl;
 		if (address<200) counter++;
