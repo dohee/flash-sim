@@ -139,35 +139,27 @@ namespace Buffers.Program
 				writer.Write('\r');
 
 			Utils.PushColor(ConsoleColor.Green);
-			writer.Write("Processed " + lineCount);
+			writer.Write("Line " + lineCount);
 
 			if (totalLineCount != 0)
-				writer.Write("/{0} ({1:P})", totalLineCount, (float)processedLineCount / totalLineCount);
+				writer.Write("/{0}", totalLineCount, (float)lineCount / totalLineCount);
 
-			writer.Write(". Elapsed " + Utils.FormatSpan(span));
+			writer.Write(". Time " + Utils.FormatSpan(span));
 
 			if (totalLineCount != 0)
 			{
-				string remainstr;
+				string totalstr;
 
 				if (lineCount != 0)
-				{
-					TimeSpan total = new TimeSpan((long)(span.Ticks * ((float)totalLineCount / lineCount)));
-					TimeSpan remain = total - span;
-					if (remain.Ticks < 0)
-						remain = new TimeSpan(0);
-
-					remainstr = Utils.FormatSpan(remain);
-				}
+					totalstr = Utils.FormatSpan(new TimeSpan(
+						(long)(span.Ticks * ((float)totalLineCount / lineCount))));
 				else
-				{
-					remainstr = "[N/A]";
-				}
+					totalstr = "[N/A]";
 
-				writer.Write(", remaining {0}", remainstr);
+				writer.Write("/{0} ({1:P})", totalstr, (float)lineCount / totalLineCount);
 			}
 
-			writer.Write("          ");
+			writer.Write("    ");
 			writer.Flush();
 			Utils.PopColor();
 		}
