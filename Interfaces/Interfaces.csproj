@@ -40,6 +40,7 @@
     <Compile Include="IBufferManager.cs" />
     <Compile Include="AccessType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IErasableDevice.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

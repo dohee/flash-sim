@@ -50,8 +50,11 @@
   <ItemGroup>
     <Compile Include="Attributes.cs" />
     <Compile Include="Devices\BlockDeviceBase.cs" />
+    <Compile Include="Devices\ErasableDeviceBase.cs" />
     <Compile Include="Devices\FileSimulatedDevice.cs" />
     <Compile Include="Devices\MemorySimulatedDevice.cs" />
+    <Compile Include="Devices\EEPROMBase.cs" />
+    <Compile Include="Devices\NullEEPROM.cs" />
     <Compile Include="Devices\TraceLogDevice.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Getopt\Getopt.cs" />
