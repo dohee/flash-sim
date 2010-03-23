@@ -3,50 +3,9 @@ using System.Collections.Generic;
 
 namespace Buffers.Utilities
 {
-	sealed class SparseArray<T> : IEnumerable<T>
+	sealed class SparseArray<T> : SparseArrayBase, IEnumerable<T>
 	{
-		public static readonly int HighPartLength = 1 << 14;
-		public static readonly int LowPartLength = 1 << 18;				
 		private T[][] array = new T[HighPartLength][];
-
-		public SparseArray()
-		{
-			LowerBound = uint.MaxValue;
-			UpperBound = uint.MinValue;
-		}
-
-		public uint LowerBound { get; private set; }
-		public uint UpperBound { get; private set; }
-
-
-		private void _CheckRange(int high, int low)
-		{
-			if (high < 0 || high > HighPartLength)
-				throw new ArgumentOutOfRangeException("high");
-			if (low < 0 || low > LowPartLength)
-				throw new ArgumentOutOfRangeException("low");
-		}
-		private void _CalcRange(uint index, int count,
-			out int fromhigh, out int fromlow, out int tohigh, out int tolow)
-		{
-			fromhigh = (int)(index / (uint)LowPartLength);
-			fromlow = (int)(index % LowPartLength);
-
-			index += (uint)count;
-			tohigh = (int)(index / (uint)LowPartLength);
-			tolow = (int)(index % LowPartLength);
-		}
-		private void _UpdateBounds(uint index)
-		{
-			LowerBound = Math.Min(LowerBound, index);
-			UpperBound = Math.Max(UpperBound, index);
-		}
-		private void _UpdateBounds(int high, int low)
-		{
-			uint index = (uint)high * (uint)LowPartLength + (uint)low;
-			_UpdateBounds(index);
-		}
-
 
 		private T _GetNoCheck(int high, int low)
 		{
@@ -81,27 +40,40 @@ namespace Buffers.Utilities
 		private void _SetWithinOne(T[] buffer, int offset, int high, int lowstart, int count)
 		{
 			_UpdateBounds(high, lowstart);
-			_UpdateBounds(high, lowstart + count);
+			_UpdateBounds(high, lowstart + count - 1);
+			int i;
 
-			if (array[high] == null)
-				array[high] = new T[LowPartLength];
+			for (i = 0; i < count; i++)
+			{
+				lowstart++;
+				T value = buffer[offset++];
 
-			T[] subarray = array[high];
+				if (value != null && !value.Equals(default(T)))
+					break;
+			}
 
-			for (int i = 0; i < count; i++)
-				subarray[lowstart++] = buffer[offset++];
+			if (i != count)
+			{
+				if (array[high] == null)
+					array[high] = new T[LowPartLength];
+
+				T[] subarray = array[high];
+
+				for (; i < count; i++)
+					subarray[lowstart++] = buffer[offset++];
+			}
 		}
 
 		public T this[int high, int low]
 		{
 			get
 			{
-				_CheckRange(high, low);
+				_CheckArgument(high, low);
 				return _GetNoCheck(high, low);
 			}
 			set
 			{
-				_CheckRange(high, low);
+				_CheckArgument(high, low);
 				_SetNoCheck(high, low, value);
 			}
 		}
@@ -121,7 +93,7 @@ namespace Buffers.Utilities
 
 		public T[] GetArray(int high)
 		{
-			_CheckRange(high, 0);
+			_CheckArgument(high, 0);
 			return array[high];
 		}
 		public void GetBlock(T[] buffer, int offset, uint index, int count)
@@ -173,22 +145,18 @@ namespace Buffers.Utilities
 
 
 		#region IEnumerable<T> 成员
-
 		public IEnumerator<T> GetEnumerator()
 		{
-			for (uint i = LowerBound; i < UpperBound; i++)			
-				yield return this[i];			
+			for (uint i = LowerBound; i <= UpperBound; i++)
+				yield return this[i];
 		}
-
 		#endregion
 
 		#region IEnumerable 成员
-
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
 			return this.GetEnumerator();
 		}
-
-		#endregion
+		#endregion	}
 	}
 }
