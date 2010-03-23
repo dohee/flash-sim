@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using Buffers.Utilities;
 
 namespace Buffers.Devices
 {

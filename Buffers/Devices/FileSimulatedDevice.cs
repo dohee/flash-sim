@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Buffers.Utilities;
 
 #if! __MonoCS__
 using System.Runtime.InteropServices;

@@ -106,7 +106,8 @@
     <Compile Include="Queues\Old\QueueBase.cs" />
     <Compile Include="Queues\Old\QueueNode.cs" />
     <Compile Include="Program\GroupAccessor.cs" />
-    <Compile Include="Utils.cs" />
+    <Compile Include="Utils\Utilities.cs" />
+    <Compile Include="Utils\UnmanagedFileIO.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
