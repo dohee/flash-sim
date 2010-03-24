@@ -43,10 +43,9 @@ namespace Buffers.Utilities
 			_UpdateBounds(high, lowstart + count - 1);
 			int i;
 
-			for (i = 0; i < count; i++)
+			for (i = 0; i < count; i++, lowstart++, offset++)
 			{
-				lowstart++;
-				T value = buffer[offset++];
+				T value = buffer[offset];
 
 				if (value != null && !value.Equals(default(T)))
 					break;
