@@ -32,6 +32,14 @@ namespace Buffers.Devices
 				universalPageId >> BlockSizeBit,
 				(ushort)(universalPageId & (BlockSize - 1)));
 		}
+		protected uint ToBlockId(uint universalPageId)
+		{
+			return universalPageId >> BlockSizeBit;
+		}
+		protected ushort ToPageIdInBlock(uint universalPageId)
+		{
+			return (ushort)(universalPageId & (BlockSize - 1));
+		}
 		protected uint ToUniversalPageId(uint blockid, ushort pageid)
 		{
 			Debug.Assert((pageid & (BlockSize - 1)) == pageid);

@@ -121,28 +121,28 @@ namespace BuffersTest
 			Assert.IsNotNull(t.array[7]);
 		}
 		[TestMethod()]
-		[ExpectedException(typeof(IndexOutOfRangeException))]
+		[ExpectedException(typeof(ArgumentOutOfRangeException))]
 		public void ItemExcpTest1()
 		{
 			var t = CreateInt();
 			t[10, SparseArray<int>.LowPartLength] = 10;
 		}
 		[TestMethod()]
-		[ExpectedException(typeof(IndexOutOfRangeException))]
+		[ExpectedException(typeof(ArgumentOutOfRangeException))]
 		public void ItemExcpTest2()
 		{
 			var t = CreateInt();
 			t[2, -1] = 10;
 		}
 		[TestMethod()]
-		[ExpectedException(typeof(IndexOutOfRangeException))]
+		[ExpectedException(typeof(ArgumentOutOfRangeException))]
 		public void ItemExcpTest3()
 		{
 			var t = CreateInt();
 			t[-1, 10] = 10;
 		}
 		[TestMethod()]
-		[ExpectedException(typeof(IndexOutOfRangeException))]
+		[ExpectedException(typeof(ArgumentOutOfRangeException))]
 		public void ItemExcpTest4()
 		{
 			var t = CreateInt();
