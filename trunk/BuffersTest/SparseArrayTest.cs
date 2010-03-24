@@ -1,4 +1,5 @@
-﻿using Buffers.Utilities;
+﻿using System;
+using Buffers.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BuffersTest
@@ -96,11 +97,12 @@ namespace BuffersTest
 		}
 		#endregion
 
+		#region Item
 		[TestMethod()]
 		public void ItemTest()
 		{
 			var t = CreateInt();
-
+			
 			uint lowlength = (uint)SparseArray_Accessor<int>.LowPartLength;
 			Assert.AreEqual(0, t[0, 0]);
 			Assert.AreEqual(0, t[0]);
@@ -118,13 +120,43 @@ namespace BuffersTest
 			Assert.IsNull(t.array[5]);
 			Assert.IsNotNull(t.array[7]);
 		}
+		[TestMethod()]
+		[ExpectedException(typeof(IndexOutOfRangeException))]
+		public void ItemExcpTest1()
+		{
+			var t = CreateInt();
+			t[10, SparseArray<int>.LowPartLength] = 10;
+		}
+		[TestMethod()]
+		[ExpectedException(typeof(IndexOutOfRangeException))]
+		public void ItemExcpTest2()
+		{
+			var t = CreateInt();
+			t[2, -1] = 10;
+		}
+		[TestMethod()]
+		[ExpectedException(typeof(IndexOutOfRangeException))]
+		public void ItemExcpTest3()
+		{
+			var t = CreateInt();
+			t[-1, 10] = 10;
+		}
+		[TestMethod()]
+		[ExpectedException(typeof(IndexOutOfRangeException))]
+		public void ItemExcpTest4()
+		{
+			var t = CreateInt();
+			t[SparseArray<int>.HighPartLength, 10] = 10;
+		}
+		#endregion
 
+		#region SetBlock
 		[TestMethod()]
 		public void SetBlockTest()
 		{
 			var t = CreateInt();
+			uint lowlength = (uint)SparseArray_Accessor<uint>.LowPartLength;
 
-			uint lowlength = (uint)SparseArray_Accessor<int>.LowPartLength;
 			Assert.AreEqual(0, t[9, (int)(lowlength - 1)]);
 			Assert.AreEqual(0, t[9 * lowlength + lowlength - 1]);
 			Assert.AreEqual(30, t[10, 0]);
@@ -140,16 +172,22 @@ namespace BuffersTest
 			Assert.IsNotNull(t.array[12]);
 			Assert.IsNull(t.array[13]);
 		}
+		#endregion
 
+		#region LowerBound & UpperBound
 		[TestMethod()]
 		public void BoundsTest()
 		{
-			BoundsTestHelper<GenericParameterHelper>();
+			BoundsTestHelper(CreateInt());
+			BoundsTestHelper(CreateGeneric());
 		}
-		public void BoundsTestHelper<T>()
+		public void BoundsTestHelper<T>(SparseArray_Accessor<T> t)
 		{
+			uint lowlength = (uint)SparseArray_Accessor<T>.LowPartLength;
+			Assert.AreEqual<uint>(t.LowerBound, 5 * lowlength + 5);
+			Assert.AreEqual<uint>(t.UpperBound, 13 * lowlength + 100 - 1);
 		}
-
+		#endregion
 
 	}
 }
