@@ -20,9 +20,9 @@ namespace Buffers.Utilities
 		protected void _CheckArgument(int high, int low)
 		{
 			if (high < 0 || high >= HighPartLength)
-				throw new IndexOutOfRangeException("high");
+				throw new ArgumentOutOfRangeException("high");
 			if (low < 0 || low >= LowPartLength)
-				throw new IndexOutOfRangeException("low");
+				throw new ArgumentOutOfRangeException("low");
 		}
 		protected void _CalcRange(uint index, int count,
 			out int fromhigh, out int fromlow, out int tohigh, out int tolow)
