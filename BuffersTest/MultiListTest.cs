@@ -10,6 +10,7 @@ namespace BuffersTest
 	///这是 MultiListTest 的测试类，旨在
 	///包含所有 MultiListTest 单元测试
 	///</summary>
+	[DeploymentItem("Buffers.exe")]
 	[TestClass()]
 	public class MultiListTest
 	{

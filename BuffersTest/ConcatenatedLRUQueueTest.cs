@@ -12,7 +12,8 @@ namespace BuffersTest
 	///这是 ConcatenatedQueueTest 的测试类，旨在
 	///包含所有 ConcatenatedQueueTest 单元测试
 	///</summary>
-	[TestClass()]
+	//[TestClass()]
+	[DeploymentItem("Buffers.exe")]
 	public class ConcatenatedLRUQueueTest
 	{
 		private TestContext testContextInstance;
