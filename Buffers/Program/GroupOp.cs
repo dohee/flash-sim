@@ -59,7 +59,7 @@ namespace Buffers.Program
 			info.Name = new string(' ', level) + dev.Name;
 			info.Description = (dev.Description == null ? "" : dev.Description);
             //........lyf.......
-            dev = mgr.AssociatedDevice;
+            dev = mgr.BaseDevice;
 
 			info.Read = dev.ReadCount;
 			info.Write = dev.WriteCount;
@@ -91,7 +91,7 @@ namespace Buffers.Program
 			MemoryStream[] streams = new MemoryStream[group.Count];
 
 			for (int i = 0; i < streams.Length; i++)
-				streams[i] = (group[i].AssociatedDevice as MemorySimulatedDevice).Stream;
+				streams[i] = (group[i].BaseDevice as MemorySimulatedDevice).Stream;
 
 
 			long length0 = streams[0].Length;

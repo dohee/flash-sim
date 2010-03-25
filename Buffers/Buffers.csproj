@@ -57,6 +57,9 @@
     <Compile Include="Devices\NullEEPROM.cs" />
     <Compile Include="Devices\TraceLogDevice.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="FTL\FTLBase.cs" />
+    <Compile Include="FTL\SimpleLogPageFTL.cs" />
+    <Compile Include="FTL\TrivalFTL.cs" />
     <Compile Include="Getopt\Getopt.cs" />
     <Compile Include="Getopt\LongOpt.cs" />
     <Compile Include="Managers\CRAW.cs" />

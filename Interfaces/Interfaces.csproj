@@ -37,8 +37,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IBlockDevice.cs" />
+    <Compile Include="IBlockDeviceWithBase.cs" />
     <Compile Include="IBufferManager.cs" />
     <Compile Include="AccessType.cs" />
+    <Compile Include="IFTL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IErasableDevice.cs" />
   </ItemGroup>

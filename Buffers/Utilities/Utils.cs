@@ -8,9 +8,17 @@ namespace Buffers.Utilities
 {
 	static class Utils
 	{
+		private static readonly uint[] LogTwo = new uint[32];
 		private static readonly Stack<ConsoleColor> clrstack = new Stack<ConsoleColor>();
-		private static string progname = null;
 
+		static Utils()
+		{
+			string[] parts = Environment.GetCommandLineArgs()[0].Split('\\', '/');
+			ProgramName = parts[parts.Length - 1];
+
+			for (int i = 0; i < LogTwo.Length; i++)
+				LogTwo[i] = (uint)1 << i;
+		}
 
 		public static bool ArrayEqual<T>(T[] array, T[] another)
 		{
@@ -29,15 +37,20 @@ namespace Buffers.Utilities
 		public static void EmitErrMsg(string message)
 		{
 			PushColor(ConsoleColor.Red);
-			Console.Error.WriteLine("{0}: {1}", GetProgramName(), message);
+			Console.Error.WriteLine("{0}: {1}", ProgramName, message);
 			PopColor();
 		}
 		public static void EmitErrMsg(string format, params object[] obj)
 		{
 			PushColor(ConsoleColor.White);
-			Console.Error.Write(GetProgramName() + ": ");
+			Console.Error.Write(ProgramName + ": ");
 			Console.Error.WriteLine(format, obj);
 			PopColor();
+		}
+
+		public static sbyte ExpToLogTwo(uint number)
+		{
+			return (sbyte)Array.BinarySearch<uint>(LogTwo, number);
 		}
 
 		public static int FindDiff<T>(T[] array, T[] another)
@@ -77,27 +90,22 @@ namespace Buffers.Utilities
 				(int)ts.TotalHours, ts.Minutes, ts.Seconds, ts.Milliseconds);
 		}
 
-		public static string GetProgramName()
-		{
-			if (progname == null)
-			{
-				string[] parts = Environment.GetCommandLineArgs()[0].Split('\\', '/');
-				progname = parts[parts.Length - 1];
-			}
-
-			return progname;
-		}
-
 		public static void PopColor()
 		{
 			Console.ForegroundColor = clrstack.Pop();
 		}
-
 		public static void PushColor(ConsoleColor newcolor)
 		{
 			clrstack.Push(Console.ForegroundColor);
 			Console.ForegroundColor = newcolor;
 		}
+
+		public static string ProgramName
+		{
+			get;
+			private set;
+		}
+
 
 	}
 

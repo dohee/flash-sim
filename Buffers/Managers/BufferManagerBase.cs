@@ -2,17 +2,19 @@
 using Buffers;
 using Buffers.Devices;
 using Buffers.Memory;
+using Buffers.Utilities;
 
 namespace Buffers.Managers
 {
 	public abstract class BufferManagerBase : BlockDeviceBase, IBufferManager
 	{
+		// 字段
 		protected IBlockDevice dev;
 		protected readonly Pool pool;
 
-		protected virtual void DoFlush() { }
+		// 子类要实现的
 		protected virtual void OnPoolFull() { }
-
+		protected virtual void DoFlush() { }
 		protected virtual void DoCascadeFlush()
 		{
 			DoFlush();
@@ -22,7 +24,7 @@ namespace Buffers.Managers
 				mgr.CascadeFlush();
 		}
 
-
+		// 可供使用的
 		protected void PerformAccess(IFrame frame, byte[] resultOrData, AccessType type)
 		{
 			if (!frame.Resident)
@@ -51,11 +53,12 @@ namespace Buffers.Managers
 			}
 		}
 
-
+		// 已实现的
 		public BufferManagerBase(IBlockDevice device, uint npages)
 		{
 			this.dev = (device == null ? new NullBlockDevice() : device);
 			this.pool = (npages == 0 ? null : new Pool(npages, dev.PageSize, OnPoolFull));
+			this.PageSize = dev.PageSize;
 		}
 
 		#region Derived Dispose 函数族
@@ -79,8 +82,7 @@ namespace Buffers.Managers
 		}
 		#endregion
 
-		public IBlockDevice AssociatedDevice { get { return dev; } }
-		public override uint PageSize { get { return dev.PageSize; } }
+		public IBlockDevice BaseDevice { get { return dev; } }
 		public int FlushCount { get; private set; }
 
 		public void Flush()
@@ -88,7 +90,7 @@ namespace Buffers.Managers
 			DoFlush();
 			FlushCount++;
 		}
-		public virtual void CascadeFlush()
+		public void CascadeFlush()
 		{
 			DoCascadeFlush();
 			FlushCount++;
