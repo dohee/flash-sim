@@ -27,7 +27,7 @@ namespace Buffers.Program
        {0} [-r <ReadCost>] [-w <WriteCost>] -f/-F <OperatingFile>
          -a <Algorithm> -p <NPages>
          [<TraceFile>]",
-				Utils.GetProgramName());
+				Utils.ProgramName);
 		}
 
 		public static void ShowHelp(TextWriter writer)
@@ -65,7 +65,7 @@ namespace Buffers.Program
 {0} -a Tn -F \\.\PHYSICALDRIVE0 trace80-20.txt
 		同上，在 Windows 下操作第一块物理磁盘。注意：一定要谨
 		慎，否则会刷坏数据！",
-				Utils.GetProgramName());
+				Utils.ProgramName);
 		}
 
 		public static void ParseArguments(string[] args, out string filename,
@@ -84,7 +84,7 @@ namespace Buffers.Program
 			List<AlgorithmSpec> algos = new List<AlgorithmSpec>();
 
 			// Parse
-			Getopt g = new Getopt(Utils.GetProgramName(), args, ":a:cf:F:hp:r:t:w:");
+			Getopt g = new Getopt(Utils.ProgramName, args, ":a:cf:F:hp:r:t:w:");
 			g.Opterr = false;
 			int c;
 

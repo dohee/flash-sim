@@ -5,6 +5,10 @@ namespace Buffers.Devices
 {
 	public abstract class BlockDeviceBase : IBlockDevice
 	{
+		// 字段
+		public uint PageSize { get; protected set; }
+
+		// 子类要实现的
 		/// <summary> 真实的读操作 </summary>
 		/// <remarks> 继承者注意：必须实现 DoRead、DoWrite 两个，
 		/// 或者 DoAccess 一个，而不能同时实现这三个 </remarks>
@@ -37,9 +41,16 @@ namespace Buffers.Devices
 		/// <remarks> 继承者注意：必须在方法结尾处调用 base.AfterWrite </remarks>
 		protected virtual void AfterWrite(uint pageid) { WriteCount++; }
 
+		// 可供使用的
+		// （无）
+
+		// 已实现的
+		public BlockDeviceBase()
+		{
+			PageSize = 0;
+		}
 		public virtual string Name { get { return this.GetType().Name; } }
 		public virtual string Description { get { return null; } }
-		public virtual uint PageSize { get; protected set; }
 		public int ReadCount { get; private set; }
 		public int WriteCount { get; private set; }
 

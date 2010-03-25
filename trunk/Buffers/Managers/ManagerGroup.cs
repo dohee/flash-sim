@@ -46,9 +46,14 @@ namespace Buffers.Managers
 		public void Add(IBufferManager mgr)
 		{
 			if (mgrs.Count == 0)
+			{
 				dev = mgr;
-			else if (dev.PageSize != mgr.PageSize)
+				PageSize = mgr.PageSize;
+			}
+			else if (PageSize != mgr.PageSize)
+			{
 				throw new ArgumentException("PageSize not uniform", "mgr");
+			}
 
 			mgrs.Add(mgr);
 		}

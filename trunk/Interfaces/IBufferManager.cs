@@ -2,12 +2,8 @@
 
 namespace Buffers
 {
-	public interface IBufferManager : IBlockDevice
+	public interface IBufferManager : IBlockDeviceWithBase
 	{
-		/// <summary> 底层的设备
-		/// </summary>
-		IBlockDevice AssociatedDevice { get; }
-
 		/// <summary> 刷操作次数
 		/// </summary>
 		int FlushCount { get; }
