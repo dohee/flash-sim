@@ -9,6 +9,7 @@ namespace Buffers.Devices
 		// 字段
 		protected readonly byte blockSizeBit;
 		protected readonly ushort blockSize;
+		protected readonly uint blockCount;
 
 		// 子类要实现的
 		/// <summary> 真实的擦除操作
@@ -22,29 +23,7 @@ namespace Buffers.Devices
 		protected virtual void AfterErase(uint blockid) { EraseCount++; }
 
 		// 可供使用的
-		protected BlockPageId ToBlockPageId(uint universalPageId)
-		{
-			return new BlockPageId(
-				universalPageId >> blockSizeBit,
-				(ushort)(universalPageId & (BlockSize - 1)));
-		}
-		protected uint ToBlockId(uint universalPageId)
-		{
-			return universalPageId >> blockSizeBit;
-		}
-		protected ushort ToPageIdInBlock(uint universalPageId)
-		{
-			return (ushort)(universalPageId & (BlockSize - 1));
-		}
-		protected uint ToUniversalPageId(uint blockid, ushort pageid)
-		{
-			Debug.Assert((pageid & (BlockSize - 1)) == pageid);
-			return (blockid << blockSizeBit) | pageid;
-		}
-		protected uint ToUniversalPageId(BlockPageId bpid)
-		{
-			return ToUniversalPageId(bpid.BlockId, bpid.PageId);
-		}
+		// （无）
 
 		// 已实现的
 		public ErasableDeviceBase(ushort blockSize)
@@ -57,6 +36,7 @@ namespace Buffers.Devices
 
 			this.blockSize = blockSize;
 			this.blockSizeBit = (byte)bit;
+			this.blockCount = (uint.MaxValue >> bit) + 1;
 		}
 		public override string Description
 		{
@@ -65,6 +45,8 @@ namespace Buffers.Devices
 				return Utils.FormatDesc("BlockSize", blockSize);
 			}
 		}
+		public ushort BlockSize { get { return blockSize; } }
+		public uint BlockCount { get { return blockCount; } }
 		public int EraseCount { get; private set; }
 		public void Erase(uint blockid)
 		{
@@ -72,19 +54,32 @@ namespace Buffers.Devices
 			DoErase(blockid);
 			AfterErase(blockid);
 		}
-		public ushort BlockSize { get { return blockSize; } }
-	}
 
-
-	public struct BlockPageId
-	{
-		public uint BlockId;
-		public ushort PageId;
-
-		public BlockPageId(uint blockid, ushort pageid)
+		public BlockPageId ToBlockPageId(uint universalPageId)
 		{
-			BlockId = blockid;
-			PageId = pageid;
+			return new BlockPageId(
+				universalPageId >> blockSizeBit,
+				(ushort)(universalPageId & (BlockSize - 1)));
 		}
+		public uint ToBlockId(uint universalPageId)
+		{
+			return universalPageId >> blockSizeBit;
+		}
+		public ushort ToPageIdInBlock(uint universalPageId)
+		{
+			return (ushort)(universalPageId & (BlockSize - 1));
+		}
+		public uint ToUniversalPageId(uint blockid, ushort pageid)
+		{
+			Debug.Assert((pageid & (BlockSize - 1)) == pageid);
+			return (blockid << blockSizeBit) | pageid;
+		}
+		public uint ToUniversalPageId(BlockPageId bpid)
+		{
+			return ToUniversalPageId(bpid.BlockId, bpid.PageId);
+		}
+
 	}
+
+
 }
