@@ -16,7 +16,7 @@ namespace Buffers.Managers
 		public LRU(IBlockDevice dev, uint npages)
 			: base(dev, npages) { }
 
-		public override string Description { get { return Utils.FormatDescription("NPages", pool.NPages); } }
+		public override string Description { get { return Utils.FormatDesc("NPages", pool.NPages); } }
 
 		protected override void OnPoolFull()
 		{

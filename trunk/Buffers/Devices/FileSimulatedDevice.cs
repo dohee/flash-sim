@@ -104,7 +104,7 @@ namespace Buffers.Devices
 		{
 			get
 			{
-				return Utils.FormatDescription("PageSize", PageSize,
+				return Utils.FormatDesc("PageSize", PageSize,
 					"Path", stream.Name, "NPages", npages);
 			}
 		}

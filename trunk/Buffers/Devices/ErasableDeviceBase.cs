@@ -62,7 +62,7 @@ namespace Buffers.Devices
 		{
 			get
 			{
-				return Utils.FormatDescription("BlockSize", blockSize);
+				return Utils.FormatDesc("BlockSize", blockSize);
 			}
 		}
 		public int EraseCount { get; private set; }

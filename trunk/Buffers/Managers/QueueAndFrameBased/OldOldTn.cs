@@ -70,7 +70,7 @@ namespace Buffers.Managers
 		{
 			get
 			{
-				return Utils.FormatDescription("NPages", pool.NPages,
+				return Utils.FormatDesc("NPages", pool.NPages,
 						"KickN", kickn,
 						"AdjustDR", conf.AdjustDRWhenReadInDR ? 1 : 0,
 						"EnlargeCR", conf.EnlargeCRWhenReadInDNR ? 1 : 0,
