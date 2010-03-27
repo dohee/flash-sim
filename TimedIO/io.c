@@ -12,7 +12,54 @@ enum Actions {
 	ActionNone, ActionRead, ActionWrite, ActionCreate,
 };
 
-const char *g_progname;
+
+const int BUFSIZE = 1024*1024*128;
+const char *g_progname = NULL;
+char *g_buf = NULL;
+//struct timeval g_startTime, g_endTime;
+int g_reqcount = 0, g_wrapcount = 0;
+
+
+void Usage()
+{
+	fprintf(stderr, "Usage: %s <File> read|write seq|rnd <TimePeriod> <ReqSize>\n"
+					"       %s <File> create <Size>\n",
+		g_progname, g_progname);
+
+	exit(1);
+}
+void Error(int r, const char *msg)
+{
+	fprintf(stderr, "%s: %s. Return value: %d\n", g_progname, msg, r);
+	exit(-r);
+}
+
+void OutputStats()
+{
+	printf("ReqCount: %d\nWrapCount: %d\n",
+		g_reqcount, g_wrapcount);
+}
+
+void Init(char *argv[])
+{
+	g_progname = argv[0];
+
+	int r;
+	if ((r = atexit(OutputStats)) < 0)
+		Error(r, "atexit failed");
+}
+void InitBuffer(int size)
+{
+	if (size > BUFSIZE)
+		size = BUFSIZE;
+	
+	g_buf = malloc(size); 
+	srand(time(NULL));
+	int i;
+
+	for (i=0; i<size; ++i)
+		g_buf[i] = (char)rand();
+}
 
 long long ParseSize(const char *str)
 {
@@ -27,7 +74,6 @@ long long ParseSize(const char *str)
 
 	return size;
 }
-
 int ParseArguments(int argc, char *argv[], int echo,
 	const char **filename, enum Actions *action, int *rand,
 	int *timeperiod, long long *reqsize, long long *size)
@@ -51,7 +97,7 @@ int ParseArguments(int argc, char *argv[], int echo,
 		*size = ParseSize(argv[3]);
 
 		if (echo)
-			printf("# File = %s\n# Action = Create\n# Size = %lld bytes\n",
+			printf("File = %s\nAction = Create\nSize = %lld bytes\n",
 				*filename, *size);
 
 	} else {
@@ -66,7 +112,7 @@ int ParseArguments(int argc, char *argv[], int echo,
 		*reqsize = ParseSize(argv[5]);
 
 		if (echo)
-			printf("# File = %s\n# Action = %s\n# Ramdon = %d\n# TimePeriod = %d sec\n# ReqSize = %lld bytes\n",
+			printf("File = %s\nAction = %s\nRamdon = %d\nTimePeriod = %d sec\nReqSize = %lld bytes\n",
 				*filename, (*action==ActionRead ? "Read":"Write"),
 				*rand, *timeperiod, *reqsize);
 	}
@@ -74,25 +120,10 @@ int ParseArguments(int argc, char *argv[], int echo,
 	return 0;
 }
 
-void Usage()
-{
-	fprintf(stderr, "Usage: %s <File> read|write seq|rnd <TimePeriod> <ReqSize>\n"
-					"       %s <File> create <Size>\n",
-		g_progname, g_progname);
-
-	exit(1);
-}
-
-void Error(int r, const char *msg)
-{
-	fprintf(stderr, "%s: %s\n", g_progname, msg);
-	exit(-r);
-}
-
 
 int FileCreate(const char *filename, long long size)
 {
-	int r, i; long lr; long long j;
+	int r; long lr; long long j;
 	int fd;
 
 	if ((r = open(filename, O_WRONLY|O_CREAT|O_TRUNC, 0666)) < 0)
@@ -100,18 +131,12 @@ int FileCreate(const char *filename, long long size)
 
 	fd = r;
 
-	const int BUFSIZE = 1024*1024;
-	char *buf = malloc(BUFSIZE);
-	srand(time());
-	
-	for (i=0; i<BUFSIZE; ++i)
-		buf[i] = (char)rand();
+	const int REQSIZE = 1024*1024;
+	InitBuffer(REQSIZE);
 
-	for (j=0; j<size; j+=BUFSIZE)
-		if ((lr = write(fd, buf, BUFSIZE)) < 0)
-			Error((int)lr, "write error");
-
-	free(buf);
+	for (j=0; j<size; j+=REQSIZE, ++g_reqcount)
+		if ((lr = write(fd, g_buf, REQSIZE)) != REQSIZE)
+			Error((int)lr, "write failed");
 
 	if ((r = close(fd)) < 0)
 		Error(r, "cannot close file");
@@ -119,9 +144,68 @@ int FileCreate(const char *filename, long long size)
 	return 0;
 }
 
+int FileAccess(const char *filename, int isWrite, int random, int timeperiod, long long reqsize)
+{
+	int r;
+	int fd;
+	time_t startTime;
+	struct stat statbuf;
+	off_t ofsmax, curofs = 0;
+
+	if ((r = open(filename, (isWrite ? O_WRONLY : O_RDONLY))) < 0)
+		Error(r, "cannot open file");
+
+	fd = r;
+
+	if ((r = fstat(fd, &statbuf)) < 0)
+		Error(r, "fstat failed");
+
+	ofsmax = statbuf.st_size / reqsize;
+	InitBuffer(reqsize);
+
+	startTime = time(NULL);
+
+	//if ((r = gettimeofday(&g_startTime, NULL)) < 0)
+	//	Error(r, "gettimeofday failed");
+
+	while (time(NULL) - startTime < timeperiod) {
+		if (random) {
+			off_t offset = (rand() % ofsmax) * reqsize;
+			if ((r = lseek(fd, offset, SEEK_SET)) < 0)
+				Error(r, "lseek failed");
+		} else {
+			if (curofs++ >= ofsmax) {
+				curofs = 1;
+				++g_wrapcount;
+				if ((r = lseek(fd, 0, SEEK_SET)) < 0)
+					Error(r, "lseek failed");
+			}
+		}
+
+		if (isWrite) {
+			if ((r = write(fd, g_buf, reqsize)) != reqsize)
+				Error(r, "write failed");
+		} else {
+			if ((r = read(fd, g_buf, reqsize)) != reqsize)
+				Error(r, "read failed");
+		}
+
+		++g_reqcount;
+	}
+
+	//if ((r = gettimeofday(&g_endTime, NULL)) < 0)
+	//	Error(r, "gettimeofday failed");
+
+	if ((r = close(fd)) < 0)
+		Error(r, "cannot close file");
+
+	return 0;
+}
+
+
 int main(int argc, char *argv[])
 {
-	g_progname = argv[0];
+	Init(argv);
 
 	int r;
 	const char *filename;
@@ -136,7 +220,13 @@ int main(int argc, char *argv[])
 
 	if (action == ActionCreate) {
 		return FileCreate(filename, size);
-	}	
+	} else if (action == ActionRead) {
+		return FileAccess(filename, 0, rand, timeperiod, reqsize);
+	} else if (action == ActionWrite) {
+		return FileAccess(filename, 1, rand, timeperiod, reqsize);
+	} else {
+		Usage();
+	}
 
 	return 0;
 }
