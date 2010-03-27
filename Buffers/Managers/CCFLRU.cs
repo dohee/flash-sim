@@ -19,7 +19,7 @@ namespace Buffers.Managers
 
         private int COLDMAX = 1;
 
-        public override string Description { get { return Utils.FormatDescription("NPages", pool.NPages); } }
+        public override string Description { get { return Utils.FormatDesc("NPages", pool.NPages); } }
 
         protected override void OnPoolFull()
         {

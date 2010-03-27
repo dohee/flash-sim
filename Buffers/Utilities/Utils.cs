@@ -74,7 +74,7 @@ namespace Buffers.Utilities
 			return -1;
 		}
 
-		public static string FormatDescription(params object[] args)
+		public static string FormatDesc(params object[] args)
 		{
 			StringBuilder sb = new StringBuilder();
 			

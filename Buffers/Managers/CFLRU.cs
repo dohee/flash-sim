@@ -26,7 +26,7 @@ namespace Buffers.Managers
 		{
 			get
 			{
-				return Utils.FormatDescription("NPages", pool.NPages,
+				return Utils.FormatDesc("NPages", pool.NPages,
 					"WindowSize", windowSize);
 			}
 		}

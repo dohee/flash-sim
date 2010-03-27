@@ -30,7 +30,7 @@ namespace Buffers.Managers
         }
 
 		public override string Name { get { return "LIRS"; } }
-        public override string Description { get { return Utils.FormatDescription("lirPages", lirSize, "hirPages", hirSize); } }
+        public override string Description { get { return Utils.FormatDesc("lirPages", lirSize, "hirPages", hirSize); } }
 
         protected override void OnPoolFull()
         {

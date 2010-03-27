@@ -40,7 +40,7 @@ namespace Buffers.Devices
 		#endregion
 
 		public override string Name { get { return "TraceLog"; } }
-		public override string Description { get { return Utils.FormatDescription("Path", path); } }
+		public override string Description { get { return Utils.FormatDesc("Path", path); } }
 
 		protected override void DoRead(uint pageid, byte[] result)
 		{
