@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +19,8 @@ const int BUFSIZE = 1024*1024*128;
 const char *g_progname = NULL;
 char *g_buf = NULL;
 time_t g_startTime, g_endTime;
-int g_reqcount = 0, g_wrapcount = 0;
+int g_reqcount = 0, g_wrapcount = 0, g_ischild = 0, g_stopnow = 0;
+FILE *g_statfile = NULL;
 
 
 void Usage()
@@ -28,21 +31,43 @@ void Usage()
 
 	exit(1);
 }
-void Error(int r, const char *msg)
+void VError(int r, const char *fmt, va_list ap)
 {
-	fprintf(stderr, "%s: %s. Return value: %d\n", g_progname, msg, r);
+	fprintf(stderr, "%s: ", g_progname);
+	vfprintf(stderr, fmt, ap);
+	fprintf(stderr, ". Return value: %d\n", r);
+}
+void Error(int r, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	VError(r, fmt, ap);
+	va_end(ap);
 	exit(-r);
+}
+void ErrorNoExit(int r, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	VError(r, fmt, ap);
+	va_end(ap);
 }
 
 void OutputStats()
 {
-	printf("ReqCount: %d\nWrapCount: %d\nTimeElapsed: %d sec\n\n",
-		g_reqcount, g_wrapcount, (int)(g_endTime-g_startTime));
+	if (g_ischild) {
+		fprintf(g_statfile, "%d\n%d\n",
+			g_reqcount, g_wrapcount);
+	} else {
+		fprintf(g_statfile, "ReqCount/WrapCount: %d/%d\nTimeElapsed: %d sec\n\n",
+			g_reqcount, g_wrapcount, (int)(g_endTime-g_startTime));
+	}
 }
 
 void Init(char *argv[])
 {
 	g_progname = argv[0];
+	g_statfile = stdout;
 
 	int r;
 	if ((r = atexit(OutputStats)) < 0)
@@ -52,8 +77,8 @@ void InitBuffer(int size)
 {
 	if (size > BUFSIZE)
 		size = BUFSIZE;
-	
-	g_buf = malloc(size); 
+
+	g_buf = malloc(size);
 	srand(time(NULL));
 	int i;
 
@@ -65,7 +90,7 @@ long long ParseSize(const char *str)
 {
 	char* endstr;
 	long long size = strtoll(str, &endstr, 10);
-	
+
 	switch (*endstr) {
 		case 'k': case 'K': size *= 1024; break;
 		case 'm': case 'M': size *= 1024*1024; break;
@@ -141,33 +166,20 @@ int FileCreate(const char *filename, long long size)
 		if ((lr = write(fd, g_buf, REQSIZE)) != REQSIZE)
 			Error((int)lr, "write failed");
 
-	if ((r = close(fd)) < 0)
-		Error(r, "cannot close file");
-
+	close(fd);
 	return 0;
 }
 
-int FileAccess(const char *filename, int isWrite, int random, int timeperiod, long long reqsize)
+void ChildFileAccess(const char *filename, int isWrite, int random,
+	long long reqsize, off_t curofs, off_t ofsmax)
 {
-	int r;
-	int fd;
-	struct stat statbuf;
-	off_t ofr, ofsmax, curofs = 0;
+	int r, fd=0;
+	off_t ofr;
 
-	if ((r = open(filename, (isWrite ? O_WRONLY : O_RDONLY))) < 0)
-		Error(r, "cannot open file");
+	if ((fd = open(filename, (isWrite ? O_WRONLY : O_RDONLY))) < 0)
+		Error(fd, "cannot open file");
 
-	fd = r;
-
-	if ((r = fstat(fd, &statbuf)) < 0)
-		Error(r, "fstat failed");
-
-	ofsmax = statbuf.st_size / reqsize;
-	InitBuffer(reqsize);
-
-	g_startTime = time(NULL);
-
-	while ((g_endTime=time(NULL)) - g_startTime < timeperiod) {
+	while (!g_stopnow) {
 		if (random) {
 			off_t offset = (rand() % ofsmax) * reqsize;
 			if ((ofr = lseek(fd, offset, SEEK_SET)) == (off_t)-1)
@@ -192,9 +204,78 @@ int FileAccess(const char *filename, int isWrite, int random, int timeperiod, lo
 		++g_reqcount;
 	}
 
-	if ((r = close(fd)) < 0)
-		Error(r, "cannot close file");
+	OutputStats();
+}
+static void ChildAlarmHdlr(int signo)
+{
+	g_stopnow = 1;
+}
 
+int FileAccess(const char *filename, int isWrite, int random,
+	int timeperiod, long long reqsize, int nprocess)
+{
+	int r, i, fd=0, fdchilds[100]={0}, reqchild, wrapchild;
+	struct stat statbuf;
+	off_t ofsmax=0;
+	pid_t pidchilds[100]={0};
+
+	if ((fd = open(filename, (isWrite ? O_WRONLY : O_RDONLY))) < 0)
+		Error(fd, "cannot open file");
+
+	if ((r = fstat(fd, &statbuf)) < 0)
+		Error(r, "fstat failed");
+
+	ofsmax = statbuf.st_size / reqsize;
+	close(fd);
+
+	InitBuffer(reqsize);
+	g_startTime = time(NULL);
+
+	for (i=0; i<nprocess; ++i) {
+		int pipes[2] = { i*2+10, i*2+11 };
+
+		if ((r = pipe(pipes)) < 0)
+			Error(r, "pipe failed");
+
+		pid_t pid = fork();
+
+		if (pid < 0) {
+			Error((int)pid, "fork failed");
+		} else if (pid == 0) { /* we are the child */
+			close(pipes[0]);
+			g_ischild = 1;
+			g_statfile = fdopen(pipes[1], "w");
+			signal(SIGALRM, ChildAlarmHdlr);
+			alarm(timeperiod);
+			ChildFileAccess(filename, isWrite, random, reqsize, ofsmax*i/nprocess, ofsmax);
+			exit(0);
+		} else { /* we are the parent */
+			close(pipes[1]);
+			fdchilds[i] = pipes[0];
+			pidchilds[i] = pid;
+		}
+	}
+
+	for (i=0; i<nprocess; ++i) {
+		FILE *f;
+
+		if ((f = fdopen(fdchilds[i], "r")) == NULL)
+			Error(-1, "fdopen failed");
+
+		if ((r = fscanf(f, "%d%d", &reqchild, &wrapchild)) != 2) {
+			char errstr[100];
+			sprintf(errstr, "fscanf failed on ChildNo.%d", i);
+			Error(r, errstr, 0);
+		} else {
+			printf("ReqCount/WrapCount of ChildNo.%d: %d/%d\n", i, reqchild, wrapchild);
+			g_reqcount += reqchild;
+			g_wrapcount += wrapchild;
+		}
+
+		fclose(f);
+	}
+
+	g_endTime = time(NULL);
 	return 0;
 }
 
@@ -209,7 +290,7 @@ int main(int argc, char *argv[])
 	int rand;
 	int timeperiod;
 	long long reqsize, size;
-	
+
 	if ((r = ParseArguments(argc, argv, 1,
 		&filename, &action, &rand, &timeperiod, &reqsize, &size)) < 0)
 		Usage();
@@ -217,9 +298,9 @@ int main(int argc, char *argv[])
 	if (action == ActionCreate) {
 		return FileCreate(filename, size);
 	} else if (action == ActionRead) {
-		return FileAccess(filename, 0, rand, timeperiod, reqsize);
+		return FileAccess(filename, 0, rand, timeperiod, reqsize, 1);
 	} else if (action == ActionWrite) {
-		return FileAccess(filename, 1, rand, timeperiod, reqsize);
+		return FileAccess(filename, 1, rand, timeperiod, reqsize, 1);
 	} else {
 		Usage();
 	}
