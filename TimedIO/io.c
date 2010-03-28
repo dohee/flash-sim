@@ -19,13 +19,13 @@ const int BUFSIZE = 1024*1024*128;
 const char *g_progname = NULL;
 char *g_buf = NULL;
 time_t g_startTime, g_endTime;
-int g_reqcount = 0, g_wrapcount = 0, g_ischild = 0, g_stopnow = 0;
+int g_reqcount = 0, g_wrapcount = 0, g_childOutputFD = -1, g_stopnow = 0;
 FILE *g_statfile = NULL;
 
 
 void Usage()
 {
-	fprintf(stderr, "Usage: %s <File> read|write seq|rnd <TimePeriod> <ReqSize>\n"
+	fprintf(stderr, "Usage: %s <File> read|write seq|rnd <TimePeriod> <ReqSize> [<ProcessCount>]\n"
 					"       %s <File> create <Size>\n",
 		g_progname, g_progname);
 
@@ -55,9 +55,9 @@ void ErrorNoExit(int r, const char *fmt, ...)
 
 void OutputStats()
 {
-	if (g_ischild) {
-		fprintf(g_statfile, "%d\n%d\n",
-			g_reqcount, g_wrapcount);
+	if (g_childOutputFD >= 0) {
+		int info[2] = { g_reqcount, g_wrapcount };
+		write(g_childOutputFD, info, sizeof(info));
 	} else {
 		fprintf(g_statfile, "ReqCount/WrapCount: %d/%d\nTimeElapsed: %d sec\n\n",
 			g_reqcount, g_wrapcount, (int)(g_endTime-g_startTime));
@@ -101,7 +101,7 @@ long long ParseSize(const char *str)
 }
 int ParseArguments(int argc, char *argv[], int echo,
 	const char **filename, enum Actions *action, int *rand,
-	int *timeperiod, long long *reqsize, long long *size)
+	int *timeperiod, long long *size, int *nprocess)
 {
 	if (argc < 4)
 		return -1;
@@ -134,12 +134,15 @@ int ParseArguments(int argc, char *argv[], int echo,
 			return -1;
 
 		*timeperiod = atoi(argv[4]);
-		*reqsize = ParseSize(argv[5]);
+		*size = ParseSize(argv[5]);
+		*nprocess = (argc>=7 ? atoi(argv[6]) : 1);
 
 		if (echo)
-			printf("File = %s\nAction = %s\nRamdon = %d\nTimePeriod = %d sec\nReqSize = %lld bytes\n",
+			printf("File = %s\nAction = %s\n"
+				"Ramdon = %d\nTimePeriod = %d sec\n"
+				"ReqSize = %lld bytes\nProcessCount = %d\n",
 				*filename, (*action==ActionRead ? "Read":"Write"),
-				*rand, *timeperiod, *reqsize);
+				*rand, *timeperiod, *size, *nprocess);
 	}
 
 	if (echo)
@@ -203,8 +206,6 @@ void ChildFileAccess(const char *filename, int isWrite, int random,
 
 		++g_reqcount;
 	}
-
-	OutputStats();
 }
 static void ChildAlarmHdlr(int signo)
 {
@@ -214,19 +215,17 @@ static void ChildAlarmHdlr(int signo)
 int FileAccess(const char *filename, int isWrite, int random,
 	int timeperiod, long long reqsize, int nprocess)
 {
-	int r, i, fd=0, fdchilds[100]={0}, reqchild, wrapchild;
+	int result=0, r, i, fd=0, fdchilds[100]={0}, childinfo[2];
 	struct stat statbuf;
 	off_t ofsmax=0;
-	pid_t pidchilds[100]={0};
 
-	if ((fd = open(filename, (isWrite ? O_WRONLY : O_RDONLY))) < 0)
-		Error(fd, "cannot open file");
+	if ((r = access(filename, (isWrite ? W_OK : R_OK))) < 0)
+		Error(r, "access failed");
 
-	if ((r = fstat(fd, &statbuf)) < 0)
-		Error(r, "fstat failed");
+	if ((r = stat(filename, &statbuf)) < 0)
+		Error(r, "stat failed");
 
 	ofsmax = statbuf.st_size / reqsize;
-	close(fd);
 
 	InitBuffer(reqsize);
 	g_startTime = time(NULL);
@@ -243,8 +242,7 @@ int FileAccess(const char *filename, int isWrite, int random,
 			Error((int)pid, "fork failed");
 		} else if (pid == 0) { /* we are the child */
 			close(pipes[0]);
-			g_ischild = 1;
-			g_statfile = fdopen(pipes[1], "w");
+			g_childOutputFD = pipes[1];
 			signal(SIGALRM, ChildAlarmHdlr);
 			alarm(timeperiod);
 			ChildFileAccess(filename, isWrite, random, reqsize, ofsmax*i/nprocess, ofsmax);
@@ -252,27 +250,18 @@ int FileAccess(const char *filename, int isWrite, int random,
 		} else { /* we are the parent */
 			close(pipes[1]);
 			fdchilds[i] = pipes[0];
-			pidchilds[i] = pid;
 		}
 	}
 
 	for (i=0; i<nprocess; ++i) {
-		FILE *f;
-
-		if ((f = fdopen(fdchilds[i], "r")) == NULL)
-			Error(-1, "fdopen failed");
-
-		if ((r = fscanf(f, "%d%d", &reqchild, &wrapchild)) != 2) {
-			char errstr[100];
-			sprintf(errstr, "fscanf failed on ChildNo.%d", i);
-			Error(r, errstr, 0);
+		if ((r = read(fdchilds[i], childinfo, sizeof(childinfo))) != sizeof(childinfo)) {
+			ErrorNoExit(r, "read info from Child.%d failed", i);
+			result = 1;
 		} else {
-			printf("ReqCount/WrapCount of ChildNo.%d: %d/%d\n", i, reqchild, wrapchild);
-			g_reqcount += reqchild;
-			g_wrapcount += wrapchild;
+			printf("ReqCount/WrapCount of ChildNo.%d: %d/%d\n", i, childinfo[0], childinfo[1]);
+			g_reqcount += childinfo[0];
+			g_wrapcount += childinfo[1];
 		}
-
-		fclose(f);
 	}
 
 	g_endTime = time(NULL);
@@ -287,20 +276,19 @@ int main(int argc, char *argv[])
 	int r;
 	const char *filename;
 	enum Actions action;
-	int rand;
-	int timeperiod;
-	long long reqsize, size;
+	int rand, timeperiod, nprocess;
+	long long size;
 
 	if ((r = ParseArguments(argc, argv, 1,
-		&filename, &action, &rand, &timeperiod, &reqsize, &size)) < 0)
+		&filename, &action, &rand, &timeperiod, &size, &nprocess)) < 0)
 		Usage();
 
 	if (action == ActionCreate) {
 		return FileCreate(filename, size);
 	} else if (action == ActionRead) {
-		return FileAccess(filename, 0, rand, timeperiod, reqsize, 1);
+		return FileAccess(filename, 0, rand, timeperiod, size, nprocess);
 	} else if (action == ActionWrite) {
-		return FileAccess(filename, 1, rand, timeperiod, reqsize, 1);
+		return FileAccess(filename, 1, rand, timeperiod, size, nprocess);
 	} else {
 		Usage();
 	}
