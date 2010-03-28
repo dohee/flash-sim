@@ -16,7 +16,7 @@ enum Actions {
 const int BUFSIZE = 1024*1024*128;
 const char *g_progname = NULL;
 char *g_buf = NULL;
-//struct timeval g_startTime, g_endTime;
+time_t g_startTime, g_endTime;
 int g_reqcount = 0, g_wrapcount = 0;
 
 
@@ -36,8 +36,8 @@ void Error(int r, const char *msg)
 
 void OutputStats()
 {
-	printf("ReqCount: %d\nWrapCount: %d\n",
-		g_reqcount, g_wrapcount);
+	printf("ReqCount: %d\nWrapCount: %d\nTimeElapsed: %d sec\n\n",
+		g_reqcount, g_wrapcount, (int)(g_endTime-g_startTime));
 }
 
 void Init(char *argv[])
@@ -117,6 +117,9 @@ int ParseArguments(int argc, char *argv[], int echo,
 				*rand, *timeperiod, *reqsize);
 	}
 
+	if (echo)
+		fflush(stdout);
+
 	return 0;
 }
 
@@ -148,9 +151,8 @@ int FileAccess(const char *filename, int isWrite, int random, int timeperiod, lo
 {
 	int r;
 	int fd;
-	time_t startTime;
 	struct stat statbuf;
-	off_t ofsmax, curofs = 0;
+	off_t ofr, ofsmax, curofs = 0;
 
 	if ((r = open(filename, (isWrite ? O_WRONLY : O_RDONLY))) < 0)
 		Error(r, "cannot open file");
@@ -163,22 +165,19 @@ int FileAccess(const char *filename, int isWrite, int random, int timeperiod, lo
 	ofsmax = statbuf.st_size / reqsize;
 	InitBuffer(reqsize);
 
-	startTime = time(NULL);
+	g_startTime = time(NULL);
 
-	//if ((r = gettimeofday(&g_startTime, NULL)) < 0)
-	//	Error(r, "gettimeofday failed");
-
-	while (time(NULL) - startTime < timeperiod) {
+	while ((g_endTime=time(NULL)) - g_startTime < timeperiod) {
 		if (random) {
 			off_t offset = (rand() % ofsmax) * reqsize;
-			if ((r = lseek(fd, offset, SEEK_SET)) < 0)
-				Error(r, "lseek failed");
+			if ((ofr = lseek(fd, offset, SEEK_SET)) == (off_t)-1)
+				Error((int)ofr, "lseek failed");
 		} else {
 			if (curofs++ >= ofsmax) {
 				curofs = 1;
 				++g_wrapcount;
-				if ((r = lseek(fd, 0, SEEK_SET)) < 0)
-					Error(r, "lseek failed");
+				if ((ofr = lseek(fd, 0, SEEK_SET)) == (off_t)-1)
+					Error((int)ofr, "lseek failed");
 			}
 		}
 
@@ -192,9 +191,6 @@ int FileAccess(const char *filename, int isWrite, int random, int timeperiod, lo
 
 		++g_reqcount;
 	}
-
-	//if ((r = gettimeofday(&g_endTime, NULL)) < 0)
-	//	Error(r, "gettimeofday failed");
 
 	if ((r = close(fd)) < 0)
 		Error(r, "cannot close file");
