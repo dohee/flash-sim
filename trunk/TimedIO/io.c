@@ -236,6 +236,7 @@ int FileAccess(const char *filename, int isWrite, int random,
 		if ((r = pipe(pipes)) < 0)
 			Error(r, "pipe failed");
 
+		srand(rand());
 		pid_t pid = fork();
 
 		if (pid < 0) {
