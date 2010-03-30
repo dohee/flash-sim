@@ -6,7 +6,7 @@ namespace Buffers
 	{
 		/// <summary> 每个块的页面数
 		/// </summary>
-		ushort BlockSize { get; }
+		ushort PageCountPerBlock { get; }
 		/// <summary> 该设备的块数
 		/// </summary>
 		uint BlockCount { get; }
@@ -27,13 +27,29 @@ namespace Buffers
 
 	public struct BlockPageId
 	{
-		public uint BlockId;
-		public ushort PageId;
+		public uint BlockId { get; private set; }
+		public ushort PageId { get; private set; }
 
 		public BlockPageId(uint blockid, ushort pageid)
+			: this()
 		{
 			BlockId = blockid;
 			PageId = pageid;
+		}
+
+		public bool IsInvalid
+		{
+			get
+			{
+				return BlockId == uint.MaxValue || PageId == uint.MinValue;
+			}
+		}
+		public static BlockPageId Invalid
+		{
+			get
+			{
+				return new BlockPageId(uint.MaxValue, ushort.MaxValue);
+			}
 		}
 
 		#region Equals 函数族

@@ -45,7 +45,7 @@ namespace Buffers.Devices
 				return Utils.FormatDesc("BlockSize", blockSize);
 			}
 		}
-		public ushort BlockSize { get { return blockSize; } }
+		public ushort PageCountPerBlock { get { return blockSize; } }
 		public uint BlockCount { get { return blockCount; } }
 		public int EraseCount { get; private set; }
 		public void Erase(uint blockid)
@@ -59,7 +59,7 @@ namespace Buffers.Devices
 		{
 			return new BlockPageId(
 				universalPageId >> blockSizeBit,
-				(ushort)(universalPageId & (BlockSize - 1)));
+				(ushort)(universalPageId & (PageCountPerBlock - 1)));
 		}
 		public uint ToBlockId(uint universalPageId)
 		{
@@ -67,11 +67,11 @@ namespace Buffers.Devices
 		}
 		public ushort ToPageIdInBlock(uint universalPageId)
 		{
-			return (ushort)(universalPageId & (BlockSize - 1));
+			return (ushort)(universalPageId & (PageCountPerBlock - 1));
 		}
 		public uint ToUniversalPageId(uint blockid, ushort pageid)
 		{
-			Debug.Assert((pageid & (BlockSize - 1)) == pageid);
+			Debug.Assert((pageid & (PageCountPerBlock - 1)) == pageid);
 			return (blockid << blockSizeBit) | pageid;
 		}
 		public uint ToUniversalPageId(BlockPageId bpid)
