@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 enum Actions {
 	ActionNone, ActionRead, ActionWrite, ActionCreate,
@@ -19,7 +20,7 @@ const int BUFSIZE = 1024*1024*128;
 const char *g_progname = NULL;
 char *g_buf = NULL;
 time_t g_startTime, g_endTime;
-int g_reqcount = 0, g_wrapcount = 0, g_childOutputFD = -1, g_stopnow = 0;
+int g_reqcount = 0, g_rewindcount = 0, g_childOutputFD = -1, g_stopnow = 0;
 FILE *g_statfile = NULL;
 
 
@@ -56,11 +57,11 @@ void ErrorNoExit(int r, const char *fmt, ...)
 void OutputStats()
 {
 	if (g_childOutputFD >= 0) {
-		int info[2] = { g_reqcount, g_wrapcount };
+		int info[2] = { g_reqcount, g_rewindcount };
 		write(g_childOutputFD, info, sizeof(info));
 	} else {
-		fprintf(g_statfile, "ReqCount/WrapCount: %d/%d\nTimeElapsed: %d sec\n\n",
-			g_reqcount, g_wrapcount, (int)(g_endTime-g_startTime));
+		fprintf(g_statfile, "ReqCount/RewindCount: %d/%d  TimeElapsed: %d sec\n\n",
+			g_reqcount, g_rewindcount, (int)(g_endTime-g_startTime));
 	}
 }
 
@@ -118,12 +119,15 @@ int ParseArguments(int argc, char *argv[], int echo,
 	else
 		return -1;
 
+	char timestr[100]; time_t timet;
+	timet = time(NULL);
+	strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", localtime(&timet));
+
 	if (*action == ActionCreate) {
 		*size = ParseSize(argv[3]);
 
 		if (echo)
-			printf("File = %s\nAction = Create\nSize = %lld bytes\n",
-				*filename, *size);
+			printf("%s  Create  %lldBytes  '%s'\n", timestr, *size, *filename);
 
 	} else {
 		if (strcasecmp(argv[3], "seq") == 0)
@@ -138,11 +142,11 @@ int ParseArguments(int argc, char *argv[], int echo,
 		*nprocess = (argc>=7 ? atoi(argv[6]) : 1);
 
 		if (echo)
-			printf("File = %s\nAction = %s\n"
-				"Ramdon = %d\nTimePeriod = %d sec\n"
-				"ReqSize = %lld bytes\nProcessCount = %d\n",
-				*filename, (*action==ActionRead ? "Read":"Write"),
-				*rand, *timeperiod, *size, *nprocess);
+			printf("%s  %s  %s  %dsec  %lldB/req  %dprocesses  '%s'\n",
+				timestr,
+				(*action==ActionRead ? "Read":"Write"),
+				(*rand ? "Rnd" : "Seq"),
+				*timeperiod, *size, *nprocess, *filename);
 	}
 
 	if (echo)
@@ -164,11 +168,13 @@ int FileCreate(const char *filename, long long size)
 
 	const int REQSIZE = 1024*1024;
 	InitBuffer(REQSIZE);
+	g_startTime = time(NULL);
 
 	for (j=0; j<size; j+=REQSIZE, ++g_reqcount)
 		if ((lr = write(fd, g_buf, REQSIZE)) != REQSIZE)
 			Error((int)lr, "write failed");
 
+	g_endTime = time(NULL);
 	close(fd);
 	return 0;
 }
@@ -190,7 +196,7 @@ void ChildFileAccess(const char *filename, int isWrite, int random,
 		} else {
 			if (curofs++ >= ofsmax) {
 				curofs = 1;
-				++g_wrapcount;
+				++g_rewindcount;
 				if ((ofr = lseek(fd, 0, SEEK_SET)) == (off_t)-1)
 					Error((int)ofr, "lseek failed");
 			}
@@ -254,17 +260,20 @@ int FileAccess(const char *filename, int isWrite, int random,
 		}
 	}
 
+	printf("Children's ReqCount/RewindCount: ");
+
 	for (i=0; i<nprocess; ++i) {
 		if ((r = read(fdchilds[i], childinfo, sizeof(childinfo))) != sizeof(childinfo)) {
 			ErrorNoExit(r, "read info from Child.%d failed", i);
 			result = 1;
 		} else {
-			printf("ReqCount/WrapCount of ChildNo.%d: %d/%d\n", i, childinfo[0], childinfo[1]);
+			printf("%d/%d ", childinfo[0], childinfo[1]);
 			g_reqcount += childinfo[0];
-			g_wrapcount += childinfo[1];
+			g_rewindcount += childinfo[1];
 		}
 	}
 
+	printf("\n");
 	g_endTime = time(NULL);
 	return 0;
 }
