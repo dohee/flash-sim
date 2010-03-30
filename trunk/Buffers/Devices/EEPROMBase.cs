@@ -29,10 +29,10 @@ namespace Buffers.Devices
 				throw new ArgumentOutOfRangeException("pageid", string.Format(
 					"Should write Page {2} in Block {0}, but request to write Page {1}",
 					bpid.BlockId, bpid.PageId, shouldWrite));
-			if (shouldWrite >= BlockSize)
+			if (shouldWrite >= PageCountPerBlock)
 				throw new ArgumentOutOfRangeException("pageid", string.Format(
 					"Block {0} is full with {1} pages written already",
-					bpid.BlockId, BlockSize));
+					bpid.BlockId, PageCountPerBlock));
 		}
 		protected override void AfterWrite(uint pageid)
 		{
