@@ -4,19 +4,22 @@ namespace Buffers
 {
 	public interface IErasableDevice : IBlockDevice
 	{
-		/// <summary> 每个块的页面数
-		/// </summary>
-		ushort PageCountPerBlock { get; }
 		/// <summary> 该设备的块数
 		/// </summary>
 		uint BlockCount { get; }
-
-		/// <summary> 擦除操作的次数
+		/// <summary> 每个块的页面数
 		/// </summary>
-		int EraseCount { get; }
+		ushort PageCountPerBlock { get; }
+
 		/// <summary> 执行擦除操作
 		/// </summary>
 		void Erase(uint blockid);
+		/// <summary> 擦除操作的次数
+		/// </summary>
+		int EraseCount { get; }
+		/// <summary> 返回某块被擦除的次数
+		/// </summary>
+		int GetBlockEraseCount(uint blockid);
 
 		BlockPageId ToBlockPageId(uint universalPageId);
 		uint ToBlockId(uint universalPageId);

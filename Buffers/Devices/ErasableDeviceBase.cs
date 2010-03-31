@@ -10,6 +10,7 @@ namespace Buffers.Devices
 		protected readonly byte blockSizeBit;
 		protected readonly ushort blockSize;
 		protected readonly uint blockCount;
+		private SparseArray<int> blockEraseCount = new SparseArray<int>();
 
 		// 子类要实现的
 		/// <summary> 真实的擦除操作
@@ -20,7 +21,10 @@ namespace Buffers.Devices
 		protected virtual void BeforeErase(uint blockid) { }
 		/// <summary> 在真实擦除操作执行后执行此动作 </summary>
 		/// <remarks> 继承者注意：必须在方法结尾处调用 base.AfterErase </remarks>
-		protected virtual void AfterErase(uint blockid) { EraseCount++; }
+		protected virtual void AfterErase(uint blockid)
+		{
+			EraseCount++; blockEraseCount[blockid]++;
+		}
 
 		// 可供使用的
 		// （无）
@@ -45,14 +49,18 @@ namespace Buffers.Devices
 				return Utils.FormatDesc("BlockSize", blockSize);
 			}
 		}
-		public ushort PageCountPerBlock { get { return blockSize; } }
 		public uint BlockCount { get { return blockCount; } }
-		public int EraseCount { get; private set; }
+		public ushort PageCountPerBlock { get { return blockSize; } }
 		public void Erase(uint blockid)
 		{
 			BeforeErase(blockid);
 			DoErase(blockid);
 			AfterErase(blockid);
+		}
+		public int EraseCount { get; private set; }
+		public int GetBlockEraseCount(uint blockid)
+		{
+			return blockEraseCount[blockid];
 		}
 
 		public BlockPageId ToBlockPageId(uint universalPageId)

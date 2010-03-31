@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Buffers.Devices;
 using Buffers.Utilities;
 using LogicalId = System.UInt32;
@@ -10,21 +11,21 @@ namespace Buffers.FTL
 {
 	public sealed class SimpleLogPageFTL : FTLBase
 	{
-		BlockState[] blockStates;
+		private BlockState[] blockStates;
 
-		BlockPageId[] mapList;
-		LogicalId[] reverseMapList;
-		uint mapListPoint;
+		private BlockPageId[] mapList;
+		private LogicalId[] reverseMapList;
+		private uint mapListPoint;
 
-		List<BlockId> freeList = new List<uint>();
-		List<BlockId> dirtyList = new List<uint>();
-		List<BlockId> deadList = new List<uint>();
+		private List<BlockId> freeList = new List<uint>();
+		private List<BlockId> dirtyList = new List<uint>();
+		private List<BlockId> deadList = new List<uint>();
 
-		BlockId reserved;
+		private BlockId reserved;
 
-		uint mapListSize;
-		int wearLevelingThreshold;
-		uint blockCount;
+		private uint mapListSize;
+		private int wearLevelingThreshold;
+		private uint blockCount;
 
 
 		public SimpleLogPageFTL(IErasableDevice device,
@@ -111,7 +112,7 @@ namespace Buffers.FTL
 			BlockPageId pba = TranslateLBAtoPBA(lba);
 
 			if (pba.IsInvalid)
-				throw new ArgumentOutOfRangeException("lba", "address mapping not exist");
+				throw new InvalidLBAException();
 
 			PageState ps = GetPageState(pba);
 
@@ -119,7 +120,7 @@ namespace Buffers.FTL
 			{
 				case PageState.Free:
 				case PageState.Dead:
-					throw new ArgumentOutOfRangeException("lba", "invalid page state");
+					throw new InvalidPageStateException();
 				case PageState.Allc: // reclaim unused page
 					SetPageState(pba, PageState.Free);
 					break;
@@ -138,7 +139,7 @@ namespace Buffers.FTL
 			BlockPageId pba = TranslateLBAtoPBA(pageid);
 
 			if (pba.IsInvalid)
-				throw new ArgumentOutOfRangeException("pageid", "invalid LBA");
+				throw new InvalidLBAException();
 
 			dev.Read(dev.ToUniversalPageId(pba), result);
 		}
@@ -149,12 +150,12 @@ namespace Buffers.FTL
 			BlockPageId pba = TranslateLBAtoPBA(pageid);
 
 			if (pba.IsInvalid)
-				throw new ArgumentOutOfRangeException("pageid", "invalid LBA");
+				throw new InvalidLBAException();
 
 			PageState ps = GetPageState(pba);
 
 			if (ps == PageState.Dead || ps == PageState.Free)
-				throw new ArgumentOutOfRangeException("pageid", "invalid page state");
+				throw new InvalidPageStateException();
 
 			if (ps == PageState.Live)
 			{
@@ -162,7 +163,7 @@ namespace Buffers.FTL
 				pba = TranslateLBAtoPBA(pageid);
 
 				if (pba2.IsInvalid)
-					throw new ArgumentException("no memory");
+					throw new FlashNoMemoryException();
 
 				SetPageState(pba, PageState.Dead);
 				RegisterEntry(pageid, pba2);
@@ -287,8 +288,200 @@ namespace Buffers.FTL
 		/* Reclaim a block */
 		private bool ReclaimBlock()
 		{
-			//XXX
-			throw new NotImplementedException();
+			BlockId mostDirtyBlockID = BlockId.MaxValue, leastEraseBlockID = BlockId.MaxValue;
+			int mostDirtyCount = -1, leastEraseCount = int.MaxValue;
+			int mostDirtyIndex = -1, leaseEraseIndex = -1;
+
+			ushort pageCountPerBlock = dev.PageCountPerBlock;
+			byte[] buffer = null;
+
+			if (deadList.Count > 0)
+			{
+				// Erase blocks in deadList
+				foreach (BlockId blkid in deadList)
+				{
+					// erase all blocks
+					dev.Erase(blkid);
+					for (ushort i = 0; i < pageCountPerBlock; i++)
+						SetPageState(new BlockPageId(blkid, i), PageState.Free);
+
+					freeList.Add(blkid);
+				}
+
+				// clear deadList
+				deadList.Clear();
+
+				return true;
+			}
+
+			if (dirtyList.Count == 0) // dirtyList is empty, no page can be reclaimed.
+				return false; // throw new FlashNotDirtyException();
+
+
+			// Get the most dirty block and the least erase block from dirtyList
+			for (int i = 0; i < dirtyList.Count; i++)
+			{
+				BlockId blkid = dirtyList[i];
+
+				if (blockStates[blkid].DeadPageCount > mostDirtyCount)
+				{
+					mostDirtyCount = blockStates[blkid].DeadPageCount;
+					mostDirtyIndex = i;
+					mostDirtyBlockID = blkid;
+				}
+				if (dev.GetBlockEraseCount(blkid) < leastEraseCount)
+				{
+					leastEraseCount = dev.GetBlockEraseCount(blkid);
+					leastEraseCount = i;
+					leastEraseBlockID = blkid;
+				}
+			}
+
+			if (mostDirtyCount <= 0) // no block can be reclaimed
+				return false; // throw new FlashNotDirtyException();
+
+			buffer = new byte[PageSize];
+
+			// Wear leveling
+			if (dev.GetBlockEraseCount(mostDirtyBlockID) - leastEraseCount > wearLevelingThreshold)
+			{
+				// Just do it
+				ushort index = 0;
+
+				// Move live/allocated pages of leastEraseBlock to reserved block
+				for (ushort i = 0; i < pageCountPerBlock; i++)
+				{
+					if (GetPageState(new BlockPageId(leastEraseBlockID, i)) == PageState.Live)
+					{
+						BlockPageId pba = new BlockPageId(reserved, index);
+						dev.Read(dev.ToUniversalPageId(leastEraseBlockID, i), buffer);
+						dev.Write(dev.ToUniversalPageId(pba), buffer);
+						SetPageState(pba, PageState.Live);
+
+						// Update LBA-PBA list
+						LogicalId lba = reverseMapList[dev.ToUniversalPageId(leastEraseBlockID, i)];
+						RegisterEntry(lba, pba);
+
+						++index;
+					}
+					else if (GetPageState(new BlockPageId(leastEraseBlockID, i)) == PageState.Allc)
+					{
+						BlockPageId pba = new BlockPageId(reserved, index);
+						SetPageState(pba, PageState.Allc);
+
+						// Update LBA-PBA list
+						LogicalId lba = reverseMapList[dev.ToUniversalPageId(leastEraseBlockID, i)];
+						RegisterEntry(lba, pba);
+
+						++index;
+					}
+				}
+
+				// Erase leastEraseBlock block
+				dev.Erase(leastEraseBlockID);
+
+				for (ushort i = 0; i < pageCountPerBlock; i++)
+					SetPageState(new BlockPageId(leastEraseBlockID, i), PageState.Free);
+
+				index = 0;
+
+				// Move live pages of mostDirtyBlockID block to leaseEraseBlockID block
+				for (ushort i = 0; i < pageCountPerBlock; i++)
+				{
+					if (GetPageState(new BlockPageId(mostDirtyBlockID, i)) == PageState.Live)
+					{
+						// move to reserved block
+						BlockPageId pba = new BlockPageId(leastEraseBlockID, index);
+						dev.Read(dev.ToUniversalPageId(mostDirtyBlockID, i), buffer);
+						dev.Write(dev.ToUniversalPageId(pba), buffer);
+						SetPageState(pba, PageState.Live);
+
+						// Update LBA-PBA list
+						LogicalId lba = reverseMapList[dev.ToUniversalPageId(mostDirtyBlockID, i)];
+						RegisterEntry(lba, pba);
+
+						index++;
+					}
+					else if (GetPageState(new BlockPageId(mostDirtyBlockID, i)) == PageState.Allc)
+					{
+						BlockPageId pba = new BlockPageId(leastEraseBlockID, index);
+						SetPageState(pba, PageState.Allc);
+
+						// Update LBA-PBA list
+						LogicalId lba = reverseMapList[dev.ToUniversalPageId(mostDirtyBlockID, i)];
+						RegisterEntry(lba, pba);
+
+						index++;
+					}
+				}
+
+				// Erase mostDirtyBlockID block
+				dev.Erase(mostDirtyBlockID);
+
+				for (ushort i = 0; i < pageCountPerBlock; i++)				
+					SetPageState(new BlockPageId(mostDirtyBlockID, i), PageState.Free);
+
+				// Remove mostDirtyBlockID block and leastEraseBlockID block from dirtyList
+				dirtyList.RemoveAt(mostDirtyIndex);
+
+				// Add reserved block and leastEraseBlockID block into dirtyList
+				dirtyList.Add(reserved);
+
+				reserved = mostDirtyBlockID;
+			}
+			else
+			{
+				ushort index = 0;
+
+				// Move live/allocated pages of mostDirtyBlockID block to reserved block
+				for (ushort i = 0; i < pageCountPerBlock; i++)
+				{
+					BlockPageId bpid = new BlockPageId(mostDirtyBlockID, i);
+
+					if (GetPageState(bpid) == PageState.Live)
+					{
+						// Move live pages to reserved block
+						BlockPageId pba = new BlockPageId(reserved, index);
+						dev.Read(dev.ToUniversalPageId(bpid), buffer);
+						dev.Write(dev.ToUniversalPageId(pba), buffer);
+						SetPageState(pba, PageState.Live);
+
+						// Update LBA-PBA list
+						LogicalId lba = reverseMapList[dev.ToUniversalPageId(bpid)];
+						RegisterEntry(lba, pba);
+
+						index++;
+					}
+					else if (GetPageState(bpid) == PageState.Allc)
+					{
+						BlockPageId pba = new BlockPageId(reserved, index);
+						SetPageState(pba, PageState.Allc);
+
+						// Update LBA-PBA list
+						LogicalId lba = reverseMapList[dev.ToUniversalPageId(bpid)];
+						RegisterEntry(lba, pba);
+
+						index++;
+					}
+				}
+
+				// Erase mostDirtyBlockID block
+				dev.Erase(mostDirtyBlockID);
+
+				for (ushort i = 0; i < pageCountPerBlock; i++)				
+					SetPageState(new BlockPageId(mostDirtyBlockID, i), PageState.Free);
+
+				// Remove mostDirtyBlockID block from dirtyList
+				dirtyList.RemoveAt(mostDirtyIndex);
+
+				// Add reserved block into dirtyList
+				dirtyList.Add(reserved);
+
+				// Make erased block as reserved block
+				reserved = mostDirtyBlockID;
+			}
+
+			return true;
 		}
 
 		/* Get the data state of specified page */
