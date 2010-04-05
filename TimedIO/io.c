@@ -166,7 +166,7 @@ int FileCreate(const char *filename, long long size)
 
 	fd = r;
 
-	const int REQSIZE = 1024*1024;
+	const int REQSIZE = 1024*1023 - 3;
 	InitBuffer(REQSIZE);
 	g_startTime = time(NULL);
 
@@ -185,8 +185,11 @@ void ChildFileAccess(const char *filename, int isWrite, int random,
 	int r, fd=0;
 	off_t ofr;
 
-	if ((fd = open(filename, (isWrite ? O_WRONLY : O_RDONLY))) < 0)
+	if ((fd = open(filename, (isWrite?O_WRONLY:O_RDONLY) | O_NDELAY | O_SYNC)) < 0)
 		Error(fd, "cannot open file");
+
+	if ((ofr = lseek(fd, curofs*reqsize, SEEK_SET)) == (off_t)-1)
+		Error((int)ofr, "lseek failed");
 
 	while (!g_stopnow) {
 		if (random) {
@@ -209,6 +212,9 @@ void ChildFileAccess(const char *filename, int isWrite, int random,
 			if ((r = read(fd, g_buf, reqsize)) != reqsize)
 				Error(r, "read failed");
 		}
+
+		//if ((r = fsync(fd)) < 0)
+		//	Error(r, "fsync failed");
 
 		++g_reqcount;
 	}
