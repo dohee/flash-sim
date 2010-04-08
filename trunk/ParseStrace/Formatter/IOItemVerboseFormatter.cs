@@ -56,11 +56,11 @@ namespace ParseStrace
 			}
 			else
 			{
-				int[] pids = allowPIDs.ToArray();
-				Array.Sort<int>(pids);
-				writer.WriteLine(string.Join(" ", pids.Select<int, string>(
-					delegate(int i) { return i.ToString(); }
-				).ToArray()));
+				var pidstrs = from p in allowPIDs
+							  orderby p
+							  select p.ToString();
+
+				writer.WriteLine(string.Join(" ", pidstrs.ToArray()));
 			}
 	
 			nlines += 6;
