@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -82,10 +83,9 @@ namespace ParseStrace
 						new char[] { ' ', '\n', '\r', ';', ':', '.', ',', '|' },
 						StringSplitOptions.RemoveEmptyEntries);
 
-					pids = new int[pidstrs.Length];
-
-					for (int i = 0; i < pidstrs.Length; i++)
-						pids[i] = int.Parse(pidstrs[i]);
+					pids = (from p in pidstrs
+							select int.Parse(p)
+							).ToArray();
 				}
 			}
 		}
