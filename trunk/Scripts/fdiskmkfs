@@ -6,5 +6,6 @@ MNTPOINT="$2"
 
 echo -e "d\nn\np\n1\n\n\nw\n" | fdisk "$1" &&
 `cat ~/.mkfsdef` "$1"1 &&
-mount "$1"1 "$MNTPOINT"
+mount "$1"1 "$MNTPOINT" &&
+chmod 777 "$MNTPOINT"
 
