@@ -1,0 +1,4 @@
+#!/bin/bash
+svn up &&
+xbuild &&
+mono --aot -O=all Release/*.{dll,exe}
