@@ -1,0 +1,21 @@
+#!/usr/bin/awk -f
+
+$0~"^2010-" {
+	title = $3 " " $4 " " $5 " " $6 " " $7;
+	timeperiod = strtonum($5);
+	
+	if (oldtitle != title) {
+		printf("\t%s\n%s\t", stat, title);
+		stat = "";
+		oldtitle = title;
+	}
+}
+
+$0~"^Req" {
+	printf("%s ", $2);
+	stat = sprintf("%s. %.0f", stat, strtonum($2)/timeperiod);
+}
+
+END {
+	printf("\t%s\n", stat);
+}
