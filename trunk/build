@@ -1,0 +1,3 @@
+#!/bin/bash
+xbuild &&
+mono --aot -O=all Release/*.{dll,exe}
