@@ -1,0 +1,10 @@
+#!/bin/bash
+## echo 'mkfs.ext3' > ~/.mkfsdef
+
+MNTPOINT="$2"
+[[ "$MNTPOINT" = "" ]] && MNTPOINT="/mnt/tmpmount"
+
+echo -e "d\nn\np\n1\n\n\nw\n" | fdisk "$1" &&
+`cat ~/.mkfsdef` "$1"1 &&
+mount "$1"1 "$MNTPOINT"
+
