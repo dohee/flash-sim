@@ -1,4 +1,4 @@
 #!/bin/bash
 
-nice -n 9 io tmpmount/a create "$1" &&
-nice -n 9 io tmpmount/b create "$1"
+nice -n 9 io /mnt/tmpmount/a create "$1" &&
+nice -n 9 io /mnt/tmpmount/b create "$1"
