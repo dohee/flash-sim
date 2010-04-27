@@ -1,0 +1,6 @@
+#!/usr/bin/awk -f
+
+$1~"[0-9]" && $9>10 &&
+  $12!~"VirtualBox" && $12!~"io" && $12!~"kswapd" && $12!~"umount" {
+        print FILENAME ": " $0;
+}

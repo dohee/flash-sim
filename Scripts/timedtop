@@ -1,0 +1,22 @@
+#!/bin/bash
+
+while true; do
+        top -b -d 5 -n 3 | awk '
+        BEGIN {
+                cnt = 0;
+                line = 0;
+        }
+        $0~"^top -" {
+                cnt++;
+        }
+        cnt>=3 && line<32 {
+                str = $0;
+                sub(/[ \t]+$/, "", str);
+                print str;
+                line++;
+        }
+        ' > process/`date '+%m-%d_%H.%M.%S'`
+
+        # exit
+        sleep 120
+done
