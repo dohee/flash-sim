@@ -1,0 +1,24 @@
+#!/bin/bash
+
+PARTI="$1"
+[[ "$PARTI" = "" ]] && PARTI="/dev/disk/by-path/pci-0000:06:00.0-scsi-0:0:0:0-part1"
+
+for FILE in a b; do
+for PR in 32; do
+for REQ in 4k 16k 64k; do
+for SEQ in seq rnd; do
+for READ in read write; do
+
+mount $PARTI tmpmount &&
+sleep 30 &&
+nice -n 5 io tmpmount/$FILE $READ $SEQ 180 $REQ $PR &&
+nice -n 9 umount tmpmount
+
+[[ $? -eq 0 ]] || exit $?
+sleep 30 || exit $?
+
+done
+done
+done
+done
+done
