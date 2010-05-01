@@ -3,9 +3,16 @@
 PARTI="$1"
 REQS="$2"
 PRS="$3"
+MNTPOINT="/mnt/tmpmount"
 [[ -z "$PARTI" ]] && echo "Partition name ?" && exit 1
 [[ -z "$REQS" ]] && echo "ReqSize ?" && exit 1
 [[ -z "$PRS" ]] && PRS=32
+
+if mount | grep -q " on $MNTPOINT type "; then
+	umount "$MNTPOINT" || exit $?
+	sleep 30
+fi
+
 
 for FILE in a b; do
 for PR in $PRS; do
@@ -13,10 +20,10 @@ for REQ in $REQS; do
 for SEQ in seq rnd; do
 for READ in read write; do
 
-mount $PARTI /mnt/tmpmount &&
+mount "$PARTI" "$MNTPOINT" -o noatime,nodiratime &&
 sleep 30 &&
-nice -n 5 io /mnt/tmpmount/$FILE $READ $SEQ 180 $REQ $PR &&
-nice -n 9 umount /mnt/tmpmount
+nice -n 5 io "$MNTPOINT/$FILE" $READ $SEQ 180 $REQ $PR &&
+nice -n 9 umount "$MNTPOINT"
 
 [[ $? -eq 0 ]] || exit $?
 sleep 30 || exit $?
