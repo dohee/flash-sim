@@ -4,8 +4,8 @@
 MNTPOINT="$2"
 [[ "$MNTPOINT" = "" ]] && MNTPOINT="/mnt/tmpmount"
 
+{ if mount | grep -q " on $MNTPOINT type "; then umount "$MNTPOINT"; else true; fi } &&
 echo -e "d\nn\np\n1\n\n\nw\n" | fdisk "$1" &&
 `cat ~/.mkfsdef` "$1"1 &&
-mount "$1"1 "$MNTPOINT" &&
+mount "$1"1 "$MNTPOINT" -o noatime,nodiratime &&
 chmod 777 "$MNTPOINT"
-
