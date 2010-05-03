@@ -1,11 +1,19 @@
 #!/bin/bash
-## echo 'mkfs.ext3' > ~/.mkfsdef
 
-MNTPOINT="$2"
-[[ "$MNTPOINT" = "" ]] && MNTPOINT="/mnt/tmpmount"
+if [[ $# -eq 0 ]]; then
+	echo "Usage: $0 <dev> <mkfscmd>" >&2
+	exit 1
+fi
 
-{ if mount | grep -q " on $MNTPOINT type "; then umount "$MNTPOINT"; else true; fi } &&
-echo -e "d\nn\np\n1\n\n\nw\n" | fdisk "$1" &&
-`cat ~/.mkfsdef` "$1"1 &&
-mount "$1"1 "$MNTPOINT" -o noatime,nodiratime &&
-chmod 777 "$MNTPOINT"
+
+DEV="$1"
+MKFS="$2"
+PARTI="$DEV"1
+[[ -z "$MKFS" ]] && MKFS="mkfs.ext3"
+
+{ if mount | grep -q " on $FLASHSIM_MNTPNT type "; then umount "$FLASHSIM_MNTPNT"; else true; fi } &&
+mkdir -p "$FLASHSIM_MNTPNT"				&&
+echo -e "d\nn\np\n1\n\n\nw\n" | fdisk "$DEV"		&&
+"$MKFS" "$PARTI"					&&
+mount "$PARTI" "$FLASHSIM_MNTPNT" -o noatime,nodiratime	&&
+chmod 777 "$FLASHSIM_MNTPNT"

@@ -1,15 +1,20 @@
 #!/bin/bash
 
+if [[ $# -eq 0 ]]; then
+	echo "Usage: $0 <partition> <reqsizes> <processNOs>" >&2
+	exit 1
+fi
+
+
 PARTI="$1"
 REQS="$2"
 PRS="$3"
-MNTPOINT="/mnt/tmpmount"
 [[ -z "$PARTI" ]] && echo "Partition name ?" && exit 1
 [[ -z "$REQS" ]] && echo "ReqSize ?" && exit 1
 [[ -z "$PRS" ]] && PRS=32
 
-if mount | grep -q " on $MNTPOINT type "; then
-	umount "$MNTPOINT" || exit $?
+if mount | grep -q " on $FLASHSIM_MNTPNT type "; then
+	umount "$FLASHSIM_MNTPNT" || exit $?
 	sleep 30
 fi
 
@@ -20,10 +25,10 @@ for REQ in $REQS; do
 for SEQ in seq rnd; do
 for READ in read write; do
 
-mount "$PARTI" "$MNTPOINT" -o noatime,nodiratime &&
+mount "$PARTI" "$FLASHSIM_MNTPNT" -o noatime,nodiratime &&
 sleep 30 &&
-nice -n 5 io "$MNTPOINT/$FILE" $READ $SEQ 180 $REQ $PR &&
-nice -n 9 umount "$MNTPOINT"
+nice -n 5 io "$FLASHSIM_MNTPNT/$FILE" $READ $SEQ 180 $REQ $PR &&
+nice -n 9 umount "$FLASHSIM_MNTPNT"
 
 [[ $? -eq 0 ]] || exit $?
 sleep 30 || exit $?
