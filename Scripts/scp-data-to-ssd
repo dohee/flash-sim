@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [[ $# -eq 0 ]]; then
+	echo "Usage: $0 <user@host> <remoteparent> <localparent> <filename>" >&2
+	exit 1
+fi
+
+
+HOST="$1"
+REMOTEPARENT="$2"
+LOCALPARENT="$3"
+FILENAME="$4"
+
+rm -f "./$FILENAME"				&&
+mkdir -p "$LOCALPARENT/$FILENAME"		&&
+ln -s "$LOCALPARENT/$FILENAME" "./$FILENAME"	&&
+ssh "$HOST" "cd '$REMOTEPARENT' && GZIP=-1 tar cz '$FILENAME'" | tar xz
+

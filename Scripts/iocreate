@@ -1,5 +1,4 @@
 #!/bin/bash
 
-MNTPOINT="/mnt/tmpmount"
-nice -n 9 io "$MNTPOINT/a" create "$1" &&
-nice -n 9 io "$MNTPOINT/b" create "$1"
+nice -n 9 io "$FLASHSIM_MNTPNT/a" create "$1" &&
+nice -n 9 io "$FLASHSIM_MNTPNT/b" create "$1"
