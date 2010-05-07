@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{2E478BCC-9922-45C9-8EF7-62971D14F90F}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -65,30 +65,24 @@
     <Compile Include="FTL\BlockState.cs" />
     <Compile Include="Getopt\Getopt.cs" />
     <Compile Include="Getopt\LongOpt.cs" />
-    <Compile Include="Managers\CRAW.cs" />
+    <Compile Include="Managers\Blower-ByLyf.cs" />
+    <Compile Include="Managers\Blower-ByLyf2.cs" />
     <Compile Include="Managers\CCFLRU.cs" />
+    <Compile Include="Managers\CMFT-ByLyf.cs" />
+    <Compile Include="Managers\CRAW.cs" />
     <Compile Include="Managers\FLRU-ByLyf.cs" />
     <Compile Include="Managers\LIRS-ByWu.cs" />
     <Compile Include="Managers\LRUWSR.cs" />
-    <Compile Include="Managers\QueueAndFrameBased\Blower-ByCat.cs" />
-    <Compile Include="Managers\Blower-ByLyf.cs" />
-    <Compile Include="Managers\Blower-ByLyf2.cs" />
-    <Compile Include="Managers\FLIRS-ByLyf2.cs" />
-    <Compile Include="Managers\FLIRS-ByCat.cs" />
-    <Compile Include="Managers\FLIRS-ByLyf.cs" />
     <Compile Include="Managers\CFLRU.cs" />
-    <Compile Include="Managers\QueueAndFrameBased\OldOldTn.cs" />
-    <Compile Include="Managers\Tn.cs" />
+    <Compile Include="Managers\QueueAndFrameBased\Blower-ByCat.cs" />
+    <Compile Include="Managers\QueueAndFrameBased\CMFT-ByCat.cs" />
     <Compile Include="Memory\BlowFrame.cs" />
     <Compile Include="Memory\FrameWithRWInfo.cs" />
     <Compile Include="Memory\IFrame.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Devices\NullBlockDevice.cs" />
     <Compile Include="Managers\BufferManagerBase.cs" />
-    <Compile Include="Managers\CMFT-ByLyf.cs" />
-    <Compile Include="Managers\QueueAndFrameBased\CMFT-ByCat.cs" />
     <Compile Include="Managers\ManagerGroup.cs" />
-    <Compile Include="Managers\QueueAndFrameBased\OldTn.cs" />
     <Compile Include="Managers\TrivalManager.cs" />
     <Compile Include="Memory\IRRFrame.cs" />
     <Compile Include="Memory\lirFrame.cs" />

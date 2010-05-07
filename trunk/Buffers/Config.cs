@@ -105,16 +105,6 @@ namespace Buffers
 		{
 			return new CRAW(dev, npages, Ratio);
 		}
-		[ManagerFactory("FLIRSByCat")]
-		static IBufferManager CreateFLIRSByCat(IBlockDevice dev, uint npages, string[] args)
-		{
-			return new FLIRSByCat(dev, npages, Ratio, float.Parse(args[0]));
-		}
-		[ManagerFactory("FLIRSByLyf")]
-		static IBufferManager CreateFLIRSByLyf(IBlockDevice dev, uint npages, string[] args)
-		{
-			return new FLIRSbyLyf2(dev, npages, double.Parse(args[0]));
-		}
 		[ManagerFactory("FLRU")]
         [ManagerFactory("FLRUByLyf")]
 		static IBufferManager CreateFLRUByLyf(IBlockDevice dev, uint npages, string[] args)
@@ -135,53 +125,6 @@ namespace Buffers
 		static IBufferManager CreateLRUWSR(IBlockDevice dev, uint npages, string[] args)
 		{
 			return new LRUWSR(dev, npages);
-		}
-		[ManagerFactory("OldTn")]
-		static IBufferManager CreateOldTn(IBlockDevice dev, uint npages, string[] args)
-		{
-			if (args.Length == 0)
-				return new OldTn(dev, npages, Ratio);
-			else
-				return new OldTn(dev, npages, Ratio, new TnConfig(
-					int.Parse(args[0]) != 0,
-					int.Parse(args[1]) != 0,
-					int.Parse(args[2]) != 0,
-					float.Parse(args[3]),
-					float.Parse(args[4]),
-					float.Parse(args[5]),
-					float.Parse(args[6])
-					));
-		}
-		[ManagerFactory("OldOldTn")]
-		static IBufferManager CreateOldOldTn(IBlockDevice dev, uint npages, string[] args)
-		{
-			if (args.Length == 0)
-				return new OldOldTn(dev, npages, Ratio);
-			else
-				return new OldOldTn(dev, npages, Ratio, new OldOldTnConfig(
-					int.Parse(args[0]) != 0,
-					int.Parse(args[1]) != 0,
-					uint.Parse(args[5]),
-					uint.Parse(args[6]),
-					int.Parse(args[2]) != 0
-					));
-		}
-		[ManagerFactory("Tn")]
-		[ManagerFactory("ACAR")]
-		static IBufferManager CreateTn(IBlockDevice dev, uint npages, string[] args)
-		{
-			if (args.Length == 0)
-				return new Tn(dev, npages, Ratio);
-			else
-				return new Tn(dev, npages, Ratio, new TnConfig(
-					int.Parse(args[0]) != 0,
-					int.Parse(args[1]) != 0,
-					int.Parse(args[2]) != 0,
-					float.Parse(args[3]),
-					float.Parse(args[4]),
-					float.Parse(args[5]),
-					float.Parse(args[6])
-					));
 		}
 		[ManagerFactory("Trival")]
 		static IBufferManager CreateTrival(IBlockDevice dev, uint npages, string[] args)
