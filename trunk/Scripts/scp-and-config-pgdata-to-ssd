@@ -12,7 +12,7 @@ REALUSER=$( ls -ld . | cut '-d ' -f 3 )
 
 fdiskmkfs "$DEV" "$MKFS" &&
 su -m "$REALUSER" -c "
-	ssh-data-to-ssd '$FLASHSIM_HOST' '$FLASHSIM_REMOTEDATAPARENT' '$FLASHSIM_MNTPNT' '$DATANAME' &&
+	scp-data-to-ssd '$FLASHSIM_HOST' '$FLASHSIM_REMOTEDATAPARENT' '$FLASHSIM_MNTPNT' '$DATANAME' &&
 	ln -sf '$FLASHSIM_PGCONF/postgresql.conf' '$DATANAME/postgresql.conf' &&
 	ln -sf '$FLASHSIM_PGCONF/pg_hba.conf' '$DATANAME/pg_hba.conf' &&
 	chmod 700 '$DATANAME' "
