@@ -14,5 +14,11 @@ FILENAME="$4"
 rm -f "./$FILENAME"				&&
 mkdir -p "$LOCALPARENT/$FILENAME"		&&
 ln -s "$LOCALPARENT/$FILENAME" "./$FILENAME"	&&
-ssh "$HOST" "cd '$REMOTEPARENT' && GZIP=-1 tar cz '$FILENAME'" | tar xz
+ssh "$HOST" "
+	if [ -r '$REMOTEPARENT/$FILENAME.tgz' ]; then
+		cat '$REMOTEPARENT/$FILENAME.tgz'
+	else
+		cd '$REMOTEPARENT' &&
+		GZIP=-1 tar cz '$FILENAME'
+	fi" | tar xz
 
